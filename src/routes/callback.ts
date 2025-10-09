@@ -55,10 +55,10 @@ router.get("/", csrfProtection, (req, res) => {
         }
 
         // Send response to client
-        res.send(`<pre>${JSON.stringify(data, null, 2)}</pre>`)
+        res.send(JSON.stringify(data, null, 2))
       })
       .catch((err) => {
-        res.status(500).send(`<pre>Error: ${err.message}</pre>`)
+        res.status(500).send(`Error: ${err.message}`)
       })
   } else {
     res.status(400).send("Missing code or session")
