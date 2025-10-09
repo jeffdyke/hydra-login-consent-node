@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <button onclick="startOAuth()">Login with Google via Hydra</button>
+  <div id="result"></div>
+
+  <script>
+    const CLIENT_ID = 'd8129d9b-64d1-46ff-953b-aa3ea4608639';
+    const REDIRECT_URI = 'https://auth.staging.bondlink.org/callback';
+    const HYDRA_URL = 'https://auth.staging.bondlink.org';
+
+    // PKCE helper functions
+    function generateCodeVerifier() {
+      const array = new Uint8Array(32);
+      crypto.getRandomValues(array);
+      return base64URLEncode(array);
+    }
+
+    async function generateCodeChallenge(verifier) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(verifier);
+      const hash = await crypto.subtle.digest('SHA-256', data);
+      return base64URLEncode(new Uint8Array(hash));
+    }
+
+    function base64URLEncode(buffer) {
+      const base64 = btoa(String.fromCharCode(...buffer));
+      return base64
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=/g, '');
+    }
+
+    async function startOAuth() {
+      const state = Math.random().toString(36);
+
+      // Generate PKCE parameters
+      const codeVerifier = generateCodeVerifier();
+      const codeChallenge = await generateCodeChallenge(codeVerifier);
+
+      // Store code verifier in localStorage for later use
+      localStorage.setItem('code_verifier', codeVerifier);
+      localStorage.setItem('state', state);
+
+      const authUrl = `${HYDRA_URL}/oauth2/auth?` +
+        `client_id=${CLIENT_ID}&` +
+        `redirect_uri=${encodeURIComponent(REDIRECT_URI)}&` +
+        `response_type=code&` +
+        `scope=openid email&` +
+        `state=${state}&` +
+        `code_challenge=${codeChallenge}&` +
+        `code_challenge_method=S256`;
+
+      window.location.href = authUrl;
+    }
+  </script>
+</body>
