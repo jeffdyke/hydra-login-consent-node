@@ -1,7 +1,4 @@
 {
-  "ts-node": {
-    "files": true
-  },
   "compilerOptions": {
     "resolveJsonModule": true,
     "target": "esnext",
@@ -11,6 +8,7 @@
     "strict": true,
     "esModuleInterop": true
   },
+  "include": ["src/**/*"],
   "files": [
     "./typings/index.d.ts"
   ]
