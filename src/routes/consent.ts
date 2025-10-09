@@ -20,14 +20,14 @@ const router = express.Router()
 router.get("/", csrfProtection, (req, res, next) => {
   // Parses the URL query
   const query = url.parse(req.url, true).query
-
+  console.log("Stating /consent %s", res)
   // The challenge is used to fetch information about the consent request from ORY hydraAdmin.
   const challenge = String(query.consent_challenge)
   if (!challenge) {
     next(new Error("Expected a consent challenge to be set but received none."))
     return
   }
-
+  console.log("Challenge found %s", challenge)
   // This section processes consent requests and either shows the consent UI or
   // accepts the consent request right away if the user has given consent to this
   // app before
@@ -37,13 +37,14 @@ router.get("/", csrfProtection, (req, res, next) => {
     })
     // This will be called if the HTTP request was successful
     .then((consentRequest) => {
+      console.log("Parsing consent request %s", consentRequest)
       // If a user has granted this application the requested scope, hydra will tell us to not show the UI.
       // Any cast needed because the SDK changes are still unreleased.
       // TODO: Remove in a later version.
       if (consentRequest.skip || (consentRequest.client as any)?.skip_consent) {
         // You can apply logic here, for example grant another scope, or do whatever...
         // ...
-
+        console.log("Skipped consent")
         // Now it's time to grant the consent request. You could also deny the request if something went terribly wrong
         return hydraAdmin
           .acceptOAuth2ConsentRequest({
@@ -69,11 +70,13 @@ router.get("/", csrfProtection, (req, res, next) => {
           })
           .then(({ redirect_to }) => {
             // All we need to do now is to redirect the user back to hydra!
+            console.log("Consent redirect %s", redirect_to)
             res.redirect(String(redirect_to))
           })
       }
 
       // If consent can't be skipped we MUST show the consent UI.
+      console.log("Rendering consent")
       res.render("consent", {
         csrfToken: req.csrfToken(),
         challenge: challenge,
@@ -93,7 +96,7 @@ router.get("/", csrfProtection, (req, res, next) => {
 router.post("/", csrfProtection, (req, res, next) => {
   // The challenge is now a hidden input field, so let's take it from the request body instead
   const challenge = req.body.challenge
-
+  console.log("Stating POST /consent %s", challenge)
   // Let's see if the user decided to accept or reject the consent request..
   if (req.body.submit === "Deny access") {
     // Looks like the consent request was denied by the user
@@ -117,6 +120,7 @@ router.post("/", csrfProtection, (req, res, next) => {
   // label:consent-deny-end
 
   let grantScope = req.body.grant_scope
+  console.log("Passed deny access with scope %s", grantScope)
   if (!Array.isArray(grantScope)) {
     grantScope = [grantScope]
   }
@@ -126,12 +130,12 @@ router.post("/", csrfProtection, (req, res, next) => {
     // This data will be available when introspecting the token. Try to avoid sensitive information here,
     // unless you limit who can introspect tokens.
     access_token: {
-      // foo: 'bar'
+      foo: 'bar'
     },
 
     // This data will be available in the ID token.
     id_token: {
-      // baz: 'bar'
+      baz: 'bar'
     },
   }
 
@@ -141,12 +145,13 @@ router.post("/", csrfProtection, (req, res, next) => {
   //   session.id_token.family_name = 'Doe'
   //   session.id_token.given_name = 'John'
   // }
-
+  console.log("Fetch consent request again", { consentChallenge: challenge })
   // Let's fetch the consent request again to be able to set `grantAccessTokenAudience` properly.
   hydraAdmin
     .getOAuth2ConsentRequest({ consentChallenge: challenge })
     // This will be called if the HTTP request was successful
     .then(async (consentRequest) => {
+      console.log("Successful 2nd consent request")
       const { redirect_to } = await hydraAdmin.acceptOAuth2ConsentRequest({
         consentChallenge: challenge,
         acceptOAuth2ConsentRequest: {
@@ -179,6 +184,7 @@ router.post("/", csrfProtection, (req, res, next) => {
         },
       })
       // All we need to do now is to redirect the user back to hydra!
+      console.log("Redirecting back to %s", redirect_to)
       res.redirect(String(redirect_to))
     })
     // This will handle any error that happens when making HTTP calls to hydra
