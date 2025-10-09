@@ -2,8 +2,8 @@ FROM node:23-alpine3.21
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
-
-RUN adduser -S ory -D -u 10000 -s /bin/nologin
+RUN apk add --no-cache vim
+# RUN adduser -S ory -D -u 10000 -s /bin/nologin
 
 COPY package.json package.json
 COPY package-lock.json package-lock.json
@@ -13,7 +13,7 @@ COPY . /usr/src/app
 
 RUN npm run build
 
-USER 10000
+# USER 10000
 
 ENTRYPOINT ["npm", "run", "serve"]
 
