@@ -21,8 +21,8 @@ router.get("/", (req, res) => {
   const returnedState = req.query.state;
   console.log("returned state %s code %s", returnedState, code);
   if (code) {
-    const storedState = sessionStorage.getItem('state');
-    const codeVerifier = sessionStorage.getItem('code_verifier');
+    const storedState = localStorage.getItem('state');
+    const codeVerifier = localStorage.getItem('code_verifier');
     console.log("State %s vs ReturnedState: %s with Code %s", storedState, returnedState, codeVerifier);
     let elem = document.createElement("result")
     if (returnedState != storedState) {
@@ -49,8 +49,8 @@ router.get("/", (req, res) => {
         `<pre>${JSON.stringify(data, null, 2)}</pre>`;
 
       // Clear stored values
-      sessionStorage.removeItem('code_verifier');
-      sessionStorage.removeItem('state');
+      localStorage.removeItem('code_verifier');
+      localStorage.removeItem('state');
     })
     .catch(err => {
       elem.innerHTML =
