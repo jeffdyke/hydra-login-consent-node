@@ -17,6 +17,7 @@ import device from "./routes/device"
 import callback from "./routes/callback"
 import { pgConfig } from "./config"
 
+const favicon = require('serve-favicon');
 const app = express()
 const PgStore = connectPgSimple(session)
 
@@ -100,6 +101,3 @@ const listenOn = Number(process.env.PORT || 3000)
 app.listen(listenOn, () => {
   console.log(`Listening on http://0.0.0.0:${listenOn}`)
 })
-function favicon(arg0: string): any {
-  throw new Error("Function not implemented.")
-}
