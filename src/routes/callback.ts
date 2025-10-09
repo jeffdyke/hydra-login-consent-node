@@ -47,7 +47,7 @@ router.get("/", csrfProtection, (req, res) => {
       .then((r) => r.json())
       .then((data) => {
         console.log("data is %s", data)
-
+        console.log("State: %s, Verifier %s ")
         // Clear stored values from session
         if (req.session) {
           delete req.session.codeVerifier
