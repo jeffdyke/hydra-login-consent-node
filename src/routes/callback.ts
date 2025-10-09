@@ -1,11 +1,5 @@
-// Handle callback
 import express from "express"
-import url from "url"
-import urljoin from "url-join"
 import csrf from "csurf"
-import { hydraAdmin } from "../config"
-import { oidcConformityMaybeFakeSession } from "./stub/oidc-cert"
-import { AcceptOAuth2ConsentRequestSession } from "@ory/hydra-client-fetch"
 
 const csrfProtection = csrf({
   cookie: {
@@ -16,7 +10,7 @@ const router = express.Router()
 const REDIRECT_URI = "https://auth.staging.bondlink.org/callback"
 const CLIENT_ID = "d8129d9b-64d1-46ff-953b-aa3ea4608639"
 
-router.get("/", (req, res) => {
+router.get("/", csrfProtection, (req, res) => {
   const code = req.query.code
   const returnedState = req.query.state
   console.log("returned state %s code %s", returnedState, code)
