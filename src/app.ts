@@ -6,6 +6,8 @@ import path from "path"
 import logger from "morgan"
 import cookieParser from "cookie-parser"
 import bodyParser from "body-parser"
+import session from "express-session"
+import connectPgSimple from "connect-pg-simple"
 
 import routes from "./routes"
 import login from "./routes/login"
@@ -13,8 +15,10 @@ import logout from "./routes/logout"
 import consent from "./routes/consent"
 import device from "./routes/device"
 import callback from "./routes/callback"
+import { pgConfig } from "./config"
 
 const app = express()
+const PgStore = connectPgSimple(session)
 
 // view engine setup
 app.set("views", path.join(__dirname, "..", "views"))
@@ -26,6 +30,27 @@ app.use(logger("dev"))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cookieParser())
+
+// Session middleware with PostgreSQL store
+app.use(
+  session({
+    store: new PgStore({
+      conObject: pgConfig,
+      tableName: "session",
+      createTableIfMissing: true,
+    }),
+    secret: process.env.SESSION_SECRET || "change-me-in-production",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      sameSite: "lax",
+    },
+  }),
+)
+
 app.use(express.static(path.join(__dirname, "public")))
 
 app.use("/", routes)

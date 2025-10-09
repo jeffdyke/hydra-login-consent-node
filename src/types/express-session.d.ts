@@ -1,0 +1,9 @@
+// Type definitions for express-session
+import "express-session"
+
+declare module "express-session" {
+  interface SessionData {
+    state?: string
+    codeVerifier?: string
+  }
+}
