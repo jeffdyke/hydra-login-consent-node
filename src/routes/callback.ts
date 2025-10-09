@@ -43,7 +43,9 @@ router.get("/", csrfProtection, (req, res) => {
           code_verifier: codeVerifier ?? "",
         }),
       },
-    ).then((data) => {
+    )
+      .then(r => {console.log("DATA", r); return r; })
+      .then((data) => {
         console.log("data is %s", data)
         console.log("State: %s, Verifier %s ", req.session.state, req.session.codeVerifier)
         // Clear stored values from session
