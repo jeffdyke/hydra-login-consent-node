@@ -10,6 +10,7 @@
   ],
   "scripts": {
     "build": "tsc",
+    "clean": "rm -rf lib",
     "serve": "node lib/app.js",
     "start": "ts-node-dev --project tsconfig.json --watch public,views --respawn src/app.ts",
     "test": "npm-run-all build",
