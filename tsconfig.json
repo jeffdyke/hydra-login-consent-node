@@ -1,14 +1,17 @@
 {
+  "ts-node": {
+    "files": true
+  },
   "compilerOptions": {
     "resolveJsonModule": true,
-    "target": "es5",
+    "target": "esnext",
     "module": "commonjs",
     "lib": ["es2019", "dom"],
     "outDir": "./lib",
-    "rootDir": "./src",
     "strict": true,
-    "typeRoots": ["./typings"],
     "esModuleInterop": true
   },
-  "exclude": ["contrib"]
+  "files": [
+    "./typings/index.d.ts"
+  ]
 }
