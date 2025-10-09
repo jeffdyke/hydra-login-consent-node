@@ -53,9 +53,15 @@ router.get("/", csrfProtection, (req, res) => {
           delete req.session.codeVerifier
           delete req.session.state
         }
+        res.render(
+          'callback', {
+            pageTitle: 'Callback Results',
+            pageData: JSON.stringify(data, null, 2)
+          }
 
+        )
         // Send response to client
-        res.send(JSON.stringify(data, null, 2))
+        // res.send(JSON.stringify(data, null, 2))
       })
       .catch((err) => {
         res.status(500).send(`Error: ${err.message}`)
