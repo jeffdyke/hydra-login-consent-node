@@ -35,10 +35,10 @@ router.get("/", (req, res) => {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
         grant_type: 'authorization_code',
-        code: code,
+        code: <string>code,
         redirect_uri: REDIRECT_URI,
         client_id: CLIENT_ID,
-        code_verifier: codeVerifier  // THIS IS THE KEY ADDITION
+        code_verifier: <string>codeVerifier  // THIS IS THE KEY ADDITION
       })
     })
     .then(r => r.json())
