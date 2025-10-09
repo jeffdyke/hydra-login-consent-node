@@ -62,7 +62,7 @@ app.use("/callback", callback)
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
-  next(new Error("Not Found"))
+  next(new Error("Generic Not Found"))
 })
 
 // error handlers
