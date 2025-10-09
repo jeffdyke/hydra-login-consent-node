@@ -40,7 +40,7 @@ router.get("/", csrfProtection, (req, res) => {
           code: code as string,
           redirect_uri: REDIRECT_URI,
           client_id: CLIENT_ID,
-          code_verifier: codeVerifier as string, // THIS IS THE KEY ADDITION
+          code_verifier: codeVerifier ?? "",
         }),
       },
     )
