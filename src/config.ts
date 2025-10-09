@@ -17,4 +17,13 @@ const configuration = new Configuration({
 
 const hydraAdmin = new OAuth2Api(configuration)
 
-export { hydraAdmin }
+// PostgreSQL configuration
+const pgConfig = {
+  user: process.env.POSTGRES_USER || "hydra",
+  password: process.env.POSTGRES_PASSWORD,
+  database: process.env.POSTGRES_DB || "hydra",
+  host: process.env.POSTGRES_HOST || "localhost",
+  port: parseInt(process.env.POSTGRES_PORT || "5432", 10),
+}
+
+export { hydraAdmin, pgConfig }
