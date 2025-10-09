@@ -47,18 +47,24 @@ router.get("/", csrfProtection, (req, res) => {
       .then((r) => r.json())
       .then((data) => {
         console.log("data is %s", data)
-
+        console.log("State: %s, Verifier %s ")
         // Clear stored values from session
         if (req.session) {
           delete req.session.codeVerifier
           delete req.session.state
         }
+        res.render(
+          'callback', {
+            pageTitle: 'Callback Results',
+            pageData: JSON.stringify(data, null, 2)
+          }
 
+        )
         // Send response to client
-        res.send(`<pre>${JSON.stringify(data, null, 2)}</pre>`)
+        // res.send(JSON.stringify(data, null, 2))
       })
       .catch((err) => {
-        res.status(500).send(`<pre>Error: ${err.message}</pre>`)
+        res.status(500).send(`Error: ${err.message}`)
       })
   } else {
     res.status(400).send("Missing code or session")
