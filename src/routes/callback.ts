@@ -43,20 +43,19 @@ router.get("/", csrfProtection, (req, res) => {
           code_verifier: codeVerifier ?? "",
         }),
       },
-    )
-      .then((r) => r.json())
-      .then((data) => {
+    ).then((data) => {
         console.log("data is %s", data)
-        console.log("State: %s, Verifier %s ")
+        console.log("State: %s, Verifier %s ", req.session.state, req.session.codeVerifier)
         // Clear stored values from session
         if (req.session) {
           delete req.session.codeVerifier
           delete req.session.state
         }
+        let jsonOut = JSON.stringify(data, null, 2)
         res.render(
           'callback', {
             pageTitle: 'Callback Results',
-            pageData: JSON.stringify(data, null, 2)
+            pageData: jsonOut
           }
 
         )
@@ -64,7 +63,7 @@ router.get("/", csrfProtection, (req, res) => {
         // res.send(JSON.stringify(data, null, 2))
       })
       .catch((err) => {
-        res.status(500).send(`Error: ${err.message}`)
+        res.status(500).send(`Error Caught in callback: ${err.message}`)
       })
   } else {
     res.status(400).send("Missing code or session")
