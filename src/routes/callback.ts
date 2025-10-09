@@ -23,13 +23,14 @@ router.get("/", (req, res) => {
   if (code) {
     const storedState = sessionStorage.getItem('state');
     const codeVerifier = sessionStorage.getItem('code_verifier');
-    console.log("State %s Code %s", storedState, codeVerifier);
-    if (returnedState !== storedState) {
-      document.getElementById('result').innerHTML = 'State mismatch - possible CSRF attack';
+    console.log("State %s vs ReturnedState: %s with Code %s", storedState, returnedState, codeVerifier);
+    let elem = document.createElement("result")
+    if (returnedState != storedState) {
+      elem.innerHTML = 'State mismatch - possible CSRF attack';
     }
 
     // Exchange code for tokens WITH code_verifier
-    fetch(`${hydraAdmin.basePath}/oauth2/token`, {
+    fetch(`${process.env.HYDRA_ADMIN_URL || "http://127.0.0.1:4445"}/oauth2/token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
@@ -43,7 +44,8 @@ router.get("/", (req, res) => {
     .then(r => r.json())
     .then(data => {
       console.log("data is %s", data);
-      document.getElementById('result').innerHTML =
+
+      elem.innerHTML =
         `<pre>${JSON.stringify(data, null, 2)}</pre>`;
 
       // Clear stored values
@@ -51,8 +53,9 @@ router.get("/", (req, res) => {
       sessionStorage.removeItem('state');
     })
     .catch(err => {
-      document.getElementById('result').innerHTML =
+      elem.innerHTML =
         `<pre>Error: ${err.message}</pre>`;
     });
   }
 })
+export default router;
