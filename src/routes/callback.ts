@@ -28,20 +28,21 @@ router.get("/", csrfProtection, (req, res) => {
     if (returnedState !== storedState) {
       return res.status(400).send("State mismatch - possible CSRF attack")
     }
-
+    let body = new URLSearchParams({
+          grant_type: "authorization_code",
+          code: code as string,
+          redirect_uri: REDIRECT_URI,
+          client_id: CLIENT_ID,
+          code_verifier: codeVerifier ?? "",
+        })
+    console.log("Body is %s", body)
     // Exchange code for tokens WITH code_verifier
     fetch(
       `${process.env.HYDRA_ADMIN_URL || "http://127.0.0.1:4445"}/oauth2/token`,
       {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          grant_type: "authorization_code",
-          code: code as string,
-          redirect_uri: REDIRECT_URI,
-          client_id: CLIENT_ID,
-          code_verifier: codeVerifier ?? "",
-        }),
+        body: body,
       },
     )
       .then(r => {console.log("DATA %s", r); return r; })
