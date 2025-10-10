@@ -45,8 +45,8 @@ router.get("/", csrfProtection, (req, res) => {
         body: body,
       },
     )
-      .then(r => {console.log("DATA %s", r); return r; })
-      .then((data) => {
+      .then((r) => r.json())
+      .then(data => {
         console.log("Response body: %s", data.body)
         console.log("data is %s", data)
         console.log("State: %s, Verifier %s ", req.session.state, req.session.codeVerifier)
