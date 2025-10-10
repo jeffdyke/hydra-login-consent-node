@@ -1,0 +1,74 @@
+
+services:
+  hydra-migrate:
+    image: oryd/hydra:v2.2.0
+    environment:
+      - DSN=postgres://hydra:shaken!stirred@postgres:5432/hydra?sslmode=disable
+    command: migrate sql -e --yes
+    restart: on-failure
+    depends_on:
+      - postgres
+    networks:
+      - hydra-net
+
+  hydra:
+    image: oryd/hydra:v2.2.0
+    ports:
+      - "4444:4444" # Public API
+      - "4445:4445" # Admin API
+    command: serve all --dev --config /etc/config/hydra/hydra.yml
+    environment:
+      - DSN=postgres://hydra:shaken!stirred@postgres:5432/hydra?sslmode=disable
+      - SERVE_PUBLIC_CORS_ENABLED=false
+      - SERVE_PUBLIC_CORS_ALLOWED_METHODS=POST,GET,PUT,DELETE
+      - SERVE_ADMIN_CORS_ALLOWED_METHODS=POST,GET,PUT,DELETE
+      - SERVE_COOKIES_DOMAIN=auth.staging.bondlink.org
+      - OAUTH2_EXPOSE_INTERNAL_ERRORS=true
+      - SERVE_PUBLIC_CORS_ALLOWED_ORIGINS=https://auth.staging.bondlink.org
+      - LOG_LEAK_SENSITIVE_VALUES=true
+      - LOG_LEVEL=debug
+      - LOG_FORMAT=json
+      - SECRETS_SYSTEM=G6KaOf8aJsLagw566he8yxOTTO3tInKD
+      - OIDC_SUBJECT_IDENTIFIERS_PAIRWISE_SALT=1AvfImNiD7yPGE7LYBcT5hJXOzydEEW1
+    restart: unless-stopped
+    depends_on:
+      - hydra-migrate
+    networks:
+      - hydra-net
+
+  postgres:
+    image: postgres:14-alpine
+    environment:
+      - POSTGRES_USER=hydra
+      - POSTGRES_PASSWORD=shaken!stirred
+      - POSTGRES_DB=hydra
+    volumes:
+      - hydra-postgres:/var/lib/postgresql/data
+    networks:
+      - hydra-net
+    ports:
+      - "5432:5432"
+
+  consent-app:
+    image: 668874212870.dkr.ecr.us-east-1.amazonaws.com/drone-hydra-consent-node
+    ports:
+      - "3000:3000"
+
+    environment:
+      - HYDRA_ADMIN_URL=http://10.1.1.230:4445
+      - GOOGLE_REDIRECT_URI=https://auth.staging.bondlink.org/callback
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
+      - NODE_ENV=development
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PASSWORD=shaken!stirred
+    depends_on:
+      - hydra
+    networks:
+      - hydra-net
+
+networks:
+  hydra-net:
+    driver: bridge
+
+volumes:
+  hydra-postgres:
