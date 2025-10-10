@@ -9,7 +9,7 @@ const csrfProtection = csrf({
 const router = express.Router()
 const REDIRECT_URI = "https://auth.staging.bondlink.org/callback"
 const CLIENT_ID = "d8129d9b-64d1-46ff-953b-aa3ea4608639"
-
+import { HYDRA_URL } from "../config"
 router.get("/", csrfProtection, (req, res) => {
   const code = req.query.code
   const returnedState = req.query.state
@@ -38,7 +38,7 @@ router.get("/", csrfProtection, (req, res) => {
     console.log("Body is %s", body)
     // Exchange code for tokens WITH code_verifier
     fetch(
-      `${process.env.HYDRA_ADMIN_URL || "http://127.0.0.1:4445"}/oauth2/token`,
+      `${HYDRA_URL}/oauth2/token`,
       {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
