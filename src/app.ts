@@ -16,7 +16,7 @@ import consent from "./routes/consent"
 import device from "./routes/device"
 import callback from "./routes/callback"
 import { pgConfig } from "./config"
-
+import logging from "./logging"
 const favicon = require('serve-favicon');
 const app = express()
 const PgStore = connectPgSimple(session)
