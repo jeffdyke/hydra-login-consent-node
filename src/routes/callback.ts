@@ -11,6 +11,7 @@ const router = express.Router()
 const REDIRECT_URI = "https://auth.staging.bondlink.org/callback"
 const CLIENT_ID = "d8129d9b-64d1-46ff-953b-aa3ea4608639"
 import { HYDRA_URL } from "../config.js"
+import axios from "axios"
 
 router.get("/", csrfProtection, (req, res) => {
   const code = req.query.code
@@ -39,16 +40,9 @@ router.get("/", csrfProtection, (req, res) => {
         })
     jsonLogger.info("Body is %s", body)
     // Exchange code for tokens WITH code_verifier
-    fetch(
-      `${HYDRA_URL}/oauth2/token`,
-      {
-        method: "POST",
+    axios.post(`${HYDRA_URL}/oauth2/token`, body.toString(), {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: body,
-      },
-    )
-      .then((r) => r.json())
-      .then(data => {
+    }).then(data => {
         jsonLogger.info("data is %s", data)
         jsonLogger.info("State: %s, Verifier %s ", req.session.state, req.session.codeVerifier)
         // Clear stored values from session
