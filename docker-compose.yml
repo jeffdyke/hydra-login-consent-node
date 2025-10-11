@@ -65,6 +65,8 @@ services:
       - hydra
     networks:
       - hydra-net
+    volumes:
+      - /etc/bondlink/hydra/hydra.env:/usr/src/app/.env
 
 networks:
   hydra-net:
