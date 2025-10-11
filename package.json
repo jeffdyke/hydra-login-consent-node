@@ -23,10 +23,12 @@
     "@googleapis/docs": "^7.0.0",
     "@ory/hydra-client-fetch": "^2.4.0-alpha.1",
     "@tsed/di": "^8.17.3",
+    "@tsed/json-mapper": "^8.17.3",
     "@tsed/logger": "^8.0.4",
     "@tsed/logger-file": "^8.0.4",
     "@tsed/logger-pattern-layout": "^8.0.4",
     "@tsed/logger-std": "^8.0.4",
+    "@tsed/schema": "^8.17.3",
     "@types/connect-pg-simple": "^7.0.3",
     "@types/cookie-parser": "^1.4.9",
     "@types/csurf": "^1.11.5",
@@ -57,6 +59,7 @@
     "url-join": "^5.0.0"
   },
   "devDependencies": {
+    "@types/json-schema": "^7.0.15",
     "@types/node": "^24.7.1",
     "license-checker": "^25.0.1",
     "npm-run-all": "^4.1.5",
