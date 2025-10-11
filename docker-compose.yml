@@ -31,6 +31,9 @@ services:
       - SECRETS_SYSTEM=G6KaOf8aJsLagw566he8yxOTTO3tInKD
       - OIDC_SUBJECT_IDENTIFIERS_PAIRWISE_SALT=1AvfImNiD7yPGE7LYBcT5hJXOzydEEW1
     restart: unless-stopped
+    volumes:
+      - /etc/bondlink/hydra/hydra.yml:/etc/config/hydra/hydra.yml:ro
+      - hydra-logs:/var/log/hydra
     depends_on:
       - hydra-migrate
     networks:
@@ -67,6 +70,7 @@ services:
       - hydra-net
     volumes:
       - /etc/bondlink/hydra/hydra.env:/usr/src/app/.env
+      - hydra-logs:/var/log/hydra
 
 networks:
   hydra-net:
@@ -74,3 +78,4 @@ networks:
 
 volumes:
   hydra-postgres:
+  hydra-logs:
