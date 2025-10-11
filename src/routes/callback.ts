@@ -1,6 +1,7 @@
 import express from "express"
 import csrf from "csurf"
 import { googleTokenResponse } from "../google_auth"
+import jsonLogger  from "../logging"
 const csrfProtection = csrf({
   cookie: {
     sameSite: "lax",
@@ -14,12 +15,12 @@ import { HYDRA_URL } from "../config"
 router.get("/", csrfProtection, (req, res) => {
   const code = req.query.code
   const returnedState = req.query.state
-  console.log("returned state %s code %s", returnedState, code)
+  jsonLogger.info("returned state %s code %s", returnedState, code)
 
   if (code && req.session) {
     const storedState = req.session.state
     const codeVerifier = req.session.codeVerifier
-    console.log(
+    jsonLogger.info(
       "State %s vs ReturnedState: %s with Code %s",
       storedState,
       returnedState,
@@ -36,7 +37,7 @@ router.get("/", csrfProtection, (req, res) => {
           client_id: CLIENT_ID,
           code_verifier: codeVerifier ?? "",
         })
-    console.log("Body is %s", body)
+    jsonLogger.info("Body is %s", body)
     // Exchange code for tokens WITH code_verifier
     fetch(
       `${HYDRA_URL}/oauth2/token`,
@@ -48,8 +49,8 @@ router.get("/", csrfProtection, (req, res) => {
     )
       .then((r) => r.json())
       .then(data => {
-        console.log("data is %s", data)
-        console.log("State: %s, Verifier %s ", req.session.state, req.session.codeVerifier)
+        jsonLogger.info("data is %s", data)
+        jsonLogger.info("State: %s, Verifier %s ", req.session.state, req.session.codeVerifier)
         // Clear stored values from session
         if (req.session) {
           delete req.session.codeVerifier

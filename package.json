@@ -4,15 +4,17 @@
   "bin": {
     "hydra-login-consent-logout": "lib/app.js"
   },
+  "type": "module",
+  "main": "lib/app.js",
   "files": [
     "lib",
     "views"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p .",
     "clean": "rm -rf lib",
     "serve": "node lib/app.js",
-    "start": "ts-node-dev --project tsconfig.json --watch public,views --respawn src/app.ts",
+    "start": "ts-node-dev --enable-source-maps --project tsconfig.json --watch public,views --respawn src/app.ts",
     "test": "npm-run-all build",
     "prepublishOnly": "tsc"
   },
@@ -46,6 +48,7 @@
     "pug": "^3.0.3",
     "querystring": "^0.2.1",
     "serve-favicon": "^2.5.1",
+    "tslog": "^4.10.2",
     "typescript": "^5.9.3",
     "url-join": "^5.0.0"
   },

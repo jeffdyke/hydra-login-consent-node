@@ -16,7 +16,7 @@ import consent from "./routes/consent"
 import device from "./routes/device"
 import callback from "./routes/callback"
 import { pgConfig } from "./config"
-import logging from "./logging"
+import jsonLogger from "./logging"
 const favicon = require('serve-favicon');
 const app = express()
 const PgStore = connectPgSimple(session)
@@ -99,5 +99,5 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
 const listenOn = Number(process.env.PORT || 3000)
 app.listen(listenOn, () => {
-  console.log(`Listening on http://0.0.0.0:${listenOn}`)
+  jsonLogger.info(`Listening on http://0.0.0.0:${listenOn}`)
 })
