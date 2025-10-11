@@ -1,6 +1,6 @@
 import express from "express"
 import csrf from "csurf"
-
+import { googleTokenResponse } from "../google_auth"
 const csrfProtection = csrf({
   cookie: {
     sameSite: "lax",
@@ -55,7 +55,9 @@ router.get("/", csrfProtection, (req, res) => {
           delete req.session.codeVerifier
           delete req.session.state
         }
-        let jsonOut = JSON.stringify(data, null, 2)
+        const resp = googleTokenResponse(code as string)
+
+        let jsonOut = JSON.stringify(resp, null, 2)
         res.render(
           'callback', {
             pageTitle: 'Callback Results',
