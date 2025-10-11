@@ -2,10 +2,11 @@
   "compilerOptions": {
     "resolveJsonModule": true,
     "target": "esnext",
-    "module": "commonjs",
+    "module": "nodenext",
     "lib": ["es2019", "dom"],
     "outDir": "./lib",
     "strict": true,
+    "moduleResolution": "node16",
     "esModuleInterop": true
   },
   "include": ["src/**/*"],
