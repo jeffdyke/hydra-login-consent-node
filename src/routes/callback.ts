@@ -1,7 +1,7 @@
 import express from "express"
 import csrf from "csurf"
-import { googleTokenResponse } from "../google_auth"
-import jsonLogger  from "../logging"
+import { googleTokenResponse } from "../google_auth.js"
+import jsonLogger  from "../logging.js"
 const csrfProtection = csrf({
   cookie: {
     sameSite: "lax",
@@ -10,7 +10,7 @@ const csrfProtection = csrf({
 const router = express.Router()
 const REDIRECT_URI = "https://auth.staging.bondlink.org/callback"
 const CLIENT_ID = "d8129d9b-64d1-46ff-953b-aa3ea4608639"
-import { HYDRA_URL } from "../config"
+import { HYDRA_URL } from "../config.js"
 
 router.get("/", csrfProtection, (req, res) => {
   const code = req.query.code

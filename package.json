@@ -24,6 +24,9 @@
     "@ory/hydra-client-fetch": "^2.4.0-alpha.1",
     "@tsed/di": "^8.17.3",
     "@tsed/logger": "^8.0.4",
+    "@tsed/logger-file": "^8.0.4",
+    "@tsed/logger-pattern-layout": "^8.0.4",
+    "@tsed/logger-std": "^8.0.4",
     "@types/connect-pg-simple": "^7.0.3",
     "@types/cookie-parser": "^1.4.9",
     "@types/csurf": "^1.11.5",
@@ -48,6 +51,7 @@
     "pug": "^3.0.3",
     "querystring": "^0.2.1",
     "serve-favicon": "^2.5.1",
+    "source-map-support": "^0.5.21",
     "tslog": "^4.10.2",
     "typescript": "^5.9.3",
     "url-join": "^5.0.0"

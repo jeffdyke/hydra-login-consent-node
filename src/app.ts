@@ -9,14 +9,14 @@ import bodyParser from "body-parser"
 import session from "express-session"
 import connectPgSimple from "connect-pg-simple"
 
-import routes from "./routes"
-import login from "./routes/login"
-import logout from "./routes/logout"
-import consent from "./routes/consent"
-import device from "./routes/device"
-import callback from "./routes/callback"
-import { pgConfig } from "./config"
-import jsonLogger from "./logging"
+import routes from "./routes/index.js"
+import login from "./routes/login.js"
+import logout from "./routes/logout.js"
+import consent from "./routes/consent.js"
+import device from "./routes/device.js"
+import callback from "./routes/callback.js"
+import { pgConfig } from "./config.js"
+import jsonLogger from "./logging.js"
 const favicon = require('serve-favicon');
 const app = express()
 const PgStore = connectPgSimple(session)
