@@ -1,4 +1,6 @@
 import {$log} from "@tsed/logger";
+import {Logger} from "tslog";
+const jsonLogger = new Logger({type: "json"})
 const setLoggers = () => {
   $log.appenders.set("stdout", {
     type: "file",
@@ -18,4 +20,5 @@ const setLoggers = () => {
   });
 
 }
-export default setLoggers();
+setLoggers();
+export default jsonLogger;
