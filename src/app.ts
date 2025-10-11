@@ -8,6 +8,7 @@ import cookieParser from "cookie-parser"
 import bodyParser from "body-parser"
 import session from "express-session"
 import connectPgSimple from "connect-pg-simple"
+import { google as gapi} from "googleapis"
 
 import routes from "./routes"
 import login from "./routes/login"
@@ -20,6 +21,27 @@ import { pgConfig } from "./config"
 const favicon = require('serve-favicon');
 const app = express()
 const PgStore = connectPgSimple(session)
+// const keys = require()
+
+// //On load, called to load the auth2 library and API client library.
+
+
+// // Initialize the API client library
+// function initClient() {
+//   new gapi.auth.OAuth2(
+//     process.env.CLIENT_ID,
+//     process.env.CLIENT_SECRET,
+//     process.env.REDIRECT_URI
+//   )
+//   gapi.client.init({
+//     discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
+//     clientId: 'YOUR_CLIENT_ID',
+//     scope: 'https://www.googleapis.com/auth/drive.metadata.readonly'
+//   }).then(function () {
+//     // do stuff with loaded APIs
+//     console.log('it worked');
+//   });
+// }
 
 // view engine setup
 app.set("views", path.join(__dirname, "..", "views"))
