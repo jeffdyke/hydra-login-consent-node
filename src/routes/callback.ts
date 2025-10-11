@@ -10,9 +10,6 @@ const router = express.Router()
 const REDIRECT_URI = "https://auth.staging.bondlink.org/callback"
 const CLIENT_ID = "d8129d9b-64d1-46ff-953b-aa3ea4608639"
 import { HYDRA_URL } from "../config"
-router.get("/auth/google", csrfProtection, (req, res) => {
-  passport.authenticate('google', { scope: ['profile'] })
-})
 
 router.get("/", csrfProtection, (req, res) => {
   const code = req.query.code
@@ -76,12 +73,5 @@ router.get("/", csrfProtection, (req, res) => {
     res.status(400).send("Missing code or session")
   }
 })
-router.get("/google-auth", csrfProtection, (req, res) => {
-  let auth2 = gapi.auth2.getAuthInstance();
-  let profile = auth2.currentUser.get().getBasicProfile();
 
-  const code = req.query.code
-  const returnedState = req.query.state
-  console.log("returned state %s code %s", returnedState, code)
-})
 export default router
