@@ -47,7 +47,6 @@ router.get("/", csrfProtection, (req, res) => {
     )
       .then((r) => r.json())
       .then(data => {
-        console.log("Response body: %s", data.body)
         console.log("data is %s", data)
         console.log("State: %s, Verifier %s ", req.session.state, req.session.codeVerifier)
         // Clear stored values from session
@@ -73,5 +72,12 @@ router.get("/", csrfProtection, (req, res) => {
     res.status(400).send("Missing code or session")
   }
 })
+router.get("/google-auth", csrfProtection, (req, res) => {
+  let auth2 = gapi.auth2.getAuthInstance();
+  let profile = auth2.currentUser.get().getBasicProfile();
 
+  const code = req.query.code
+  const returnedState = req.query.state
+  console.log("returned state %s code %s", returnedState, code)
+})
 export default router
