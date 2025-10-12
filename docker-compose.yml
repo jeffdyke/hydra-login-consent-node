@@ -27,7 +27,6 @@ services:
       - SERVE_PUBLIC_CORS_ALLOWED_ORIGINS=https://auth.staging.bondlink.org
       - LOG_LEAK_SENSITIVE_VALUES=true
       - LOG_LEVEL=debug
-      - LOG_FORMAT=json
       - SECRETS_SYSTEM=G6KaOf8aJsLagw566he8yxOTTO3tInKD
       - OIDC_SUBJECT_IDENTIFIERS_PAIRWISE_SALT=1AvfImNiD7yPGE7LYBcT5hJXOzydEEW1
     restart: unless-stopped
