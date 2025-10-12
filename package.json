@@ -14,7 +14,7 @@
     "_tsc": "tsc -p .",
     "_bundle": "rollup -c rollup.config.js",
     "build": "npm-run-all clean _tsc _bundle",
-    "clean": "rm -rf lib",
+    "clean": "rm -rf lib dist",
     "serve": "node lib/bundle/hydra-consent-node.esm.js",
     "start": "ts-node-dev --project tsconfig.json --watch public,views --respawn lib/bundle/app.js",
     "test": "npm-run-all build",
