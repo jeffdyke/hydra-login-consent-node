@@ -1,7 +1,9 @@
 // Copyright © 2025 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
+//import 'source-map-support/register'
 
-import express, { NextFunction, Response, Request } from "express"
+import express from "express"
+import { NextFunction, Response, Request } from "express"
 import path from "path"
 import logger from "morgan"
 import cookieParser from "cookie-parser"
@@ -17,7 +19,12 @@ import device from "./routes/device.js"
 import callback from "./routes/callback.js"
 import { pgConfig } from "./config.js"
 import jsonLogger from "./logging.js"
-const favicon = require('serve-favicon');
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+import favicon from "serve-favicon";
 const app = express()
 const PgStore = connectPgSimple(session)
 
@@ -26,7 +33,7 @@ app.set("views", path.join(__dirname, "..", "views"))
 app.set("view engine", "pug")
 
 // uncomment after placing your favicon in /public
-app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+// app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger("dev"))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))

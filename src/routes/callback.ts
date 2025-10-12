@@ -1,5 +1,5 @@
 import express from "express"
-import csrf from "csurf"
+import { default as csrf } from 'csurf';
 import { googleTokenResponse } from "../google_auth.js"
 import jsonLogger  from "../logging.js"
 const csrfProtection = csrf({

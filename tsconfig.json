@@ -3,11 +3,14 @@
     "resolveJsonModule": true,
     "target": "esnext",
     "module": "nodenext",
-    "lib": ["es2019", "dom"],
-    "outDir": "./lib",
+    "outDir": "./lib/bundle",
+    "moduleResolution": "nodenext",
     "strict": true,
-    "moduleResolution": "node16",
-    "esModuleInterop": true
+    "lib": ["es2020", "DOM"],
+    "esModuleInterop": false,
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
   "include": ["src/**/*"],
   "files": [

@@ -4,10 +4,10 @@
 import express from "express"
 import url from "url"
 import urljoin from "url-join"
-import csrf from "csurf"
+import { default as csrf } from 'csurf';
 import { hydraAdmin } from "../config.js"
 import { oidcConformityMaybeFakeSession } from "./stub/oidc-cert.js"
-import { AcceptOAuth2ConsentRequestSession } from "@ory/hydra-client-fetch"
+import { AcceptOAuth2ConsentRequestSession } from "@ory/hydra-client-fetch/dist/index.js"
 import jsonLogger  from "../logging.js"
 // Sets up csrf protection
 const csrfProtection = csrf({

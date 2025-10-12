@@ -1,23 +1,19 @@
 // Copyright © 2025 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-
-import { Configuration, OAuth2Api } from "@ory/hydra-client-fetch"
+import { Configuration, ConfigurationParameters } from "@ory/hydra-client";
+import { OAuth2Api } from "@ory/hydra-client-fetch"
 
 const baseOptions: any = {}
+baseOptions.basePath = process.env.HYDRA_ADMIN_URL || "http://localhost:4445"
+baseOptions.accessToken = process.env.ORY_API_KEY || process.env.ORY_PAT
 
 if (process.env.MOCK_TLS_TERMINATION) {
   baseOptions.headers = { "X-Forwarded-Proto": "https" }
 }
 
-const configuration = new Configuration({
-  basePath: process.env.HYDRA_ADMIN_URL,
-  accessToken: process.env.ORY_API_KEY || process.env.ORY_PAT,
-  headers: baseOptions.headers
-})
-
 const HYDRA_URL = process.env.HYDRA_URL || "https://auth.staging.bondlink.org"
 
-const hydraAdmin = new OAuth2Api(configuration)
+const hydraAdmin = new OAuth2Api(baseOptions)
 
 // PostgreSQL configuration
 const pgConfig = {

@@ -6,24 +6,34 @@ import {CollectionOf, Minimum, Property, Description} from "@tsed/schema";
 import {Configuration} from "@tsed/di";
 import { auth, OAuth2Client, TokenPayload } from 'google-auth-library';
 import jsonLogger  from "./logging.js"
+import { URLSearchParams } from 'url';
 dotenv.config()
-export type UserInfo = {
-  id: string;
-  email: string;
-  verified_email: boolean;
-  name: string;
-  given_name: string;
-  family_name: string;
-  picture: string;
-  locale: string;
-}
-@Configuration({
+
+Configuration({
   jsonMapper: {
     additionalProperties: false,
     disableUnsecureConstructor: false,
     strictGroups: false
   }
 })
+export class UserInfo {
+  @Property()
+  id: string | undefined;
+  @Property()
+  email: string | undefined;
+  @Property()
+  verified_email: boolean | undefined;
+  @Property()
+  name: string | undefined;
+  @Property()
+  given_name: string | undefined;
+  @Property()
+  family_name: string | undefined;
+  @Property()
+  picture: string | undefined;
+  @Property()
+  locale: string | undefined;
+}
 export class GoogleTokenResponse {
   @Property()
   access_token: string | undefined;
@@ -43,22 +53,68 @@ export class GoogleTokenResponse {
   @Property()
   refresh_token?: string; // Optional: Present if offline access is requested
 }
+export type StringRecord = Record<string, string>;
 
-export const authClientConfig = {
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      redirectUri: "https://claude.com/api/mcp/auth_callback"
-    }
+function convertClassToRecord(obj: any): Record<string, string> {
+  const record: Record<string, string> = {};
+  for (const key in obj) {
+      // Ensure the property belongs to the object itself, not its prototype chain
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+          const value = obj[key];
+          if (typeof value === 'object' && value !== null) {
+              // Handle nested objects by converting them to JSON strings
+              record[key] = JSON.stringify(value);
+          } else if (typeof value !== 'function') {
+              // Exclude methods and convert other values to strings
+              record[key] = String(value);
+          }
+      }
+  }
+  return record;
+}
+
+export class AuthClientConfig {
+  @Property()
+  clientId: string | undefined;
+  @Property()
+  clientSecret: string | undefined;
+  @Property()
+  redirectUri: string | undefined
+  constructor(clientId?: string, clientSecret?: string, redirectUri?: string) {
+    this.clientId = clientId;
+    this.clientSecret = clientSecret;
+    this.redirectUri = redirectUri;
+  }
+
+}
+export class AuthorizationCodeRequest {
+  @Property()
+  code: string | undefined;
+  @Property()
+  config: AuthClientConfig | undefined;
+  @Property()
+  grantType: string | undefined
+  constructor(code: string, config: AuthClientConfig, grantType?: string) {
+    this.code = code;
+    this.config = config;
+    this.grantType = grantType || undefined;
+  }
+
+
+}
 
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const formHeader = {
       "Content-Type": "application/x-www-form-urlencoded",
     };
 async function googleOAuthTokens(code: string): Promise<TokenPayload> {
+  const authClientConfig: AuthClientConfig = new AuthClientConfig(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
+  const authCodeRequest: AuthorizationCodeRequest = new AuthorizationCodeRequest(code, authClientConfig, "");
+  jsonLogger.info("Auth Code Request is %s", authCodeRequest);
 
   return await axios.post(
       GOOGLE_TOKEN_URL,
-      qs.stringify({...authClientConfig, code: code}),
+      new URLSearchParams(convertClassToRecord(authCodeRequest)),
       { headers: formHeader }
     ).then((resp) => { jsonLogger.info("Response is %s", resp.data); return resp.data})
     .catch((err) => { jsonLogger.info("Error is %s", err); return err.response.data });
@@ -73,14 +129,11 @@ async function getGoogleUser(access_token: string, id_token: string): Promise<Us
 
 }
 async function googleTokenResponse(code: string): Promise<GoogleTokenResponse> {
-    const body = new URLSearchParams({
-      code,
-      client_id: authClientConfig.clientId || '',
-      client_secret: authClientConfig.clientSecret || '',
-      redirect_uri: authClientConfig.redirectUri || '',
-      grant_type: 'authorization_code'
-    })
-    return await axios.post(GOOGLE_TOKEN_URL, body, { headers: formHeader })
+    const authClientConfig: AuthClientConfig = new AuthClientConfig(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
+    return await axios.post(
+      GOOGLE_TOKEN_URL,
+      new URLSearchParams(convertClassToRecord(new AuthorizationCodeRequest(code, authClientConfig, 'authorization_code'))),
+      { headers: formHeader })
       .then((resp) => { return resp.data })
       .catch((err) => { jsonLogger.info("Error is %s", err); return err.response.data })
   }
