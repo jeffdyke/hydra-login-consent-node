@@ -8,7 +8,9 @@ const config = [
   {
     input: 'src/app.ts',
     output: {
-      file: 'lib/bundle/hydra-consent-node.esm.js',
+      dir: 'dist',
+      preserveModules: true,
+      entryFileNames: '[name].js',
       format: 'esm',
       sourcemap: true,
     },
@@ -16,7 +18,7 @@ const config = [
     plugins: [typescript(), resolve(), json(),
     copy({
         targets: [
-          { src: 'views/**/*', dest: 'lib/bundle/views' } // Copy the 'views' folder and its contents
+          { src: 'views/**/*', dest: 'dist/views' } // Copy the 'views' folder and its contents
         ],
         flatten: false // Preserve the directory structure within 'views'
       })

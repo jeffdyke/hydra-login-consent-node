@@ -3,7 +3,7 @@
     "resolveJsonModule": true,
     "target": "esnext",
     "module": "nodenext",
-    "outDir": "./lib/bundle",
+    "outDir": "./dist",
     "moduleResolution": "nodenext",
     "strict": true,
     "lib": ["es2020", "DOM"],
