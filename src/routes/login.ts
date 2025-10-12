@@ -4,12 +4,12 @@
 import express from "express"
 import url from "url"
 import urljoin from "url-join"
-import csrf from "csurf"
+import { default as csurf } from 'csurf';
 import { hydraAdmin } from "../config.js"
 import { oidcConformityMaybeFakeAcr } from "./stub/oidc-cert.js"
 
 // Sets up csrf protection
-const csrfProtection = csrf({
+const csrfProtection = csurf({
   cookie: {
     sameSite: "lax",
   },

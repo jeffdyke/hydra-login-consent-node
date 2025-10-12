@@ -4,7 +4,7 @@
 import express from "express"
 import url from "url"
 import urljoin from "url-join"
-import csrf from "csurf"
+import { default as csrf } from 'csurf';
 import { hydraAdmin } from "../config.js"
 
 // Sets up csrf protection
