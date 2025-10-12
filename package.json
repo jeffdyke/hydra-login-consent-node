@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "_tsc": "tsc -p .",
-    "_bundle": "rollup -c rollup.config.ts",
+    "_bundle": "rollup -c rollup.config.js",
     "build": "npm-run-all clean _tsc _bundle",
     "clean": "rm -rf lib",
     "serve": "node lib/bundle/hydra-consent-node.esm.js",
