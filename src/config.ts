@@ -11,7 +11,7 @@ if (process.env.MOCK_TLS_TERMINATION) {
   baseOptions.headers = { "X-Forwarded-Proto": "https" }
 }
 
-const HYDRA_URL = process.env.HYDRA_URL || "https://auth.staging.bondlink.org"
+const HYDRA_URL = "https://auth.staging.bondlink.org"
 
 const hydraAdmin = new OAuth2Api(baseOptions)
 

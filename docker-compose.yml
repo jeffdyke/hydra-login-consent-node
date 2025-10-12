@@ -1,4 +1,5 @@
 
+name: hydra
 services:
   hydra-migrate:
     image: oryd/hydra:v2.2.0
@@ -16,7 +17,9 @@ services:
     ports:
       - "4444:4444" # Public API
       - "4445:4445" # Admin API
-    command: serve all --dev --config /etc/config/hydra/hydra.yml
+    command: serve all --dev
+    env_file:
+      - /etc/bondlink/hydra/hydra.env
     environment:
       - DSN=postgres://hydra:shaken!stirred@postgres:5432/hydra?sslmode=disable
       - SERVE_PUBLIC_CORS_ENABLED=false
@@ -29,6 +32,7 @@ services:
       - LOG_LEVEL=debug
       - SECRETS_SYSTEM=G6KaOf8aJsLagw566he8yxOTTO3tInKD
       - OIDC_SUBJECT_IDENTIFIERS_PAIRWISE_SALT=1AvfImNiD7yPGE7LYBcT5hJXOzydEEW1
+
     restart: unless-stopped
     volumes:
       - /etc/bondlink/hydra/hydra.yml:/etc/config/hydra/hydra.yml:ro
