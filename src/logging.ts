@@ -1,5 +1,5 @@
 import {Logger} from "@tsed/logger";
-
+import {JsonLayout} from "@tsed/logger/layouts/JsonLayout.js";
 const APP_LOG = new Logger()
 
 APP_LOG.appenders.set("std-log-json", {
@@ -8,7 +8,7 @@ APP_LOG.appenders.set("std-log-json", {
   pattern: ".yyyy-MM-dd",
   levels: ["info", "debug", "error", "warn", "trace", "fatal"],
   layout: {
-    type: "json"
+    type: JsonLayout
   }
 })
 
