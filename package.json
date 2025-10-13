@@ -67,7 +67,7 @@
     "tslog": "^4.10.2",
     "typescript": "^5.9.3",
     "url-join": "^5.0.0",
-    "client-fetch-local": "file:../client-fetch-local"
+    "client-fetch-local": "file:./client-fetch-local"
   },
   "devDependencies": {
     "@rollup/plugin-babel": "^6.0.4",
