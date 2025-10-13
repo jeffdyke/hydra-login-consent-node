@@ -72,8 +72,8 @@ services:
     networks:
       - hydra-net
     volumes:
-      - /etc/bondlink/hydra/hydra.env:/usr/src/app/.env
-      - hydra-logs:/var/log/hydra
+      - /etc/bondlink/hydra/hydra.env:/usr/src/app/dist/.env
+      - /var/log/hydra:/var/log/hydra
 
 networks:
   hydra-net:
