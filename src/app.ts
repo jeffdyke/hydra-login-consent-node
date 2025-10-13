@@ -25,7 +25,7 @@ const app = express()
 const PgStore = connectPgSimple(session)
 
 // view engine setup
-app.set("views", path.join(dirname(import.meta.url), "..", "views"))
+app.set("views", "views")
 app.set("view engine", "pug")
 
 // uncomment after placing your favicon in /public
