@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Configuration, ConfigurationParameters } from "@ory/hydra-client";
 import { OAuth2Api } from "@ory/client-fetch"
-
 const baseOptions: any = {}
 baseOptions.basePath = process.env.HYDRA_ADMIN_URL || "http://localhost:4445"
 baseOptions.accessToken = process.env.ORY_API_KEY || process.env.ORY_PAT
@@ -13,7 +12,7 @@ if (process.env.MOCK_TLS_TERMINATION) {
 
 const HYDRA_URL = "https://auth.staging.bondlink.org"
 
-const hydraAdmin = new OAuth2Api(baseOptions)
+const hydraAdmin = new OAuth2Api(baseOptions )
 
 // PostgreSQL configuration
 const pgConfig = {
