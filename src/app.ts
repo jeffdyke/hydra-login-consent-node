@@ -66,6 +66,7 @@ app.use("/callback", callback)
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
+  jsonLogger.info("404 Not Found: %s", req.originalUrl)
   next(new Error("Generic Not Found"))
 })
 
