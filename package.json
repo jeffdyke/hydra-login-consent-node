@@ -89,6 +89,5 @@
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-dts": "^6.2.3",
     "ts-node-dev": "^2.0.0"
-  },
-  "postinstall": "patch-package"
+  }
 }
