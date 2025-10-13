@@ -1,7 +1,7 @@
 // Copyright © 2025 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
 import { Configuration, ConfigurationParameters } from "@ory/hydra-client";
-import { OAuth2Api } from "@ory/hydra-client-fetch"
+import { OAuth2Api } from "@ory/client-fetch"
 
 const baseOptions: any = {}
 baseOptions.basePath = process.env.HYDRA_ADMIN_URL || "http://localhost:4445"
