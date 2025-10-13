@@ -24,8 +24,8 @@
   "prettier": "ory-prettier-styles",
   "dependencies": {
     "@googleapis/docs": "^7.0.0",
+    "@ory/client-fetch": "^1.22.6",
     "@ory/hydra-client": "^2.4.0-alpha.1",
-    "@ory/hydra-client-fetch": "^2.4.0-alpha.1",
     "@tsconfig/node-lts": "latest",
     "@tsed/di": "^8.17.3",
     "@tsed/json-mapper": "^8.17.3",
