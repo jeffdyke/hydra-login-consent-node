@@ -12,8 +12,10 @@ const config = [
       dir: 'dist',
       entryFileNames: '[name].js',
       format: 'esm',
-      sourcemap: true,
+      sourcemap: true
+
     },
+    external: packageJson.dependencies ? Object.keys(packageJson.dependencies) : [],
     plugins: [typescript(), json(), resolve({jsnext: true}), commonjs({include: ['src/app.ts', 'node_modules/**']}),
     copy({
         targets: [
