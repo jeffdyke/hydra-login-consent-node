@@ -12,6 +12,7 @@ const REDIRECT_URI = process.env.REDIRECT_URL || "http://localhost:3000/callback
 const CLIENT_ID = "d8129d9b-64d1-46ff-953b-aa3ea4608639"
 
 import axios from "axios"
+import { json } from "body-parser";
 
 router.get("/", csrfProtection, (req, res) => {
   const code = req.query.code
@@ -67,7 +68,8 @@ router.get("/", csrfProtection, (req, res) => {
         res.status(500).send(`Error Caught in callback: ${err.message}`)
       })
   } else {
-    res.status(400).send("Missing code or session")
+    jsonLogger.info("Missing code (%s) or session (%s)", code, JSON.stringify(req.session))
+    res.status(400).send("Missing code or session ")
   }
 })
 
