@@ -59,7 +59,9 @@ services:
     image: 668874212870.dkr.ecr.us-east-1.amazonaws.com/drone-hydra-consent-node
     ports:
       - "3000:3000"
-
+    build:
+      context: .
+      dockerfile: build/Dockerfile.consent-app
     environment:
       - HYDRA_ADMIN_URL=http://10.1.1.230:4445
       - GOOGLE_REDIRECT_URI=https://auth.staging.bondlink.org/callback

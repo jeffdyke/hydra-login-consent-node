@@ -14,9 +14,10 @@ const csrfProtection = csurf({
     sameSite: "lax",
   },
 })
+
 const router = express.Router()
 
-router.get("/", csrfProtection, (req, res, next) => {
+router.get("/", (req, res, next) => {
   // Parses the URL query
   const query = url.parse(req.url, true).query
 
@@ -66,7 +67,7 @@ router.get("/", csrfProtection, (req, res, next) => {
     .catch(next)
 })
 
-router.post("/", csrfProtection, (req, res, next) => {
+router.post("/", (req, res, next) => {
   // The challenge is now a hidden input field, so let's take it from the request body instead
   const challenge = req.body.challenge
 
