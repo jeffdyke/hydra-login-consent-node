@@ -60,8 +60,8 @@ updateClient() {
   echo "$client_output"
 }
 getClient() {
-  local clientId=$(grep CLIENT_ID .env | cut -d '=' -f2)
-  hydra get oauth2-client $clientId --endpoint "${ISSUER_ADMIN}" --format json | jq '.'
+  _validateClientId
+  hydra get oauth2-client $CLIENT_ID --endpoint "${ISSUER_ADMIN}" --format json | jq '.'
 }
 
 createEnvFile() {
