@@ -22,6 +22,7 @@ import jsonLogger from "./logging.js"
 import { dirname } from 'path';
 import favicon from "serve-favicon";
 import { default as csurf } from 'csurf';
+import pg from "pg";
 const app = express()
 const PgStore = connectPgSimple(session)
 
@@ -62,7 +63,12 @@ app.use(
     },
   })
 )
-
+new pg.Pool({
+  connectionString: process.env.DSN,
+}).on("error", (err) => {
+  jsonLogger.error("Unexpected error on idle client", err)
+  process.exit(-1)
+});
 app.use(express.static(path.join(dirname(import.meta.url), "public")))
 
 app.use("/", routes)

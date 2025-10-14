@@ -2,26 +2,32 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Configuration, ConfigurationParameters } from "@ory/hydra-client-fetch";
 import { OAuth2Api } from "@ory/hydra-client-fetch/dist/index.js"
-import queryString from "query-string"
+import { json } from "body-parser";
+import queryString from "query-string";
+import jsonLogger from "./logging.js"
 const baseOptions: any = {}
-baseOptions.basePath = process.env.HYDRA_ADMIN_URL || "http://localhost:4445"
-baseOptions.accessToken = process.env.ORY_API_KEY || process.env.ORY_PAT
-baseOptions.queryParamsStringify = queryString.stringify
+// baseOptions.basePath = process.env.HYDRA_ADMIN_URL || "http://localhost:4445"
+// baseOptions.accessToken = process.env.ORY_API_KEY || process.env.ORY_PAT
+// baseOptions.queryParamsStringify = queryString.stringify
 if (process.env.MOCK_TLS_TERMINATION) {
   baseOptions.headers = { "X-Forwarded-Proto": "https" }
 }
+const configuration = new Configuration({
+  basePath: process.env.HYDRA_ADMIN_URL,
+  accessToken: process.env.ORY_API_KEY || process.env.ORY_PAT,
+  headers: baseOptions.headers,
+})
 
-const HYDRA_URL = "https://auth.staging.bondlink.org"
-
-const hydraAdmin = new OAuth2Api(baseOptions)
-
+const hydraAdmin = new OAuth2Api(configuration)
+// jsonLogger.info("Hydra Admin URL: %s", hydraAdmin.middleware)
 // PostgreSQL configuration
+// process.env is empty
 const pgConfig = {
   user: process.env.POSTGRES_USER || "hydra",
-  password: process.env.POSTGRES_PASSWORD,
+  password: process.env.POSTGRES_PASSWORD || "shaken!stirred",
   database: process.env.POSTGRES_DB || "hydra",
   host: process.env.POSTGRES_HOST || "localhost",
   port: parseInt(process.env.POSTGRES_PORT || "5432", 10),
 }
 
-export { hydraAdmin, pgConfig, HYDRA_URL }
+export { hydraAdmin, pgConfig}
