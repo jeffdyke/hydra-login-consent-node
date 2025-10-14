@@ -21,6 +21,7 @@ import { pgConfig } from "./config.js"
 import jsonLogger from "./logging.js"
 import { dirname } from 'path';
 import favicon from "serve-favicon";
+import { default as csurf } from 'csurf';
 const app = express()
 const PgStore = connectPgSimple(session)
 
@@ -34,7 +35,14 @@ app.use(logger("dev"))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cookieParser())
+// Sets up csrf protection
+const csrfProtection = csurf({
+  cookie: {
+    sameSite: "lax",
+  },
+})
 
+app.use(csrfProtection);
 // Session middleware with PostgreSQL store
 app.use(
   session({
@@ -52,7 +60,7 @@ app.use(
       httpOnly: true,
       sameSite: "lax",
     },
-  }),
+  })
 )
 
 app.use(express.static(path.join(dirname(import.meta.url), "public")))

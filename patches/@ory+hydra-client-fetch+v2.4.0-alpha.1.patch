@@ -4,21 +4,11 @@ index c7f8543..70929e5 100644
 +++ b/node_modules/@ory/hydra-client-fetch/src/runtime.ts
 @@ -48,7 +48,18 @@ export class Configuration {
      }
- 
+
      get queryParamsStringify(): (params: HTTPQuery) => string {
 -        return this.configuration.queryParamsStringify || querystring;
-+      const searchParams = new URLSearchParams();
-+      for (const key in params) {
-+        if (Object.prototype.hasOwnProperty.call(params, key)) {
-+          const value = params[key];
-+          if (Array.isArray(value)) {
-+            value.forEach(item => searchParams.append(key, item));
-+          } else {
-+            searchParams.append(key, value);
-+          }
-+        }
-+      }
++      const searchParams = new URLSearchParams(params);
 +      return searchParams.toString();
      }
- 
+
      get username(): string | undefined {
