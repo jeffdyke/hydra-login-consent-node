@@ -8,21 +8,25 @@ HOST_IP=$(ipconfig getifaddr en0)
 ISSUER="http://${HOST_IP}:4444"
 ISSUER_ADMIN="http://${HOST_IP}:4445"
 CALLBACK_HOST="http://${HOST_IP}:3000"
+CLIENT_ID=$(grep CLIENT_ID .env | cut -d '=' -f2 2>/dev/null) || ""
 
 createClient() {
-  if [ -f .env ]; then
-    echo ".env file already exists. Please delete it if you want to recreate the OAuth2 client."
-    exit 1
+  if [ -n "$CLIENT_ID" ]; then
+    echo "Client ID already exists in .env file: $CLIENT_ID"
+    echo "Skipping client creation."
+    return
   fi
-  client_output=$(hydra create client \
-    --endpoint "${ISSUER_ADMIN}" \
-    --name "ory-hydra-test-application" \
-    --scope "offline email openid offline_access" \
-    --grant-type "client_credentials authorization_code refresh_token" \
-    --response-type "code" \
-    --redirect-uri "${CALLBACK_HOST}/callback" \
-    --format json
-  )
+
+  client_output=$(hydra create client --endpoint "${ISSUER_ADMIN}" \
+  --name "${APP_NAME}" \
+  --scope "${APP_SCOPE}" \
+  --grant-type "${APP_GRANT_TYPE}" \
+  --response-type code \
+  --token-endpoint-auth-method none \
+  --redirect-uri "${CALLBACK_HOST}/callback" \
+  --format json)
+
+
   client_id=$(echo "$client_output" | jq -r '.client_id')
   client_secret=$(echo "$client_output" | jq -r '.client_secret')
   if [ -z "$client_id" ] || [ -z "$client_secret" ]; then
@@ -32,6 +36,23 @@ createClient() {
   fi
 
   echo "$client_id"
+}
+
+updateClient() {
+  if [ -z "$CLIENT_ID" ]; then
+    echo "CLIENT_ID is not set in .env file. Cannot update client."
+    exit 1
+  fi
+  client_output=$(hydra update client $CLIENT_ID --endpoint "${ISSUER_ADMIN}" \
+  --name "${APP_NAME}" \
+  --scope "${APP_SCOPE}" \
+  --grant-type "${APP_GRANT_TYPE}" \
+  --response-type code \
+  --token-endpoint-auth-method none \
+  --redirect-uri "${CALLBACK_HOST}/callback" \
+  --format json)
+
+  echo "$client_output"
 }
 getClient() {
   local clientId=$(grep CLIENT_ID .env | cut -d '=' -f2)
