@@ -9,7 +9,12 @@ ISSUER="http://${HOST_IP}:4444"
 ISSUER_ADMIN="http://${HOST_IP}:4445"
 CALLBACK_HOST="http://${HOST_IP}:3000"
 CLIENT_ID=$(grep CLIENT_ID .env | cut -d '=' -f2 2>/dev/null) || ""
-
+_validateClientId() {
+  if [ -n "$CLIENT_ID" ] && ! [[ "$CLIENT_ID" =~ ^[0-9a-fA-F-]{36}$ ]]; then
+    echo "CLIENT_ID in .env file is not a valid UUID: $CLIENT_ID"
+    exit 1
+  fi
+}
 createClient() {
   if [ -n "$CLIENT_ID" ]; then
     echo "Client ID already exists in .env file: $CLIENT_ID"
