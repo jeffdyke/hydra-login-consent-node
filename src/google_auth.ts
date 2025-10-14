@@ -1,4 +1,4 @@
-import { HYDRA_URL } from './config.js';
+
 import dotenv from 'dotenv';
 import axios from 'axios';
 import qs from "querystring";

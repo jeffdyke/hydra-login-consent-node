@@ -17,7 +17,7 @@ const csrfProtection = csurf({
 
 const router = express.Router()
 
-router.get("/", (req, res, next) => {
+router.get("/", csrfProtection, (req, res, next) => {
   // Parses the URL query
   const query = url.parse(req.url, true).query
 
@@ -67,7 +67,7 @@ router.get("/", (req, res, next) => {
     .catch(next)
 })
 
-router.post("/", (req, res, next) => {
+router.post("/", csrfProtection, (req, res, next) => {
   // The challenge is now a hidden input field, so let's take it from the request body instead
   const challenge = req.body.challenge
 

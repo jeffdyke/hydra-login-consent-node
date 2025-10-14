@@ -8,9 +8,9 @@ const csrfProtection = csrf({
   },
 })
 const router = express.Router()
-const REDIRECT_URI = "https://auth.staging.bondlink.org/callback"
+const REDIRECT_URI = process.env.REDIRECT_URL || "http://localhost:3000/callback"
 const CLIENT_ID = "d8129d9b-64d1-46ff-953b-aa3ea4608639"
-import { HYDRA_URL } from "../config.js"
+
 import axios from "axios"
 
 router.get("/", csrfProtection, (req, res) => {
@@ -40,7 +40,7 @@ router.get("/", csrfProtection, (req, res) => {
         })
     jsonLogger.info("Body is %s", body)
     // Exchange code for tokens WITH code_verifier
-    axios.post(`${HYDRA_URL}/oauth2/token`, body.toString(), {
+    axios.post(`${process.env.HYDRA_URL}/oauth2/token`, body.toString(), {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
     }).then(data => {
         jsonLogger.info("data is %s", data)

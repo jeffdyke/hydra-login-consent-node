@@ -22,14 +22,12 @@ services:
       - /etc/bondlink/hydra/hydra.env
     environment:
       - DSN=postgres://hydra:shaken!stirred@postgres:5432/hydra?sslmode=disable
-      - SERVE_PUBLIC_CORS_ENABLED=false
       - SERVE_PUBLIC_CORS_ALLOWED_METHODS=POST,GET,PUT,DELETE
       - SERVE_ADMIN_CORS_ALLOWED_METHODS=POST,GET,PUT,DELETE
-      - SERVE_COOKIES_DOMAIN=auth.staging.bondlink.org
       - OAUTH2_EXPOSE_INTERNAL_ERRORS=true
-      - SERVE_PUBLIC_CORS_ALLOWED_ORIGINS=https://auth.staging.bondlink.org
       - LOG_LEAK_SENSITIVE_VALUES=true
       - LOG_LEVEL=debug
+      - LOG_FORMAT=json
       - SECRETS_SYSTEM=G6KaOf8aJsLagw566he8yxOTTO3tInKD
       - OIDC_SUBJECT_IDENTIFIERS_PAIRWISE_SALT=1AvfImNiD7yPGE7LYBcT5hJXOzydEEW1
 
@@ -63,8 +61,8 @@ services:
       context: .
       dockerfile: build/Dockerfile.consent-app
     environment:
-      - HYDRA_ADMIN_URL=http://10.1.1.230:4445
-      - GOOGLE_REDIRECT_URI=https://auth.staging.bondlink.org/callback
+      - HYDRA_ADMIN_URL=http://0.0.0.0:4445
+      - GOOGLE_REDIRECT_URI=http://192.168.1.199:3000/callback
       - NODE_TLS_REJECT_UNAUTHORIZED=0
       - NODE_ENV=development
       - POSTGRES_HOST=postgres

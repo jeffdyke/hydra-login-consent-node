@@ -3,12 +3,13 @@
 
 import express from "express"
 import crypto from "crypto"
+import jsonLogger from "../logging.js"
 
 const router = express.Router()
 
-const CLIENT_ID = "d8129d9b-64d1-46ff-953b-aa3ea4608639"
-const REDIRECT_URI = "https://auth.staging.bondlink.org/callback"
-const HYDRA_URL = "https://auth.staging.bondlink.org"
+const CLIENT_ID = process.env.CLIENT_ID || "d8129d9b-64d1-46ff-953b-aa3ea4608639"
+const REDIRECT_URI = process.env.REDIRECT_URL || "http://localhost:3000/callback"
+const HYDRA_URL = process.env.HYDRA_URL || "http://localhost:4444"
 
 // Helper function to generate base64url encoded string
 function base64URLEncode(buffer: Buffer): string {
@@ -42,7 +43,7 @@ router.get("/", (req, res) => {
     req.session.state = state
     req.session.codeVerifier = codeVerifier
   }
-
+  jsonLogger.info("URL: %s, State: %s, Verifier %s ", HYDRA_URL, req.session?.state, req.session?.codeVerifier)
   // Build authorization URL
   const authUrl = new URL(`${HYDRA_URL}/oauth2/auth`)
   authUrl.searchParams.append("client_id", CLIENT_ID)
