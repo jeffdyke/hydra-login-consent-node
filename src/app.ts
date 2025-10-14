@@ -63,12 +63,7 @@ app.use(
     },
   })
 )
-new pg.Pool({
-  connectionString: process.env.DSN,
-}).on("error", (err) => {
-  jsonLogger.error("Unexpected error on idle client", err)
-  process.exit(-1)
-});
+
 app.use(express.static(path.join(dirname(import.meta.url), "public")))
 
 app.use("/", routes)

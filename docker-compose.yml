@@ -18,15 +18,15 @@ services:
       - "4444:4444" # Public API
       - "4445:4445" # Admin API
     command: serve all --dev
-    env_file:
-      - /etc/bondlink/hydra/hydra.env
+    # env_file:
+    #   - /etc/bondlink/hydra/hydra.env
     environment:
       - DSN=postgres://hydra:shaken!stirred@postgres:5432/hydra?sslmode=disable
       - SERVE_PUBLIC_CORS_ALLOWED_METHODS=POST,GET,PUT,DELETE
       - SERVE_ADMIN_CORS_ALLOWED_METHODS=POST,GET,PUT,DELETE
       - OAUTH2_EXPOSE_INTERNAL_ERRORS=true
       - LOG_LEAK_SENSITIVE_VALUES=true
-      - LOG_LEVEL=debug
+      - LOG_LEVEL=trace
       - LOG_FORMAT=json
       - SECRETS_SYSTEM=G6KaOf8aJsLagw566he8yxOTTO3tInKD
       - OIDC_SUBJECT_IDENTIFIERS_PAIRWISE_SALT=1AvfImNiD7yPGE7LYBcT5hJXOzydEEW1
@@ -72,7 +72,7 @@ services:
     networks:
       - hydra-net
     volumes:
-      - /etc/bondlink/hydra/hydra.env:/usr/src/app/dist/.env
+      # - /etc/bondlink/hydra/hydra.env:/usr/src/app/dist/.env
       - /var/log/hydra:/var/log/hydra
 
 networks:
