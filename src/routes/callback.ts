@@ -2,14 +2,15 @@ import express from "express"
 import { default as csrf } from 'csurf';
 import { googleTokenResponse } from "../google_auth.js"
 import jsonLogger  from "../logging.js"
+import {CLIENT_ID} from "../config.js"
 const csrfProtection = csrf({
   cookie: {
     sameSite: "lax",
   },
 })
 const router = express.Router()
-const REDIRECT_URI = process.env.REDIRECT_URL || "http://dev.bondlink.org:3000/callback"
-const CLIENT_ID = process.env.CODE_CLIENT_ID || "03be5f05-1c26-4cb0-8fec-50f7bc458c22"
+const REDIRECT_URI = process.env.REDIRECT_URL || ""
+
 
 import axios from "axios"
 import { json } from "body-parser";

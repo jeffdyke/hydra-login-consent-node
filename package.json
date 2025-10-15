@@ -16,8 +16,8 @@
     "build": "npm-run-all clean _tsc _bundle",
     "clean": "rm -rf lib dist",
     "serve": "node dist/app.js",
-    "serve:dev": "node --env-file=.env dist/app.js",
-    "start": "ts-node-dev --project tsconfig.json --env-file=.env --watch public,views --respawn dist/app.js",
+    "serve:dev": "node --env-file=.env --env-file=.env.auth.hydra dist/app.js",
+    "start": "ts-node-dev --project tsconfig.json --env-file=.env --env-file=.env.auth.hydra --watch public,views --respawn dist/app.js",
     "test": "npm-run-all build",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "tsc"
