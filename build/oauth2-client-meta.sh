@@ -2,12 +2,12 @@
 set -e
 OPERATION=$1
 shift
-
+COOKIE_DOMAIN="dev.bondlink.org"
 # This script creates an OAuth2 client in Hydra and generates a .env file for the consent app.
 HOST_IP=$(ipconfig getifaddr en0)
-ISSUER="http://${HOST_IP}:4444"
+ISSUER="http://${COOKIE_DOMAIN}:4444"
 ISSUER_ADMIN="http://${HOST_IP}:4445"
-CALLBACK_HOST="http://${HOST_IP}:3000"
+CALLBACK_HOST="http://${COOKIE_DOMAIN}:3000"
 APP_SCOPE="offline email openid offline_access"
 APP_GRANT_TYPE="client_credentials authorization_code refresh_token"
 CLIENT_ID=$(grep CLIENT_ID .env | cut -d '=' -f2 2>/dev/null) || ""
@@ -84,10 +84,13 @@ createEnvFile() {
   BASE_URL=${CALLBACK_HOST}
   REDIRECT_URL=${CALLBACK_HOST}/callback
   NODE_ENV=development
-  SERVE_PUBLIC_CORS_ENABLED=true
+  SERVE_COOKIES_DOMAIN=bondlink.org
+  SERVE_PUBLIC_CORS_ENABLED=false
+  SERVE_ADMIN_CORS_ENABLED=false
+  SERVE_PUBLIC_CORS_ALLOWED_ORIGINS="*"
+  SERVE_ADMIN_CORS_ALLOWED_ORIGINS="*"
   DSN=postgres://hydra:shaken!stirred@${HOST_IP}:5432/hydra?sslmode=disable
 EOF
 }
-
 
 $OPERATION "$@"

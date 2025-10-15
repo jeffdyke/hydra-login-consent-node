@@ -8,9 +8,9 @@ import jsonLogger from "../logging.js"
 const router = express.Router()
 
 const CLIENT_ID = process.env.CLIENT_ID || "4fc051d6-4457-4db5-9e10-8e6c5ba3eb9c"
-const REDIRECT_URI = process.env.REDIRECT_URL || "http://192.168.1.199:3000/callback"
-const HYDRA_URL = process.env.HYDRA_URL || "http://192.168.1.199:4444"
-
+const REDIRECT_URI = process.env.REDIRECT_URL || "http://dev.bondlink.org:3000/callback"
+const HYDRA_URL = process.env.HYDRA_URL || "http://dev.bondlink.org:4444"
+jsonLogger.info("Using Hydra URL: %s", JSON.stringify(process.env))
 // Helper function to generate base64url encoded string
 function base64URLEncode(buffer: Buffer): string {
   return buffer
