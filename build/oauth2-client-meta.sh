@@ -4,15 +4,18 @@ OPERATION=$1
 shift
 COOKIE_DOMAIN="bondlink.org"
 SERVER_NAME="dev.${COOKIE_DOMAIN}"
+
+HOST_IP=
+ISSUER=
+ISSUER_ADMIN=
+CALLBACK_HOST=
+
 # This script creates an OAuth2 client in Hydra and generates a .env file for the consent app.
 HOST_IP=$(ipconfig getifaddr en0)
 ISSUER="http://${SERVER_NAME}:4444"
 ISSUER_ADMIN="http://${HOST_IP}:4445"
 CALLBACK_HOST="http://${SERVER_NAME}:3000"
-CLIENT_CREDENTIALS_SCOPE="offline email openid offline_access"
-AUTH_FLOW_GRANT="client_credentials authorization_code"
-CLIENT_CREDENTIALS_GRANT="client_credentials"
-AUTH_FLOW_SCOPE="offline openid"
+
 declare -A CLIENT_CREDENTIALS_CONFIG
 CLIENT_CREDENTIALS_CONFIG[scope]="offline email openid offline_access"
 CLIENT_CREDENTIALS_CONFIG[grant]="client_credentials"
@@ -46,8 +49,8 @@ authClient() {
   validateResponse "${client_output}"
   client_id=$(echo $client_output | jq -r '.client_id')
   client_secret=$(echo $client_output | jq -r '.client_secret')
-  echo "AUTH_FLOW_CLIENT_ID=$code_client_id" | tee .env.auth.hydra
-  echo "AUTH_FLOW_CLIENT_SECRET=$code_client_secret" | tee -a .env.auth.hydra
+  echo "AUTH_FLOW_CLIENT_ID=$client_id" | tee .env.auth.hydra
+  echo "AUTH_FLOW_CLIENT_SECRET=$client_secret" | tee -a .env.auth.hydra
   echo "$client_output"
 }
 
@@ -86,8 +89,7 @@ codeClient() {
   client_secret=$(echo "$client_output" | jq -r '.client_secret')
   echo "AUTH_FLOW_CLIENT_ID=$code_client_id" | tee .env.code.hydra
   echo "AUTH_FLOW_CLIENT_SECRET=$code_client_secret" | tee -a .env.code.hydra
-  #createEnvFile "$client_id" "$client_secret"
-  echo "$client_id"
+  echo "${client_output}"
 }
 
 # Delete/redo this
