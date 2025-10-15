@@ -26,7 +26,7 @@ services:
       - SERVE_ADMIN_CORS_ALLOWED_METHODS=POST,GET,PUT,DELETE
       - OAUTH2_EXPOSE_INTERNAL_ERRORS=true
       - LOG_LEAK_SENSITIVE_VALUES=true
-      - LOG_LEVEL=trace
+      - LOG_LEVEL=info
       - LOG_FORMAT=json
       - SECRETS_SYSTEM=G6KaOf8aJsLagw566he8yxOTTO3tInKD
       - OIDC_SUBJECT_IDENTIFIERS_PAIRWISE_SALT=1AvfImNiD7yPGE7LYBcT5hJXOzydEEW1
@@ -68,7 +68,7 @@ services:
       - NODE_ENV=development
       - POSTGRES_HOST=postgres
       - POSTGRES_PASSWORD=shaken!stirred
-      - LOG_LEVEL=trace
+      - LOG_LEVEL=info
       - LOG_FORMAT=json
     depends_on:
       - hydra

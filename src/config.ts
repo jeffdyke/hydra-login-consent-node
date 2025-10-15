@@ -6,7 +6,7 @@ import { json } from "body-parser";
 import queryString from "query-string";
 import jsonLogger from "./logging.js"
 const baseOptions: any = {}
-// baseOptions.basePath = process.env.HYDRA_ADMIN_URL || "http://localhost:4445"
+// baseOptions.basePath = process.env.HYDRA_ADMIN_URL || "http://192.168.1.199:4445"
 // baseOptions.accessToken = process.env.ORY_API_KEY || process.env.ORY_PAT
 // baseOptions.queryParamsStringify = queryString.stringify
 if (process.env.MOCK_TLS_TERMINATION) {

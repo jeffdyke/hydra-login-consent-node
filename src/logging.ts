@@ -1,14 +1,11 @@
 import {$log} from "@tsed/logger";
 import "@tsed/logger-file";
 
-$log.appenders.set("std-log-json", {
-  type: "file",
-  filename: `logs/app.log`,
-  pattern: ".yyyy-MM-dd",
-  levels: ["info", "debug", "error", "warn", "trace", "fatal"],
-  layout: {
-    type: "json"
-  }
+$log.appenders.set("console-log", {
+  type: "console",
+  // filename: `logs/app.log`,
+  // pattern: ".yyyy-MM-dd",
+  levels: ["info", "debug", "error", "warn", "trace", "fatal"]
 })
 //   .set("console-log", {
 //   type: "console",

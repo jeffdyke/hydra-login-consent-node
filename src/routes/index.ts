@@ -7,9 +7,9 @@ import jsonLogger from "../logging.js"
 
 const router = express.Router()
 
-const CLIENT_ID = process.env.CLIENT_ID || "d8129d9b-64d1-46ff-953b-aa3ea4608639"
-const REDIRECT_URI = process.env.REDIRECT_URL || "http://localhost:3000/callback"
-const HYDRA_URL = process.env.HYDRA_URL || "http://localhost:4444"
+const CLIENT_ID = process.env.CLIENT_ID || "4fc051d6-4457-4db5-9e10-8e6c5ba3eb9c"
+const REDIRECT_URI = process.env.REDIRECT_URL || "http://192.168.1.199:3000/callback"
+const HYDRA_URL = process.env.HYDRA_URL || "http://192.168.1.199:4444"
 
 // Helper function to generate base64url encoded string
 function base64URLEncode(buffer: Buffer): string {

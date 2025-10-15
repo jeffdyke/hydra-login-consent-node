@@ -8,7 +8,7 @@ const csrfProtection = csrf({
   },
 })
 const router = express.Router()
-const REDIRECT_URI = process.env.REDIRECT_URL || "http://localhost:3000/callback"
+const REDIRECT_URI = process.env.REDIRECT_URL || "http://192.168.1.199:3000/callback"
 const CLIENT_ID = "d8129d9b-64d1-46ff-953b-aa3ea4608639"
 
 import axios from "axios"
