@@ -117,7 +117,10 @@ async function googleOAuthTokens(code: string): Promise<TokenPayload> {
       new URLSearchParams(convertClassToRecord(authCodeRequest)),
       { headers: formHeader }
     ).then((resp) => { jsonLogger.info("Response is %s", resp.data); return resp.data})
-    .catch((err) => { jsonLogger.info("Error is %s", err); return err.response.data });
+    .catch((err) => { jsonLogger.info("Error fetching AuthCode", JSON.stringify({
+      authCodeRequest:authCodeRequest,
+      error:err
+    })); return err.response.data });
 
 }
 
@@ -125,17 +128,29 @@ async function getGoogleUser(access_token: string, id_token: string): Promise<Us
   const url = `https://www.googleapis.com/oauth2/v2/userinfo?alt=json&access_token=${access_token}`;
   return await axios.get(url, { headers: { Authorization: `Bearer ${id_token}` } })
     .then((resp) => { return resp.data })
-    .catch((err) => { jsonLogger.info("Error is %s", err); return err.response.data })  ;
+    .catch((err) => { jsonLogger.info("Error % fetching access token with value %s", JSON.stringify({
+      error:err,
+      access_token:access_token
+    })); return err.response.data
+  })  ;
 
 }
 async function googleTokenResponse(code: string): Promise<GoogleTokenResponse> {
     const authClientConfig: AuthClientConfig = new AuthClientConfig(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
+    const urlParams = new URLSearchParams(convertClassToRecord(new AuthorizationCodeRequest(code, authClientConfig, 'authorization_code')))
     return await axios.post(
       GOOGLE_TOKEN_URL,
-      new URLSearchParams(convertClassToRecord(new AuthorizationCodeRequest(code, authClientConfig, 'authorization_code'))),
+      urlParams,
       { headers: formHeader })
       .then((resp) => { return resp.data })
-      .catch((err) => { jsonLogger.info("Error is %s", err); return err.response.data })
+      .catch((err) => { jsonLogger.info("GoogleTokenResponse Error", JSON.stringify({
+        error:err,
+        code:code,
+        authClientConfig:JSON.stringify(authClientConfig),
+        urlParams:JSON.stringify(urlParams)
+      }));
+      return err.response.data
+    })
   }
 
 export { googleOAuthTokens, getGoogleUser, googleTokenResponse }

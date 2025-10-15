@@ -145,13 +145,12 @@ router.post("/", csrfProtection, (req, res, next) => {
   //   session.id_token.family_name = 'Doe'
   //   session.id_token.given_name = 'John'
   // }
-  jsonLogger.info("Fetch consent request again", { consentChallenge: challenge })
+  jsonLogger.info("Fetch consent request again", JSON.stringify({ consentChallenge: challenge }))
   // Let's fetch the consent request again to be able to set `grantAccessTokenAudience` properly.
   hydraAdmin
     .getOAuth2ConsentRequest({ consentChallenge: challenge })
     // This will be called if the HTTP request was successful
     .then(async (consentRequest) => {
-      jsonLogger.info("Successful 2nd consent request")
       const { redirect_to } = await hydraAdmin.acceptOAuth2ConsentRequest({
         consentChallenge: challenge,
         acceptOAuth2ConsentRequest: {
@@ -184,7 +183,6 @@ router.post("/", csrfProtection, (req, res, next) => {
         },
       })
       // All we need to do now is to redirect the user back to hydra!
-      jsonLogger.info("Redirecting back to %s", redirect_to)
       res.redirect(String(redirect_to))
     })
     // This will handle any error that happens when making HTTP calls to hydra
