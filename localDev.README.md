@@ -2,26 +2,16 @@
 
 brew tap ory/tap
 brew install ory-hydra
+Commands should be run for root of the clone
 
 ## Generate a new client for your local docker environment
 
-```bash
-HOST_IP=$(ipconfig getifaddr en0)
-ISSUER="http://${HOST_IP}:4445"
-CALLBACK_HOST="http://${HOST_IP}:3000"
-client_output=$(hydra create client \
-  --endpoint "${ISSUER}" \
-  --name "ory-hydra-test-application" \
-  --scope "offline email openid offline_access" && \
-  --grant-type "client_credentials, authorization_code, refresh_token"
-  --response-type "code" && \
-  --redirect-uri "${CALLBACK_HOST}/callback" \
-  --format json)
+`bash +x build/oauth2-client-meta.sh authClient`
 
-client_id=$(echo "$client_output" | jq -r '.client_id')
-client_secret=$(echo "$client_output" | jq -r '.client_secret')
+JSON output of the response data, and AUTH_FLOW_CLIENT_ID is written to `.env.auth.hydra`
+There is no client secret as this is for a public key exchange, were secrets are not possible.
 
-echo "Client ID: $client_id"
-echo "Client Secret: $client_secret"
+`bash +x build./oauth2-client-meta.sh createEnvFile [hostname] [cookie-domain]`
 
-```
+for local development, use
+`bash +x build./oauth2-client-meta.sh createEnvFile dev.bondlink.org bondlink.org`
