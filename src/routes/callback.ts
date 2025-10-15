@@ -9,7 +9,7 @@ const csrfProtection = csrf({
 })
 const router = express.Router()
 const REDIRECT_URI = process.env.REDIRECT_URL || "http://dev.bondlink.org:3000/callback"
-const CLIENT_ID = "d8129d9b-64d1-46ff-953b-aa3ea4608639"
+const CLIENT_ID = process.env.CODE_CLIENT_ID || "03be5f05-1c26-4cb0-8fec-50f7bc458c22"
 
 import axios from "axios"
 import { json } from "body-parser";
