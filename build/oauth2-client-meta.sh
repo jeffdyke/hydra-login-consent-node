@@ -8,6 +8,8 @@ HOST_IP=$(ipconfig getifaddr en0)
 ISSUER="http://${HOST_IP}:4444"
 ISSUER_ADMIN="http://${HOST_IP}:4445"
 CALLBACK_HOST="http://${HOST_IP}:3000"
+APP_SCOPE="offline email openid offline_access"
+APP_GRANT_TYPE="client_credentials authorization_code refresh_token"
 CLIENT_ID=$(grep CLIENT_ID .env | cut -d '=' -f2 2>/dev/null) || ""
 _validateClientId() {
   if [ -n "$CLIENT_ID" ] && ! [[ "$CLIENT_ID" =~ ^[0-9a-fA-F-]{36}$ ]]; then
