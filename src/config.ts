@@ -17,7 +17,7 @@ const configuration = new Configuration({
   accessToken: process.env.ORY_API_KEY || process.env.ORY_PAT,
   headers: baseOptions.headers,
 })
-
+const CLIENT_ID = process.env.AUTH_FLOW_CLIENT_ID || ""
 const hydraAdmin = new OAuth2Api(configuration)
 // jsonLogger.info("Hydra Admin URL: %s", hydraAdmin.middleware)
 // PostgreSQL configuration
@@ -30,4 +30,4 @@ const pgConfig = {
   port: parseInt(process.env.POSTGRES_PORT || "5432", 10),
 }
 
-export { hydraAdmin, pgConfig}
+export { hydraAdmin, pgConfig, CLIENT_ID}

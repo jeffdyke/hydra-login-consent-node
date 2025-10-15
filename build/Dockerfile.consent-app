@@ -1,9 +1,10 @@
 FROM node:23-alpine3.21
 
+RUN mkdir -p /usr/src/app/public
 RUN apk add --no-cache vim git bash postgresql-client
 # RUN git clone https://github.com/jeffdyke/hydra-login-consent-node.git /usr/src/app
 COPY package*.json /usr/src/app/
-
+COPY public /usr/src/app/public
 COPY dist /usr/src/app/dist
 # COPY /src/hydra-login-consent-node/.env /usr/src/app/.env
 

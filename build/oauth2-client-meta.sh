@@ -2,47 +2,71 @@
 set -e
 OPERATION=$1
 shift
-COOKIE_DOMAIN="dev.bondlink.org"
+COOKIE_DOMAIN="bondlink.org"
+SERVER_NAME="dev.${COOKIE_DOMAIN}"
 # This script creates an OAuth2 client in Hydra and generates a .env file for the consent app.
 HOST_IP=$(ipconfig getifaddr en0)
-ISSUER="http://${COOKIE_DOMAIN}:4444"
+ISSUER="http://${SERVER_NAME}:4444"
 ISSUER_ADMIN="http://${HOST_IP}:4445"
-CALLBACK_HOST="http://${COOKIE_DOMAIN}:3000"
-APP_SCOPE="offline email openid offline_access"
-APP_GRANT_TYPE="client_credentials authorization_code"
-CLIENT_ID=$(grep CLIENT_ID .env | cut -d '=' -f2 2>/dev/null) || ""
+CALLBACK_HOST="http://${SERVER_NAME}:3000"
+CLIENT_CREDENTIALS_SCOPE="offline email openid offline_access"
+AUTH_FLOW_GRANT="client_credentials authorization_code"
+CLIENT_CREDENTIALS_GRANT="client_credentials"
+AUTH_FLOW_SCOPE="offline openid"
+declare -A CLIENT_CREDENTIALS_CONFIG
+CLIENT_CREDENTIALS_CONFIG[scope]="offline email openid offline_access"
+CLIENT_CREDENTIALS_CONFIG[grant]="client_credentials"
+
+declare -A AUTH_FLOW_CONFIG
+AUTH_FLOW_CONFIG[scope]="offline openid"
+AUTH_FLOW_CONFIG[grant]="authorization_code,refresh_token"
+AUTH_FLOW_CONFIG[response-type]="code,id_token"
+AUTH_FLOW_CONFIG[token-endpoint-auth-method]="none"
+
+
+CLIENT_ID=$(grep AUTH_FLOW_CLIENT_ID .env | cut -d '=' -f2 2>/dev/null) || ""
 CODE_CLIENT_ID=$(grep CODE_CLIENT_ID .env | cut -d '=' -f2 2>/dev/null) || ""
-_validateClientId() {
-  if [ -n "$CLIENT_ID" ] && ! [[ "$CLIENT_ID" =~ ^[0-9a-fA-F-]{36}$ ]]; then
-    echo "CLIENT_ID in .env file is not a valid UUID: $CLIENT_ID"
-    exit 1
-  fi
-}
-_validateAuthClientId() {
-  if [ -n "$CODE_CLIENT_ID" ] && ! [[ "$CODE_CLIENT_ID" =~ ^[0-9a-fA-F-]{36}$ ]]; then
-    echo "CODE_CLIENT_ID in .env file is not a valid UUID: $CODE_CLIENT_ID"
-    exit 1
-  fi
-}
+
 authClient() {
+  if [ -n "${AUTH_FLOW_CLIENT_ID}" ]; then
+    echo "Client ID already exists in .env file: $AUTH_FLOW_CLIENT_ID"
+    echo "Skipping client creation."
+    return
+  fi
+
   client_output=$(hydra create client --endpoint "${ISSUER_ADMIN}" \
     --grant-type "authorization_code,refresh_token" \
     --response-type "code,id_token" \
     --format json \
     --token-endpoint-auth-method none \
-    --scope openid --scope offline --scope email \
-    --redirect-uri "${CALLBACK_HOST}/callback"
+    --scope "openid,offline,email" \
+    --redirect-uri "${CALLBACK_HOST}/callback" \
+    --format json
   )
-  code_client_id=$(echo $client_output | jq -r '.client_id')
-  code_client_secret=$(echo $client_output | jq -r '.client_secret')
-  echo "CODE_CLIENT_ID=$code_client_id" | tee -a .env
-  echo "CODE_CLIENT_SECRET=$code_client_secret" | tee -a .env
+  validateResponse "${client_output}"
+  client_id=$(echo $client_output | jq -r '.client_id')
+  client_secret=$(echo $client_output | jq -r '.client_secret')
+  echo "AUTH_FLOW_CLIENT_ID=$code_client_id" | tee .env.auth.hydra
+  echo "AUTH_FLOW_CLIENT_SECRET=$code_client_secret" | tee -a .env.auth.hydra
   echo "$client_output"
 }
 
-createClient() {
-  if [ -n "$CLIENT_ID" ]; then
-    echo "Client ID already exists in .env file: $CLIENT_ID"
+
+validateResponse() {
+  local client_data="${1}"
+  client_id=$(echo "$client_data" | jq -r '.client_id')
+  client_secret=$(echo "$client_data" | jq -r '.client_secret')
+  if [ -z "$client_id" ] || [ -z "$client_secret" ]; then
+    echo "Failed to create OAuth2 client. Output was:"
+    echo "$client_data"
+    exit 1
+  fi
+  echo "${client_id} ${client_secret}"
+}
+
+codeClient() {
+  if [ -n "$CODE_CLIENT_ID" ]; then
+    echo "Client ID already exists in .env file: $CODE_CLIENT_ID"
     echo "Skipping client creation."
     return
   fi
@@ -56,19 +80,17 @@ createClient() {
   --redirect-uri "${CALLBACK_HOST}/callback" \
   --format json)
 
+  validateResponse "${client_output}"
 
   client_id=$(echo "$client_output" | jq -r '.client_id')
   client_secret=$(echo "$client_output" | jq -r '.client_secret')
-  if [ -z "$client_id" ] || [ -z "$client_secret" ]; then
-    echo "Failed to create OAuth2 client. Output was:"
-    echo "$client_output"
-    exit 1
-  fi
-  echo "$client_output" | jq '.'
-  createEnvFile "$client_id" "$client_secret"
+  echo "AUTH_FLOW_CLIENT_ID=$code_client_id" | tee .env.code.hydra
+  echo "AUTH_FLOW_CLIENT_SECRET=$code_client_secret" | tee -a .env.code.hydra
+  #createEnvFile "$client_id" "$client_secret"
   echo "$client_id"
 }
 
+# Delete/redo this
 updateClient() {
   if [ -z "$CLIENT_ID" ]; then
     echo "CLIENT_ID is not set in .env file. Cannot update client."
@@ -87,36 +109,35 @@ updateClient() {
 }
 getClient() {
   # _validateClientId
-  hydra get oauth2-client $CLIENT_ID --endpoint "${ISSUER_ADMIN}" --format json | jq '.'
-  # _validateAuthClientId
   hydra get oauth2-client $CODE_CLIENT_ID --endpoint "${ISSUER_ADMIN}" --format json | jq '.'
+  # _validateAuthClientId
+  hydra get oauth2-client $AUTH_FLOW_CLIENT_ID --endpoint "${ISSUER_ADMIN}" --format json | jq '.'
 }
 
 createEnvFile() {
-  local client_id=$1
-  local client_secret=$2
-  echo "Client ID: $client_id"
-  echo "Creating .env file"
-
-  cat <<EOF > .env
-  CLIENT_ID=$client_id
-  CLIENT_SECRET=$client_secret
-  POSTGRES_PASSWORD=shaken!stirred
-  HYDRA_ADMIN_URL=${ISSUER_ADMIN}
-  HYDRA_URL=${ISSUER}
-  BASE_URL=${CALLBACK_HOST}
-  URLS_SELF_ISSUER=${ISSUER}
-  URLS_CONSENT=${CALLBACK_HOST}/consent
-  URLS_LOGIN=${CALLBACK_HOST}/login
-  BASE_URL=${CALLBACK_HOST}
-  REDIRECT_URL=${CALLBACK_HOST}/callback
-  NODE_ENV=development
-  SERVE_COOKIES_DOMAIN=bondlink.org
-  SERVE_PUBLIC_CORS_ENABLED=false
-  SERVE_ADMIN_CORS_ENABLED=false
-  SERVE_PUBLIC_CORS_ALLOWED_ORIGINS="*"
-  SERVE_ADMIN_CORS_ALLOWED_ORIGINS="*"
-  DSN=postgres://hydra:shaken!stirred@${HOST_IP}:5432/hydra?sslmode=disable
+  cat <<-EOF > .env
+POSTGRES_PASSWORD=shaken!stirred
+HYDRA_ADMIN_URL=${ISSUER_ADMIN}
+HYDRA_URL=${ISSUER}
+BASE_URL=${CALLBACK_HOST}
+URLS_SELF_ISSUER=${ISSUER}
+URLS_CONSENT=${CALLBACK_HOST}/consent
+URLS_LOGIN=${CALLBACK_HOST}/login
+BASE_URL=${CALLBACK_HOST}
+REDIRECT_URL=${CALLBACK_HOST}/callback
+NODE_ENV=development
+SERVE_COOKIES_DOMAIN=bondlink.org
+SERVE_PUBLIC_CORS_ENABLED=false
+SERVE_ADMIN_CORS_ENABLED=false
+SERVE_PUBLIC_CORS_ALLOWED_ORIGINS="*"
+SERVE_ADMIN_CORS_ALLOWED_ORIGINS="*"
+DSN=postgres://hydra:shaken!stirred@${HOST_IP}:5432/hydra?sslmode=disable
+SERVE_PUBLIC_CORS_ALLOWED_METHODS=POST,GET,PUT,DELETE
+SERVE_ADMIN_CORS_ALLOWED_METHODS=POST,GET,PUT,DELETE
+OAUTH2_EXPOSE_INTERNAL_ERRORS=true
+LOG_LEAK_SENSITIVE_VALUES=true
+LOG_LEVEL=info
+LOG_FORMAT=json
 EOF
 }
 
