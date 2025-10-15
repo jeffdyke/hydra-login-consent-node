@@ -18,12 +18,13 @@ import consent from "./routes/consent.js"
 import device from "./routes/device.js"
 import callback from "./routes/callback.js"
 import { pgConfig } from "./config.js"
-import jsonLogger from "./logging.js"
+
 import { dirname } from 'path';
 import favicon from "serve-favicon";
 import { default as csurf } from 'csurf';
-import pg from "pg";
+
 const app = express()
+app.use(logger("dev"))
 const PgStore = connectPgSimple(session)
 
 // view engine setup
@@ -32,7 +33,7 @@ app.set("view engine", "pug")
 
 // uncomment after placing your favicon in /public
 // app.use(favicon(path.join(dirname(import.meta.url), 'public', 'favicon.ico')));
-app.use(logger("dev"))
+
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cookieParser())
@@ -43,7 +44,7 @@ const csrfProtection = csurf({
   },
 })
 
-app.use(csrfProtection);
+// app.use(csrfProtection);
 // Session middleware with PostgreSQL store
 app.use(
   session({
@@ -73,9 +74,16 @@ app.use("/consent", consent)
 app.use("/device", device)
 app.use("/callback", callback)
 
+app.use((req, res, next) => {
+  res.on('finish', () => {
+    console.log('Response Access-Control-Allow-Origin:', res.get('Access-Control-Allow-Origin'));
+  });
+  next();
+});
+
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
-  jsonLogger.info("404 Not Found: %s", req.originalUrl)
+  console.log("404 Not Found: %s", req.originalUrl)
   next(new Error("Generic Not Found"))
 })
 
@@ -112,5 +120,5 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
 const listenOn = Number(process.env.PORT || 3000)
 app.listen(listenOn, () => {
-  jsonLogger.info(`Listening on http://0.0.0.0:${listenOn}`)
+  console.log(`Listening on http://0.0.0.0:${listenOn}`)
 })
