@@ -69,6 +69,8 @@ services:
       - NODE_ENV=development
       - POSTGRES_HOST=postgres
       - POSTGRES_PASSWORD=shaken!stirred
+      - LOG_LEVEL=trace
+      - LOG_FORMAT=json
     depends_on:
       - hydra
     networks:
