@@ -7,7 +7,7 @@ import jsonLogger from "../logging.js"
 
 const router = express.Router()
 
-const CLIENT_ID = process.env.CLIENT_ID || "4fc051d6-4457-4db5-9e10-8e6c5ba3eb9c"
+const CLIENT_ID = process.env.CODE_CLIENT_ID || "03be5f05-1c26-4cb0-8fec-50f7bc458c22"
 const REDIRECT_URI = process.env.REDIRECT_URL || "http://dev.bondlink.org:3000/callback"
 const HYDRA_URL = process.env.HYDRA_URL || "http://dev.bondlink.org:4444"
 jsonLogger.info("Using Hydra URL: %s", JSON.stringify(process.env))

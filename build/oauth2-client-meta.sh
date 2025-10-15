@@ -9,14 +9,37 @@ ISSUER="http://${COOKIE_DOMAIN}:4444"
 ISSUER_ADMIN="http://${HOST_IP}:4445"
 CALLBACK_HOST="http://${COOKIE_DOMAIN}:3000"
 APP_SCOPE="offline email openid offline_access"
-APP_GRANT_TYPE="client_credentials authorization_code refresh_token"
+APP_GRANT_TYPE="client_credentials authorization_code"
 CLIENT_ID=$(grep CLIENT_ID .env | cut -d '=' -f2 2>/dev/null) || ""
+CODE_CLIENT_ID=$(grep CODE_CLIENT_ID .env | cut -d '=' -f2 2>/dev/null) || ""
 _validateClientId() {
   if [ -n "$CLIENT_ID" ] && ! [[ "$CLIENT_ID" =~ ^[0-9a-fA-F-]{36}$ ]]; then
     echo "CLIENT_ID in .env file is not a valid UUID: $CLIENT_ID"
     exit 1
   fi
 }
+_validateAuthClientId() {
+  if [ -n "$CODE_CLIENT_ID" ] && ! [[ "$CODE_CLIENT_ID" =~ ^[0-9a-fA-F-]{36}$ ]]; then
+    echo "CODE_CLIENT_ID in .env file is not a valid UUID: $CODE_CLIENT_ID"
+    exit 1
+  fi
+}
+authClient() {
+  client_output=$(hydra create client --endpoint "${ISSUER_ADMIN}" \
+    --grant-type "authorization_code,refresh_token" \
+    --response-type "code,id_token" \
+    --format json \
+    --token-endpoint-auth-method none \
+    --scope openid --scope offline --scope email \
+    --redirect-uri "${CALLBACK_HOST}/callback"
+  )
+  code_client_id=$(echo $client_output | jq -r '.client_id')
+  code_client_secret=$(echo $client_output | jq -r '.client_secret')
+  echo "CODE_CLIENT_ID=$code_client_id" | tee -a .env
+  echo "CODE_CLIENT_SECRET=$code_client_secret" | tee -a .env
+  echo "$client_output"
+}
+
 createClient() {
   if [ -n "$CLIENT_ID" ]; then
     echo "Client ID already exists in .env file: $CLIENT_ID"
@@ -63,8 +86,10 @@ updateClient() {
   echo "$client_output"
 }
 getClient() {
-  _validateClientId
+  # _validateClientId
   hydra get oauth2-client $CLIENT_ID --endpoint "${ISSUER_ADMIN}" --format json | jq '.'
+  # _validateAuthClientId
+  hydra get oauth2-client $CODE_CLIENT_ID --endpoint "${ISSUER_ADMIN}" --format json | jq '.'
 }
 
 createEnvFile() {

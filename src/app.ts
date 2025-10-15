@@ -18,7 +18,7 @@ import consent from "./routes/consent.js"
 import device from "./routes/device.js"
 import callback from "./routes/callback.js"
 import { pgConfig } from "./config.js"
-
+import jsonLogger from "./logging.js"
 import { dirname } from 'path';
 import favicon from "serve-favicon";
 import { default as csurf } from 'csurf';
@@ -26,13 +26,14 @@ import { default as csurf } from 'csurf';
 const app = express()
 app.use(logger("dev"))
 const PgStore = connectPgSimple(session)
+const __dirname = import.meta.dirname;
 
 // view engine setup
-app.set("views", "views")
+app.set("views", path.join(__dirname, "views"))
 app.set("view engine", "pug")
-
+jsonLogger.info("View path: %s", path.join(__dirname, "views"))
 // uncomment after placing your favicon in /public
-// app.use(favicon(path.join(dirname(import.meta.url), 'public', 'favicon.ico')));
+app.use(favicon(path.join(__dirname, '..', 'public', 'favicon.ico')));
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -75,9 +76,15 @@ app.use("/device", device)
 app.use("/callback", callback)
 
 app.use((req, res, next) => {
-  res.on('finish', () => {
-    console.log('Response Access-Control-Allow-Origin:', res.get('Access-Control-Allow-Origin'));
-  });
+  req.on('data', () => {
+
+    jsonLogger.info('request: %s', JSON.stringify(req));
+    jsonLogger.info("body: %s", req.body)
+  })
+  // res.on('finish', () => {
+  //   jsonLogger.info('response: %s', JSON.stringify(res));
+
+  // });
   next();
 });
 
