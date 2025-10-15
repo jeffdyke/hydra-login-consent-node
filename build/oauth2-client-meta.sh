@@ -41,7 +41,8 @@ createClient() {
     echo "$client_output"
     exit 1
   fi
-
+  echo "$client_output" | jq '.'
+  createEnvFile "$client_id" "$client_secret"
   echo "$client_id"
 }
 
@@ -78,6 +79,7 @@ createEnvFile() {
   POSTGRES_PASSWORD=shaken!stirred
   HYDRA_ADMIN_URL=${ISSUER_ADMIN}
   HYDRA_URL=${ISSUER}
+  BASE_URL=${CALLBACK_HOST}
   URLS_SELF_ISSUER=${ISSUER}
   URLS_CONSENT=${CALLBACK_HOST}/consent
   URLS_LOGIN=${CALLBACK_HOST}/login

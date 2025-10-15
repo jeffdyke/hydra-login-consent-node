@@ -19,7 +19,7 @@ services:
       - "4445:4445" # Admin API
     command: serve all --dev
     env_file:
-      - /etc/bondlink/hydra/hydra.env
+      - /src/hydra-login-consent-node/.env
     environment:
       - DSN=postgres://hydra:shaken!stirred@postgres:5432/hydra?sslmode=disable
       - SERVE_PUBLIC_CORS_ALLOWED_METHODS=POST,GET,PUT,DELETE
@@ -55,7 +55,7 @@ services:
   consent-app:
     image: 668874212870.dkr.ecr.us-east-1.amazonaws.com/drone-hydra-consent-node
     env_file:
-      - /etc/bondlink/hydra/hydra.env
+      - /src/hydra-login-consent-node/.env
     ports:
       - "3000:3000"
     build:
@@ -75,7 +75,6 @@ services:
     networks:
       - hydra-net
     volumes:
-      - /etc/bondlink/hydra/hydra.env:/usr/src/app/dist/.env
       - /var/log/hydra:/var/log/hydra
 
 networks:
