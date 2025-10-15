@@ -79,7 +79,7 @@ app.use((req, res, next) => {
   req.on('data', () => {
 
     jsonLogger.info('request: %s', JSON.stringify(req));
-    jsonLogger.info("body: %s", req.body)
+    jsonLogger.info("body: %s", JSON.stringify(req.body))
   })
   // res.on('finish', () => {
   //   jsonLogger.info('response: %s', JSON.stringify(res));

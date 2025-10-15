@@ -4,9 +4,9 @@ import "@tsed/logger-std";
 $log.appenders.set("stdout", {
     type: "stdout",
     levels: ["info", "debug", "error", "warn", "trace", "fatal"],
-    // layout: {
-    //   type: "text"
-    // }
+    layout: {
+      type: "text"
+    }
   });
 //   .set("console-log", {
 //   type: "console",
