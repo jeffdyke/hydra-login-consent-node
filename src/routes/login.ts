@@ -11,7 +11,8 @@ import { oidcConformityMaybeFakeAcr } from "./stub/oidc-cert.js"
 // Sets up csrf protection
 const csrfProtection = csurf({
   cookie: {
-    sameSite: "lax",
+    sameSite: "none",
+    domain: 'bondlink.org',
   },
 })
 
