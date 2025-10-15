@@ -33,7 +33,6 @@ services:
 
     restart: unless-stopped
     volumes:
-      - /etc/bondlink/hydra/hydra.yml:/etc/config/hydra/hydra.yml:ro
       - hydra-logs:/var/log/hydra
     depends_on:
       - hydra-migrate
