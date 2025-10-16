@@ -16,7 +16,7 @@ const config = [
 
     },
     external: packageJson.dependencies ? Object.keys(packageJson.dependencies) : [],
-    plugins: [typescript(), json(), resolve({jsnext: true}), commonjs({include: ['src/app.ts', 'node_modules/**']}),
+    plugins: [typescript(), json(), resolve({preferBuiltins:true, jsnext: true}), commonjs({include: ['src/app.ts', 'node_modules/**']}),
     copy({
         targets: [
           { src: 'views/**/*', dest: 'dist/views' }, // Copy the 'views' folder and its contents

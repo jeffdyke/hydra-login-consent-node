@@ -16,8 +16,8 @@
     "build": "npm-run-all clean _tsc _bundle",
     "clean": "rm -rf lib dist",
     "serve": "node dist/app.js",
-    "serve:dev": "node --env-file=.env --env-file=.env.auth.hydra dist/app.js",
-    "start": "ts-node-dev --project tsconfig.json --env-file=.env --env-file=.env.auth.hydra --watch public,views --respawn dist/app.js",
+    "serve:dev": "node --enable-source-maps --loader ts-node/esm --env-file=.env --env-file=.env.auth.hydra dist/app.js",
+    "start": "ts-node-dev --enable-source-maps --loader ts-node/esm --project tsconfig.json --env-file=.env --env-file=.env.auth.hydra --env-file=.env.auth.google --watch public,views --respawn dist/app.js",
     "test": "npm-run-all build",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "tsc"
@@ -34,6 +34,7 @@
     "@tsed/logger-file": "^8.0.4",
     "@tsed/logger-pattern-layout": "^8.0.4",
     "@tsed/logger-std": "^8.0.4",
+    "@tsed/platform-express": "^8.18.0",
     "@tsed/schema": "^8.17.3",
     "@types/connect-pg-simple": "^7.0.3",
     "@types/cookie-parser": "^1.4.9",
