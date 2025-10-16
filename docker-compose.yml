@@ -2,11 +2,7 @@
 name: hydra
 volumes:
   postgres-data:
-    driver: local
-    driver_opts:
-      type: none
-      device: /var/lib/postgres/data
-      o: bind
+
 services:
   hydra-migrate:
     image: oryd/hydra:v2.2.0
@@ -50,7 +46,7 @@ services:
       - POSTGRES_PASSWORD=shaken!stirred
       - POSTGRES_DB=hydra
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgres/data
     networks:
       - hydra-net
     ports:
