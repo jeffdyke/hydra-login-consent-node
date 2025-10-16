@@ -19,10 +19,12 @@ services:
       - "4445:4445" # Admin API
     command: serve all --dev
     env_file:
-      - /src/hydra-login-consent-node/.env
-      - /src/hydra-login-consent-node/.env.auth.hydra
-      - /src/hydra-login-consent-node/.env.auth.google
+      - /etc/bondlink/hydra/.env
+      - /etc/bondlink/hydra/.env.auth.hydra
+      - /etc/bondlink/hydra/.env.auth.google
     environment:
+      #TODO: These should be moved to perm locaations, as they should never change, or
+      # database must be rebuilt
       - SECRETS_SYSTEM=G6KaOf8aJsLagw566he8yxOTTO3tInKD
       - OIDC_SUBJECT_IDENTIFIERS_PAIRWISE_SALT=1AvfImNiD7yPGE7LYBcT5hJXOzydEEW1
 
@@ -33,7 +35,7 @@ services:
       - hydra-migrate
     networks:
       - hydra-net
-
+  # this should use the environment variable for password
   postgres:
     image: postgres:18-alpine
     environment:
@@ -46,13 +48,14 @@ services:
       - hydra-net
     ports:
       - "5432:5432"
+    restart: unless-stopped
 
   consent-app:
     image: 668874212870.dkr.ecr.us-east-1.amazonaws.com/drone-hydra-consent-node
     env_file:
-      - /src/hydra-login-consent-node/.env
-      - /src/hydra-login-consent-node/.env.auth.hydra
-      - /src/hydra-login-consent-node/.env.auth.google
+      - /etc/bondlink/hydra/.env
+      - /etc/bondlink/hydra/.env.auth.hydra
+      - /etc/bondlink/hydra/.env.auth.google
     ports:
       - "3000:3000"
     build:
@@ -67,6 +70,7 @@ services:
       - hydra
     networks:
       - hydra-net
+    restart: unless-stopped
     volumes:
       - /var/log/hydra:/var/log/hydra
 
