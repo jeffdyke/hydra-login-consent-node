@@ -32,15 +32,10 @@ const pgConfig = {
 }
 
 const PgStore = connectPgSimple(session)
-const hasClientId = () => {
+function hasClientId() {
   let s = "select * from hydra_client where id = $1"
   const res = pool.query(s, [CLIENT_ID]);
   return res
 }
-let exists = hasClientId()
-if (!exists) {
-  throw new Error("clientId returned false, this is required, query failed")
-} else {
-  jsonLogger.info("ClientId %s", JSON.stringify(exists))
-}
-export { hydraAdmin, pgConfig, CLIENT_ID}
+
+export { hydraAdmin, pgConfig, CLIENT_ID, hasClientId}

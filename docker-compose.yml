@@ -21,6 +21,7 @@ services:
     env_file:
       - /src/hydra-login-consent-node/.env
       - /src/hydra-login-consent-node/.env.auth.hydra
+      - /src/hydra-login-consent-node/.env.auth.google
     environment:
       - SECRETS_SYSTEM=G6KaOf8aJsLagw566he8yxOTTO3tInKD
       - OIDC_SUBJECT_IDENTIFIERS_PAIRWISE_SALT=1AvfImNiD7yPGE7LYBcT5hJXOzydEEW1
@@ -51,6 +52,7 @@ services:
     env_file:
       - /src/hydra-login-consent-node/.env
       - /src/hydra-login-consent-node/.env.auth.hydra
+      - /src/hydra-login-consent-node/.env.auth.google
     ports:
       - "3000:3000"
     build:
