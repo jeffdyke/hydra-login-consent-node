@@ -17,7 +17,7 @@ import logout from "./routes/logout.js"
 import consent from "./routes/consent.js"
 import device from "./routes/device.js"
 import callback from "./routes/callback.js"
-import { pgConfig } from "./config.js"
+import { pgConfig, hasClientId } from "./config.js"
 import jsonLogger from "./logging.js"
 import { dirname } from 'path';
 import favicon from "serve-favicon";
@@ -27,7 +27,12 @@ const app = express()
 app.use(logger("dev"))
 const PgStore = connectPgSimple(session)
 const __dirname = import.meta.dirname;
-
+let exists = hasClientId()
+if (!exists) {
+  throw new Error("clientId returned false, this is required, query failed")
+} else {
+  jsonLogger.info("ClientId %s", JSON.stringify(exists))
+}
 // view engine setup
 app.set("views", path.join(__dirname, "views"))
 app.set("view engine", "pug")
