@@ -25,6 +25,7 @@
   "prettier": "ory-prettier-styles",
   "dependencies": {
     "@googleapis/docs": "^7.0.0",
+    "@loglayer/transport-tslog": "^3.0.4",
     "@ory/client-fetch": "^1.22.6",
     "@ory/hydra-client": "^2.4.0-alpha.1",
     "@tsconfig/node-lts": "latest",
@@ -57,6 +58,7 @@
     "express-session": "^1.18.1",
     "google-auth-library": "^10.4.0",
     "googleapis": "^162.0.0",
+    "loglayer": "^6.9.1",
     "morgan": "^1.10.1",
     "node-fetch": "^3.3.2",
     "openapi-fetch": "^0.14.1",

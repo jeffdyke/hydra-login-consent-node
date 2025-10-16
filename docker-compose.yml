@@ -30,7 +30,7 @@ services:
 
     restart: unless-stopped
     volumes:
-      - hydra-logs:/var/log/hydra
+      - /var/log/bondlink/hydra:/var/log/bondlink/hydra
     depends_on:
       - hydra-migrate
     networks:
@@ -40,7 +40,7 @@ services:
     image: postgres:18-alpine
     environment:
       - POSTGRES_USER=hydra
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_PASSWORD=shaken!stirred
       - POSTGRES_DB=hydra
     volumes:
       - hydra-postgres:/var/lib/postgresql/data
@@ -72,7 +72,7 @@ services:
       - hydra-net
     restart: unless-stopped
     volumes:
-      - /var/log/hydra:/var/log/hydra
+      - /var/log/bondlink/hydra:/var/log/bondlink/hydra
 
 networks:
   hydra-net:
