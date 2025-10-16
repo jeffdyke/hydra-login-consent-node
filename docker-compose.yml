@@ -60,13 +60,9 @@ services:
       dockerfile: build/Dockerfile.consent-app
     environment:
       - HYDRA_ADMIN_URL=http://0.0.0.0:4445
-      - GOOGLE_REDIRECT_URI=http://dev.bondlink.org:3000/callback
+      - GOOGLE_REDIRECT_URI=http://auth.staging.bondlink.org/callback
       - NODE_TLS_REJECT_UNAUTHORIZED=0
       - NODE_ENV=development
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PASSWORD=shaken!stirred
-      - LOG_LEVEL=info
-      - LOG_FORMAT=json
     depends_on:
       - hydra
     networks:

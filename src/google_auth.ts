@@ -1,10 +1,10 @@
 
 import dotenv from 'dotenv';
 import axios from 'axios';
-import qs from "querystring";
-import {CollectionOf, Minimum, Property, Description} from "@tsed/schema";
+
+import { Property } from "@tsed/schema";
 import {Configuration} from "@tsed/di";
-import { auth, OAuth2Client, TokenPayload } from 'google-auth-library';
+import {TokenPayload } from 'google-auth-library';
 import jsonLogger  from "./logging.js"
 import { URLSearchParams } from 'url';
 dotenv.config()
@@ -117,7 +117,7 @@ async function googleOAuthTokens(code: string): Promise<TokenPayload> {
       new URLSearchParams(convertClassToRecord(authCodeRequest)),
       { headers: formHeader }
     ).then((resp) => { jsonLogger.info("Response is %s", resp.data); return resp.data})
-    .catch((err) => { jsonLogger.info("Error fetching AuthCode", JSON.stringify({
+    .catch((err) => { jsonLogger.info("Error fetching AuthCode %s", JSON.stringify({
       authCodeRequest:authCodeRequest,
       error:err
     })); return err.response.data });
@@ -126,9 +126,10 @@ async function googleOAuthTokens(code: string): Promise<TokenPayload> {
 
 async function getGoogleUser(access_token: string, id_token: string): Promise<UserInfo> {
   const url = `https://www.googleapis.com/oauth2/v2/userinfo?alt=json&access_token=${access_token}`;
+  jsonLogger.info("Calling google at url: %s", url)
   return await axios.get(url, { headers: { Authorization: `Bearer ${id_token}` } })
     .then((resp) => { return resp.data })
-    .catch((err) => { jsonLogger.info("Error % fetching access token with value %s", JSON.stringify({
+    .catch((err) => { jsonLogger.info("Error fetching access token for user %s", JSON.stringify({
       error:err,
       access_token:access_token
     })); return err.response.data
@@ -137,17 +138,20 @@ async function getGoogleUser(access_token: string, id_token: string): Promise<Us
 }
 async function googleTokenResponse(code: string): Promise<GoogleTokenResponse> {
     const authClientConfig: AuthClientConfig = new AuthClientConfig(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
-    const urlParams = new URLSearchParams(convertClassToRecord(new AuthorizationCodeRequest(code, authClientConfig, 'authorization_code')))
+
+    const urlParams = new URLSearchParams(JSON.stringify({code: code, grant_type: 'authorization_code'}))
+    jsonLogger.info("raw params %s", urlParams)
+    jsonLogger.info("Requesting TokenResponse with clientConfig %s and urlParams %s", JSON.stringify(authClientConfig), urlParams )
     return await axios.post(
       GOOGLE_TOKEN_URL,
       urlParams,
       { headers: formHeader })
       .then((resp) => { return resp.data })
-      .catch((err) => { jsonLogger.info("GoogleTokenResponse Error", JSON.stringify({
+      .catch((err) => { jsonLogger.info("GoogleTokenResponse Error %s", JSON.stringify({
         error:err,
         code:code,
         authClientConfig:JSON.stringify(authClientConfig),
-        urlParams:JSON.stringify(urlParams)
+        urlParams:urlParams
       }));
       return err.response.data
     })

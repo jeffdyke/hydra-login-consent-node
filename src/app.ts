@@ -22,9 +22,10 @@ import jsonLogger from "./logging.js"
 import { dirname } from 'path';
 import favicon from "serve-favicon";
 import { default as csurf } from 'csurf';
+import { requestLogger } from "./middleware/requestLogger.js";
 
 const app = express()
-app.use(logger("dev"))
+app.use(requestLogger)
 const PgStore = connectPgSimple(session)
 const __dirname = import.meta.dirname;
 let exists = hasClientId()
@@ -95,8 +96,8 @@ app.use((req, res, next) => {
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
-  console.log("404 Not Found: %s", req.originalUrl)
-  next(new Error("Generic Not Found"))
+  jsonLogger.info("404 Not Found: %s", req.originalUrl)
+  next(new Error("Generic Not Found `{$req.originalUrl}`" ))
 })
 
 // error handlers
@@ -124,13 +125,13 @@ app.use((err: Error, req: Request, res: Response) => {
 })
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error(err.stack)
+  jsonLogger.error("ApplicationError: %s", JSON.stringify(err.stack))
   res.status(500).render("error", {
-    message: JSON.stringify(err, null, 2),
+    message: JSON.stringify(err),
   })
 })
 
 const listenOn = Number(process.env.PORT || 3000)
 app.listen(listenOn, () => {
-  console.log(`Listening on http://0.0.0.0:${listenOn}`)
+  jsonLogger.debug(`Listening on http://0.0.0.0:${listenOn}`)
 })

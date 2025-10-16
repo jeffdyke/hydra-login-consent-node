@@ -45,7 +45,6 @@ router.get("/", csrfProtection, (req, res) => {
     axios.post(`${process.env.HYDRA_URL}/oauth2/token`, body.toString(), {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
     }).then(data => {
-        jsonLogger.info("data is %s", data)
         jsonLogger.info("State: %s, Verifier %s ", req.session.state, req.session.codeVerifier)
         // Clear stored values from session
         if (req.session) {
