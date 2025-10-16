@@ -3,18 +3,26 @@ set -e
 OPERATION=$1
 shift
 COOKIE_DOMAIN="bondlink.org"
-SERVER_NAME="dev.${COOKIE_DOMAIN}"
-
 HOST_IP=
 ISSUER=
 ISSUER_ADMIN=
 CALLBACK_HOST=
-
+POSTGRES_PASSWORD="shaken!stirred"
 # This script creates an OAuth2 client in Hydra and generates a .env file for the consent app.
-HOST_IP=$(ipconfig getifaddr en0)
-ISSUER="http://${SERVER_NAME}:4444"
-ISSUER_ADMIN="http://${HOST_IP}:4445"
-CALLBACK_HOST="http://${SERVER_NAME}:3000"
+#TODO Add prod
+if [ "$(uname)" = "Darwin" ]; then
+  SERVER_NAME="dev.${COOKIE_DOMAIN}"
+  HOST_IP=$(ipconfig getifaddr en0)
+  ISSUER="http://${SERVER_NAME}:4444"
+  ISSUER_ADMIN="http://${HOST_IP}:4445"
+  CALLBACK_HOST="http://${SERVER_NAME}:3000"
+elif [[ "$(hostname)" == "staging"* ]]; then
+  SERVER_NAME="auth.staging.bondlink.org"
+  HOST_IP=$(hostname -I | cut -d ' ' -f1)
+  ISSUER_ADMIN="http://${HOST_IP}:4445"
+  CALLBACK_HOST="https://auth.staging.bondlink.org/callback"
+  ISSUER="https://${SERVER_NAME}"
+fi
 
 declare -A CLIENT_CREDENTIALS_CONFIG
 CLIENT_CREDENTIALS_CONFIG[scope]="offline email openid offline_access"
@@ -118,7 +126,6 @@ getClient() {
 
 createEnvFile() {
   cat <<-EOF > .env
-POSTGRES_PASSWORD=shaken!stirred
 HYDRA_ADMIN_URL=${ISSUER_ADMIN}
 HYDRA_URL=${ISSUER}
 BASE_URL=${CALLBACK_HOST}
@@ -133,7 +140,7 @@ SERVE_PUBLIC_CORS_ENABLED=false
 SERVE_ADMIN_CORS_ENABLED=false
 SERVE_PUBLIC_CORS_ALLOWED_ORIGINS="*"
 SERVE_ADMIN_CORS_ALLOWED_ORIGINS="*"
-DSN=postgres://hydra:shaken!stirred@${HOST_IP}:5432/hydra?sslmode=disable
+DSN=postgres://hydra:${POSTGRES_PASSWORD}@${HOST_IP}:5432/hydra?sslmode=disable
 SERVE_PUBLIC_CORS_ALLOWED_METHODS=POST,GET,PUT,DELETE
 SERVE_ADMIN_CORS_ALLOWED_METHODS=POST,GET,PUT,DELETE
 OAUTH2_EXPOSE_INTERNAL_ERRORS=true
