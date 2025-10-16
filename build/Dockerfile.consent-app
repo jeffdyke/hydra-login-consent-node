@@ -9,7 +9,7 @@ COPY public /usr/src/app/public
 COPY dist /usr/src/app/dist
 
 WORKDIR /usr/src/app
-VOLUME [ "/var/log/bondlink" ]
+VOLUME [ "/var/log/bondlink", "/var/lib/postgres/data" ]
 
 ENTRYPOINT ["npm", "run", "serve"]
 
