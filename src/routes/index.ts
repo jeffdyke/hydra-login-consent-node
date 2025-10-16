@@ -10,7 +10,7 @@ const router = express.Router()
 
 const REDIRECT_URI = process.env.REDIRECT_URL || ""
 const HYDRA_URL = process.env.HYDRA_URL || ""
-jsonLogger.info("Using Hydra URL: %s", JSON.stringify(process.env))
+
 // Helper function to generate base64url encoded string
 function base64URLEncode(buffer: Buffer): string {
   return buffer
