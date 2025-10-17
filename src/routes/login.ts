@@ -4,21 +4,17 @@
 import express from "express"
 import url from "url"
 import urljoin from "url-join"
-import { default as csurf } from 'csurf';
+import cors from "cors"
 import { hydraAdmin } from "../config.js"
 import { oidcConformityMaybeFakeAcr } from "./stub/oidc-cert.js"
 
 // Sets up csrf protection
-const csrfProtection = csurf({
-  cookie: {
-    sameSite: "lax",
-    domain: 'bondlink.org',
-  },
-})
-
+// const corsOptions = {
+//   origin: process.env.SERVE_COOKIES_DOMAIN
+// }
 const router = express.Router()
 
-router.get("/", csrfProtection, (req, res, next) => {
+router.get("/", cors(), (req, res, next) => {
   // Parses the URL query
   const query = url.parse(req.url, true).query
 
@@ -68,7 +64,7 @@ router.get("/", csrfProtection, (req, res, next) => {
     .catch(next)
 })
 
-router.post("/", csrfProtection, (req, res, next) => {
+router.post("/", cors(), (req, res, next) => {
   // The challenge is now a hidden input field, so let's take it from the request body instead
   const challenge = req.body.challenge
 
