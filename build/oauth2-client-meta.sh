@@ -8,6 +8,11 @@ ISSUER=
 ISSUER_ADMIN=
 CALLBACK_HOST=
 POSTGRES_PASSWORD="shaken!stirred"
+ENV_PATH=/etc/bondlink/hydra
+HYDRA_AUTH_FILE="${ENV_FILE}/.env.auth.hydra"
+HYDRA_CODE_FILE="${ENV_FILE}/.env.code.hydra"
+GOOGLE_AUTH_FILE="${ENV_FILE}/.env.auth.google"
+
 # This script creates an OAuth2 client in Hydra and generates a .env file for the consent app.
 #TODO Add prod
 if [ "$(uname)" = "Darwin" ]; then
@@ -35,8 +40,8 @@ AUTH_FLOW_CONFIG[response-type]="code,id_token"
 AUTH_FLOW_CONFIG[token-endpoint-auth-method]="none"
 
 
-CLIENT_ID=$(grep AUTH_FLOW_CLIENT_ID .env | cut -d '=' -f2 2>/dev/null) || ""
-CODE_CLIENT_ID=$(grep CODE_CLIENT_ID .env | cut -d '=' -f2 2>/dev/null) || ""
+AUTH_FLOW_CLIENT_ID=$(grep AUTH_FLOW_CLIENT_ID ${HYDRA_AUTH_FILE} | cut -d '=' -f2 2>/dev/null) || ""
+CODE_CLIENT_ID=$(grep CODE_CLIENT_ID ${HYDRA_CODE_FILE} | cut -d '=' -f2 2>/dev/null) || ""
 
 authClient() {
   if [ -n "${AUTH_FLOW_CLIENT_ID}" ]; then
