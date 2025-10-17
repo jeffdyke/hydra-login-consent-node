@@ -2,12 +2,9 @@ import express from "express"
 import { default as csrf } from 'csurf';
 import { googleTokenResponse } from "../google_auth.js"
 import jsonLogger  from "../logging.js"
+import cors from "cors"
 import {CLIENT_ID} from "../config.js"
-const csrfProtection = csrf({
-  cookie: {
-    sameSite: "lax",
-  },
-})
+
 const router = express.Router()
 const REDIRECT_URI = process.env.REDIRECT_URL || ""
 
@@ -15,7 +12,7 @@ const REDIRECT_URI = process.env.REDIRECT_URL || ""
 import axios from "axios"
 import { json } from "body-parser";
 
-router.get("/", csrfProtection, (req, res) => {
+router.get("/", cors(), (req, res) => {
   const code = req.query.code
   const returnedState = req.query.state
 
