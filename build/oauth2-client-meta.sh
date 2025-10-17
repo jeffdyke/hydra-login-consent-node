@@ -9,9 +9,9 @@ ISSUER_ADMIN=
 CALLBACK_HOST=
 POSTGRES_PASSWORD="shaken!stirred"
 ENV_PATH=/etc/bondlink/hydra
-HYDRA_AUTH_FILE="${ENV_FILE}/.env.auth.hydra"
-HYDRA_CODE_FILE="${ENV_FILE}/.env.code.hydra"
-GOOGLE_AUTH_FILE="${ENV_FILE}/.env.auth.google"
+HYDRA_AUTH_FILE="${ENV_PATH}/.env.auth.hydra"
+HYDRA_CODE_FILE="${ENV_PATH}/.env.code.hydra"
+GOOGLE_AUTH_FILE="${ENV_PATH}/.env.auth.google"
 
 [ ! -f "${HYDRA_AUTH_FILE}" ] && touch "${HYDRA_AUTH_FILE}"
 [ ! -f "${HYDRA_CODE_FILE}" ] && touch "${HYDRA_CODE_FILE}"
