@@ -5,7 +5,6 @@ import { OAuth2Api } from "@ory/hydra-client-fetch/dist/index.js"
 import session from "express-session"
 import connectPgSimple from "connect-pg-simple"
 import pool from "./pool.js"
-import jsonLogger from "./logging.js"
 const baseOptions: any = {}
 if (process.env.MOCK_TLS_TERMINATION) {
   baseOptions.headers = { "X-Forwarded-Proto": "https" }
@@ -20,9 +19,7 @@ if (!CLIENT_ID) {
   throw new Error("CLIENT_ID environment is not legit `{process.env.AUTH_FLOW_CLIENT_ID}`")
 }
 const hydraAdmin = new OAuth2Api(configuration)
-// jsonLogger.info("Hydra Admin URL: %s", hydraAdmin.middleware)
-// PostgreSQL configuration
-// process.env is empty
+
 const pgConfig = {
   user: process.env.POSTGRES_USER || "hydra",
   password: process.env.POSTGRES_PASSWORD || "shaken!stirred",
