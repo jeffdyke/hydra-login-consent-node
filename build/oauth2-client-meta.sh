@@ -125,7 +125,7 @@ getClient() {
 }
 
 createEnvFile() {
-  cat <<-EOF > .env
+  cat <<-EOF > /etc/bondlink/hydra/.env
 HYDRA_ADMIN_URL=${ISSUER_ADMIN}
 HYDRA_URL=${ISSUER}
 BASE_URL=${CALLBACK_HOST}
