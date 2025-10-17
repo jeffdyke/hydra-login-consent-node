@@ -79,19 +79,6 @@ app.use("/consent", consent)
 app.use("/device", device)
 app.use("/callback", callback)
 
-// app.use((req, res, next) => {
-//   req.on('data', () => {
-
-//     jsonLogger.info('request: %s', JSON.stringify(req));
-//     jsonLogger.info("body: %s", JSON.stringify(req.body))
-//   })
-//   // res.on('finish', () => {
-//   //   jsonLogger.info('response: %s', JSON.stringify(res));
-
-//   // });
-//   next();
-// });
-
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
   jsonLogger.warn("404 in app.ts", {url: req.originalUrl})
