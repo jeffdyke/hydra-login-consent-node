@@ -28,7 +28,7 @@ elif [[ "$(hostname)" == "staging"* ]]; then
   SERVER_NAME="auth.staging.bondlink.org"
   HOST_IP=$(hostname -I | cut -d ' ' -f1)
   ISSUER_ADMIN="http://${HOST_IP}:4445"
-  CALLBACK_HOST="https://auth.staging.bondlink.org/"
+  CALLBACK_HOST="https://auth.staging.bondlink.org"
   ISSUER="https://${SERVER_NAME}"
 fi
 
