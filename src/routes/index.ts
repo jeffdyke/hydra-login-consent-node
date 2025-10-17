@@ -43,7 +43,6 @@ router.get("/", (req, res) => {
     req.session.state = state
     req.session.codeVerifier = codeVerifier
   }
-  jsonLogger.info("URL: %s, State: %s, Verifier %s ", HYDRA_URL, req.session?.state, req.session?.codeVerifier)
   // Build authorization URL
   const authUrl = new URL(`${HYDRA_URL}/oauth2/auth`)
   authUrl.searchParams.append("client_id", CLIENT_ID)
