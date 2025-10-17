@@ -13,6 +13,9 @@ HYDRA_AUTH_FILE="${ENV_FILE}/.env.auth.hydra"
 HYDRA_CODE_FILE="${ENV_FILE}/.env.code.hydra"
 GOOGLE_AUTH_FILE="${ENV_FILE}/.env.auth.google"
 
+[ ! -f "${HYDRA_AUTH_FILE}" ] && touch "${HYDRA_AUTH_FILE}"
+[ ! -f "${HYDRA_CODE_FILE}" ] && touch "${HYDRA_CODE_FILE}"
+
 # This script creates an OAuth2 client in Hydra and generates a .env file for the consent app.
 #TODO Add prod
 if [ "$(uname)" = "Darwin" ]; then
