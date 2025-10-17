@@ -1,13 +1,13 @@
 
 import { Request, Response, NextFunction } from "express";
-import logger  from "../logging.js"; // Import your tslog instance
+import logger  from "../logging.js";
 
 export function requestLogger(req: Request, res: Response, next: NextFunction) {
-  const start = process.hrtime.bigint(); // High-resolution timer for precise timing
+  const start = process.hrtime.bigint();
 
   res.on("finish", () => {
     const end = process.hrtime.bigint();
-    const duration = Number(end - start) / 1_000_000; // Convert to milliseconds
+    const duration = Number(end - start) / 1_000_000;
 
     logger.info({
       method: req.method,

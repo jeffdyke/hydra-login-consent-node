@@ -18,16 +18,16 @@ import { json } from "body-parser";
 router.get("/", csrfProtection, (req, res) => {
   const code = req.query.code
   const returnedState = req.query.state
-  jsonLogger.info("returned state %s code %s", returnedState, code)
 
   if (code && req.session) {
     const storedState = req.session.state
     const codeVerifier = req.session.codeVerifier
     jsonLogger.info(
-      "State %s vs ReturnedState: %s with Code %s",
-      storedState,
-      returnedState,
-      codeVerifier,
+      "State vs ReturnedState",{
+        storedState: storedState,
+        returnedState: returnedState,
+        codeVerifier: codeVerifier,
+      }
     )
 
     if (returnedState !== storedState) {
@@ -40,12 +40,11 @@ router.get("/", csrfProtection, (req, res) => {
           client_id: CLIENT_ID,
           code_verifier: codeVerifier ?? "",
         })
-    jsonLogger.info("Body is %s", body)
     // Exchange code for tokens WITH code_verifier
     axios.post(`${process.env.HYDRA_URL}/oauth2/token`, body.toString(), {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
     }).then(data => {
-        jsonLogger.info("State: %s, Verifier %s ", req.session.state, req.session.codeVerifier)
+        jsonLogger.info("Post Success", {state: req.session.state, verifier: req.session.codeVerifier})
         // Clear stored values from session
         if (req.session) {
           delete req.session.codeVerifier
@@ -68,7 +67,7 @@ router.get("/", csrfProtection, (req, res) => {
         res.status(500).send(`Error Caught in callback: ${err.message}`)
       })
   } else {
-    jsonLogger.info("Missing code (%s) or session (%s)", code, JSON.stringify(req.session))
+    jsonLogger.info("Missing code session ", {code:code, session:JSON.stringify(req.session)})
     res.status(400).send("Missing code or session ")
   }
 })

@@ -16,7 +16,7 @@ import logout from "./routes/logout.js"
 import consent from "./routes/consent.js"
 import device from "./routes/device.js"
 import callback from "./routes/callback.js"
-import { pgConfig, hasClientId } from "./config.js"
+import { pgConfig, hasClientId, CLIENT_ID } from "./config.js"
 import jsonLogger from "./logging.js"
 import { dirname } from 'path';
 import favicon from "serve-favicon";
@@ -31,12 +31,11 @@ let exists = hasClientId()
 if (!exists) {
   throw new Error("clientId returned false, this is required, query failed")
 } else {
-  jsonLogger.info("ClientId %s", JSON.stringify(exists))
+  jsonLogger.info("ClientId exists", {clientId: CLIENT_ID})
 }
 // view engine setup
 app.set("views", path.join(__dirname, "views"))
 app.set("view engine", "pug")
-jsonLogger.info("View path: %s", path.join(__dirname, "views"))
 // uncomment after placing your favicon in /public
 app.use(favicon(path.join(__dirname, '..', 'public', 'favicon.ico')));
 
@@ -80,22 +79,22 @@ app.use("/consent", consent)
 app.use("/device", device)
 app.use("/callback", callback)
 
-app.use((req, res, next) => {
-  req.on('data', () => {
+// app.use((req, res, next) => {
+//   req.on('data', () => {
 
-    jsonLogger.info('request: %s', JSON.stringify(req));
-    jsonLogger.info("body: %s", JSON.stringify(req.body))
-  })
-  // res.on('finish', () => {
-  //   jsonLogger.info('response: %s', JSON.stringify(res));
+//     jsonLogger.info('request: %s', JSON.stringify(req));
+//     jsonLogger.info("body: %s", JSON.stringify(req.body))
+//   })
+//   // res.on('finish', () => {
+//   //   jsonLogger.info('response: %s', JSON.stringify(res));
 
-  // });
-  next();
-});
+//   // });
+//   next();
+// });
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
-  jsonLogger.info("404 Not Found: %s", req.originalUrl)
+  jsonLogger.warn("404 in app.ts", {url: req.originalUrl})
   next(new Error("Generic Not Found `{$req.originalUrl}`" ))
 })
 
@@ -124,7 +123,7 @@ app.use((err: Error, req: Request, res: Response) => {
 })
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  jsonLogger.error("ApplicationError: %s", JSON.stringify(err.stack))
+  jsonLogger.error("ApplicationError", {stack: err.stack})
   res.status(500).render("error", {
     message: JSON.stringify(err),
   })
