@@ -58,7 +58,7 @@ authClient() {
     --response-type "code,id_token" \
     --format json \
     --token-endpoint-auth-method none \
-    --scope "openid,offline,email" \
+    --scope "openid,offline" \
     --redirect-uri "${CALLBACK_HOST}/callback" \
     --format json
   )
@@ -110,11 +110,11 @@ codeClient() {
 
 # Delete/redo this
 updateClient() {
-  if [ -z "$CLIENT_ID" ]; then
+  if [ -z "$AUTH_FLOW_CLIENT_ID" ]; then
     echo "CLIENT_ID is not set in .env file. Cannot update client."
     exit 1
   fi
-  client_output=$(hydra update client $CLIENT_ID --endpoint "${ISSUER_ADMIN}" \
+  client_output=$(hydra update client $AUTH_FLOW_CLIENT_ID --endpoint "${ISSUER_ADMIN}" \
   --name "${APP_NAME}" \
   --scope "${APP_SCOPE}" \
   --grant-type "${APP_GRANT_TYPE}" \
@@ -136,6 +136,7 @@ createEnvFile() {
   cat <<-EOF > /etc/bondlink/hydra/.env
 HYDRA_ADMIN_URL=${ISSUER_ADMIN}
 HYDRA_URL=${ISSUER}
+POSTGRES_HOST=${HOST_IP}
 BASE_URL=${CALLBACK_HOST}
 URLS_SELF_ISSUER=${ISSUER}
 URLS_CONSENT=${CALLBACK_HOST}/consent
