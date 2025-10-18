@@ -4,20 +4,14 @@
 import express from "express"
 import url from "url"
 import urljoin from "url-join"
-import { default as csrf } from 'csurf';
-import { hydraAdmin } from "../config.js"
+import { hydraAdmin,generateCsrfToken } from "../config.js"
 import { oidcConformityMaybeFakeSession } from "./stub/oidc-cert.js"
 import { AcceptOAuth2ConsentRequestSession } from "@ory/client-fetch"
 import jsonLogger  from "../logging.js"
-// Sets up csrf protection
-const csrfProtection = csrf({
-  cookie: {
-    sameSite: "lax",
-  },
-})
+
 const router = express.Router()
 
-router.get("/", csrfProtection, (req, res, next) => {
+router.get("/", (req, res, next) => {
   // Parses the URL query
   const query = url.parse(req.url, true).query
   jsonLogger.info("Stating /consent", {response:res} )
@@ -78,7 +72,7 @@ router.get("/", csrfProtection, (req, res, next) => {
       // If consent can't be skipped we MUST show the consent UI.
       jsonLogger.info("Rendering consent")
       res.render("consent", {
-        csrfToken: req.csrfToken(),
+        csrfToken: generateCsrfToken,
         challenge: challenge,
         // We have a bunch of data available from the response, check out the API docs to find what these values mean
         // and what additional data you have available.
@@ -93,7 +87,7 @@ router.get("/", csrfProtection, (req, res, next) => {
   // The consent request has now either been accepted automatically or rendered.
 })
 
-router.post("/", csrfProtection, (req, res, next) => {
+router.post("/", (req, res, next) => {
   // The challenge is now a hidden input field, so let's take it from the request body instead
   const challenge = req.body.challenge
   jsonLogger.info("Stating POST /consent", {challenge:challenge})

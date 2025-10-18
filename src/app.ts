@@ -16,15 +16,23 @@ import logout from "./routes/logout.js"
 import consent from "./routes/consent.js"
 import device from "./routes/device.js"
 import callback from "./routes/callback.js"
-import { pgConfig, hasClientId, CLIENT_ID } from "./config.js"
+
+import { pgConfig, hasClientId, CLIENT_ID, doubleCsrfProtection, generateCsrfToken } from "./config.js"
 import jsonLogger from "./logging.js"
 import { dirname } from 'path';
 import favicon from "serve-favicon";
-import { default as csurf } from 'csurf';
+
 import { requestLogger } from "./middleware/requestLogger.js";
 
 const app = express()
 app.use(requestLogger)
+app.use(doubleCsrfProtection)
+app.use((req, res, next) => {
+  // Add the generated token to `res.locals` so it can be used in templates.
+  res.locals.csrfToken = generateCsrfToken(req, res);
+  next();
+});
+
 const PgStore = connectPgSimple(session)
 const __dirname = import.meta.dirname;
 let exists = hasClientId()
@@ -43,11 +51,6 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cookieParser())
 // Sets up csrf protection
-const csrfProtection = csurf({
-  cookie: {
-    sameSite: "lax",
-  },
-})
 
 // app.use(csrfProtection);
 // Session middleware with PostgreSQL store
@@ -61,12 +64,12 @@ app.use(
     secret: process.env.SESSION_SECRET || "change-me-in-production",
     resave: false,
     saveUninitialized: false,
-    cookie: {
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-      secure: process.env.NODE_ENV === "production",
-      httpOnly: true,
-      sameSite: "lax",
-    },
+    // cookie: {
+    //   maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    //   secure: process.env.NODE_ENV === "production",
+    //   httpOnly: true,
+    //   sameSite: "lax",
+    // },
   })
 )
 
