@@ -2,17 +2,12 @@ import express from "express"
 import { googleTokenResponse } from "../google_auth.js"
 import jsonLogger  from "../logging.js"
 
-import {CLIENT_ID} from "../config.js"
-
-
+import {CLIENT_ID, doubleCsrfProtection} from "../config.js"
 const router = express.Router()
 const REDIRECT_URI = process.env.REDIRECT_URL || ""
-
-
 import axios from "axios"
-import { json } from "body-parser";
 
-router.get("/", (req, res) => {
+router.get("/", doubleCsrfProtection, (req, res) => {
   const code = req.query.code
   const returnedState = req.query.state
 
