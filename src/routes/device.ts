@@ -3,14 +3,12 @@
 
 import express from "express"
 import url from "url"
-import { default as csrf } from 'csurf';
-import { hydraAdmin } from "../config.js"
+import { generateCsrfToken, hydraAdmin } from "../config.js"
 
 // Sets up csrf protection
-const csrfProtection = csrf({ cookie: true })
 const router = express.Router()
 
-router.get("/verify", csrfProtection, (req, res, next) => {
+router.get("/verify", (req, res, next) => {
   // Parses the URL query
   const query = url.parse(req.url, true).query
 
@@ -22,13 +20,13 @@ router.get("/verify", csrfProtection, (req, res, next) => {
   }
 
   res.render("device/verify", {
-    csrfToken: req.csrfToken(),
+    csrfToken: generateCsrfToken,
     challenge,
     userCode: String(query.user_code),
   })
 })
 
-router.post("/verify", csrfProtection, (req, res, next) => {
+router.post("/verify", (req, res, next) => {
   // The code is a input field, so let's take it from the request body
   const { code: userCode, challenge } = req.body
   // All we need to do now is to redirect the user back to hydra!
@@ -46,9 +44,9 @@ router.post("/verify", csrfProtection, (req, res, next) => {
     .catch(next)
 })
 
-router.get("/success", csrfProtection, (req, res, next) => {
+router.get("/success", (req, res, next) => {
   res.render("device/success", {
-    csrfToken: req.csrfToken(),
+    csrfToken: generateCsrfToken,
   })
 })
 

@@ -4,21 +4,13 @@
 import express from "express"
 import url from "url"
 import urljoin from "url-join"
-import { default as csurf } from 'csurf';
-import { hydraAdmin } from "../config.js"
+import { generateCsrfToken, hydraAdmin } from "../config.js"
 import { oidcConformityMaybeFakeAcr } from "./stub/oidc-cert.js"
 
-// Sets up csrf protection
-const csrfProtection = csurf({
-  cookie: {
-    sameSite: "lax",
-    domain: 'bondlink.org',
-  },
-})
 
 const router = express.Router()
 
-router.get("/", csrfProtection, (req, res, next) => {
+router.get("/", (req, res, next) => {
   // Parses the URL query
   const query = url.parse(req.url, true).query
 
@@ -58,7 +50,7 @@ router.get("/", csrfProtection, (req, res, next) => {
 
       // If authentication can't be skipped we MUST show the login UI.
       res.render("login", {
-        csrfToken: req.csrfToken(),
+        csrfToken: generateCsrfToken,
         challenge: challenge,
         action: urljoin(process.env.BASE_URL || "", "/login"),
         hint: loginRequest.oidc_context?.login_hint || "",
@@ -68,7 +60,7 @@ router.get("/", csrfProtection, (req, res, next) => {
     .catch(next)
 })
 
-router.post("/", csrfProtection, (req, res, next) => {
+router.post("/", (req, res, next) => {
   // The challenge is now a hidden input field, so let's take it from the request body instead
   const challenge = req.body.challenge
 
@@ -99,7 +91,7 @@ router.post("/", csrfProtection, (req, res, next) => {
     // Looks like the user provided invalid credentials, let's show the ui again...
 
     res.render("login", {
-      csrfToken: req.csrfToken(),
+      csrfToken: generateCsrfToken,
       challenge: challenge,
       error: "The username / password combination is not correct",
     })

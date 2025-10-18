@@ -4,14 +4,12 @@
 import express from "express"
 import url from "url"
 import urljoin from "url-join"
-import { default as csrf } from 'csurf';
 import { hydraAdmin } from "../config.js"
+import { generateCsrfToken } from "../config.js"
 
-// Sets up csrf protection
-const csrfProtection = csrf({ cookie: true })
 const router = express.Router()
 
-router.get("/", csrfProtection, (req, res, next) => {
+router.get("/", (req, res, next) => {
   // Parses the URL query
   const query = url.parse(req.url, true).query
 
@@ -30,7 +28,7 @@ router.get("/", csrfProtection, (req, res, next) => {
 
       // The most secure way to perform a logout request is by asking the user if he/she really want to log out.
       res.render("logout", {
-        csrfToken: req.csrfToken(),
+        csrfToken: generateCsrfToken,
         challenge: challenge,
         action: urljoin(process.env.BASE_URL || "", "/logout"),
       })
@@ -39,7 +37,7 @@ router.get("/", csrfProtection, (req, res, next) => {
     .catch(next)
 })
 
-router.post("/", csrfProtection, (req, res, next) => {
+router.post("/", (req, res, next) => {
   // The challenge is now a hidden input field, so let's take it from the request body instead
   const challenge = req.body.challenge
 

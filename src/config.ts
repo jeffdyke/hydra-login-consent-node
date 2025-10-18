@@ -5,6 +5,31 @@ import { OAuth2Api } from "@ory/hydra-client-fetch/dist/index.js"
 import session from "express-session"
 import connectPgSimple from "connect-pg-simple"
 import pool from "./pool.js"
+import { doubleCsrf } from "csrf-csrf";
+
+const {
+  doubleCsrfProtection, // The middleware to protect routes
+  generateCsrfToken,        // Helper function to generate a CSRF token
+} = doubleCsrf({
+  getSecret: () => process.env.SECRETS_SYSTEM || "G6KaOf8aJsLagw566he8yxOTTO3tInKD",
+  cookieName: 'x-csrf-token',
+  cookieOptions: {
+    sameSite: 'lax', // Secure cookie settings
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+  },
+  getSessionIdentifier: (req) => {
+    return req.session.id
+  },
+  getCsrfTokenFromRequest: (req) => {
+    // A function that extracts the token from the incoming request.
+    // By default, this looks for 'x-csrf-token' in the headers.
+    // This example shows how to get it from a header.
+    return req.headers['x-csrf-token'];
+  },
+});
+
+
 const baseOptions: any = {}
 if (process.env.MOCK_TLS_TERMINATION) {
   baseOptions.headers = { "X-Forwarded-Proto": "https" }
@@ -35,4 +60,4 @@ function hasClientId() {
   return res
 }
 
-export { hydraAdmin, pgConfig, CLIENT_ID, hasClientId}
+export { hydraAdmin, pgConfig, CLIENT_ID, hasClientId, generateCsrfToken, doubleCsrfProtection}
