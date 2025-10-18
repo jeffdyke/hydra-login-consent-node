@@ -4,7 +4,7 @@
 import express from "express"
 import crypto from "crypto"
 import jsonLogger from "../logging.js"
-import {CLIENT_ID} from "../config.js"
+import {CLIENT_ID, doubleCsrfProtection} from "../config.js"
 const router = express.Router()
 
 
@@ -30,7 +30,7 @@ function generateCodeChallenge(verifier: string): string {
   return base64URLEncode(crypto.createHash("sha256").update(verifier).digest())
 }
 
-router.get("/", (req, res) => {
+router.get("/", doubleCsrfProtection, (req, res) => {
   // Generate state for CSRF protection
   const state = crypto.randomBytes(16).toString("hex")
 

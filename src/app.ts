@@ -26,12 +26,6 @@ import { requestLogger } from "./middleware/requestLogger.js";
 
 const app = express()
 app.use(requestLogger)
-app.use(doubleCsrfProtection)
-app.use((req, res, next) => {
-  // Add the generated token to `res.locals` so it can be used in templates.
-  res.locals.csrfToken = generateCsrfToken(req, res);
-  next();
-});
 
 const PgStore = connectPgSimple(session)
 const __dirname = import.meta.dirname;
@@ -44,14 +38,12 @@ if (!exists) {
 // view engine setup
 app.set("views", path.join(__dirname, "views"))
 app.set("view engine", "pug")
-// uncomment after placing your favicon in /public
 app.use(favicon(path.join(__dirname, '..', 'public', 'favicon.ico')));
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cookieParser())
 
-// app.use(csrfProtection);
 // Session middleware with PostgreSQL store
 app.use(
   session({
