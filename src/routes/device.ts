@@ -5,7 +5,7 @@ import express from "express"
 import url from "url"
 import { generateCsrfToken, hydraAdmin } from "../config.js"
 
-// Sets up csrf protection
+
 const router = express.Router()
 
 router.get("/verify", (req, res, next) => {
