@@ -13,7 +13,7 @@ RUN apk add --no-cache vim git bash postgresql-client
 
 RUN git clone https://github.com/jeffdyke/hydra-login-consent-node.git /tmp/repo && \
     cp -rf /tmp/repo/* /usr/src/app/ && \
-    npm ci && \
+    npm install && \
     npm run build && \
     rm -rf /tmp/repo && \
     ls -l /usr/src/app/public/favicon.ico
