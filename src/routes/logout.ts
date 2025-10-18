@@ -28,7 +28,7 @@ router.get("/", (req, res, next) => {
 
       // The most secure way to perform a logout request is by asking the user if he/she really want to log out.
       res.render("logout", {
-        csrfToken: generateCsrfToken,
+        csrfToken: generateCsrfToken(req, res),
         challenge: challenge,
         action: urljoin(process.env.BASE_URL || "", "/logout"),
       })

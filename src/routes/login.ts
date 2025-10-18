@@ -50,7 +50,7 @@ router.get("/", doubleCsrfProtection, (req, res, next) => {
 
       // If authentication can't be skipped we MUST show the login UI.
       res.render("login", {
-        csrfToken: generateCsrfToken,
+        csrfToken: generateCsrfToken(req, res),
         challenge: challenge,
         action: urljoin(process.env.BASE_URL || "", "/login"),
         hint: loginRequest.oidc_context?.login_hint || "",
@@ -91,7 +91,7 @@ router.post("/", doubleCsrfProtection, (req, res, next) => {
     // Looks like the user provided invalid credentials, let's show the ui again...
 
     res.render("login", {
-      csrfToken: generateCsrfToken,
+      csrfToken: generateCsrfToken(req, res),
       challenge: challenge,
       error: "The username / password combination is not correct",
     })

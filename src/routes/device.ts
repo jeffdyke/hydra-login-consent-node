@@ -20,7 +20,7 @@ router.get("/verify", (req, res, next) => {
   }
 
   res.render("device/verify", {
-    csrfToken: generateCsrfToken,
+    csrfToken: generateCsrfToken(req, res),
     challenge,
     userCode: String(query.user_code),
   })
@@ -46,7 +46,7 @@ router.post("/verify", (req, res, next) => {
 
 router.get("/success", (req, res, next) => {
   res.render("device/success", {
-    csrfToken: generateCsrfToken,
+    csrfToken: generateCsrfToken(req, res),
   })
 })
 

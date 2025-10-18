@@ -6,17 +6,19 @@ import session from "express-session"
 import connectPgSimple from "connect-pg-simple"
 import pool from "./pool.js"
 import { doubleCsrf } from "csrf-csrf";
-
+import jsonLogger from "./logging.js";
 const {
   doubleCsrfProtection, // The middleware to protect routes
   generateCsrfToken,        // Helper function to generate a CSRF token
 } = doubleCsrf({
   getSecret: () => process.env.SECRETS_SYSTEM || "G6KaOf8aJsLagw566he8yxOTTO3tInKD",
-  cookieName: 'x-csrf-token',
+  cookieName: '_csrf',
   cookieOptions: {
     sameSite: 'lax', // Secure cookie settings
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
+    domain: "bondlink.org",
+    maxAge: 30 * 24 * 60 * 60 * 1000,
   },
   getSessionIdentifier: (req) => {
     return req.session.id
@@ -25,7 +27,9 @@ const {
     // A function that extracts the token from the incoming request.
     // By default, this looks for 'x-csrf-token' in the headers.
     // This example shows how to get it from a header.
-    return req.headers['x-csrf-token'];
+    let csrf = req.cookies['_csrf']
+    jsonLogger.info("Csrftoken %s", csrf)
+    return csrf;
   },
 });
 
