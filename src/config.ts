@@ -12,7 +12,7 @@ const {
   generateCsrfToken,        // Helper function to generate a CSRF token
 } = doubleCsrf({
   getSecret: () => process.env.SECRETS_SYSTEM || "G6KaOf8aJsLagw566he8yxOTTO3tInKD",
-  cookieName: '_csrf',
+  cookieName: 'x-csrf-token',
   cookieOptions: {
     sameSite: 'lax', // Secure cookie settings
     httpOnly: true,
@@ -27,8 +27,8 @@ const {
     // A function that extracts the token from the incoming request.
     // By default, this looks for 'x-csrf-token' in the headers.
     // This example shows how to get it from a header.
-    let csrf = req.cookies['_csrf']
-    jsonLogger.info("Csrftoken %s", csrf)
+    let csrf = req.headers['x-csrf-token']
+    jsonLogger.info("Csrftoken %s and remaining headers %s", csrf, JSON.stringify(req.headers))
     return csrf;
   },
 });
