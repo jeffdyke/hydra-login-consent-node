@@ -72,7 +72,7 @@ router.get("/", (req, res, next) => {
       // If consent can't be skipped we MUST show the consent UI.
       jsonLogger.info("Rendering consent")
       res.render("consent", {
-        csrfToken: generateCsrfToken,
+        csrfToken: generateCsrfToken(req, res),
         challenge: challenge,
         // We have a bunch of data available from the response, check out the API docs to find what these values mean
         // and what additional data you have available.
