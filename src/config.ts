@@ -33,7 +33,7 @@ const {
     // A function that extracts the token from the incoming request.
     // By default, this looks for 'x-csrf-token' in the headers.
     // This example shows how to get it from a header.
-    let csrf = req.headers['x-csrf-token']
+    let csrf = 'x-csrf-token' in req.headers || {}
     jsonLogger.info("Csrftoken %s and remaining headers %s", csrf, JSON.stringify(req.headers))
     return csrf;
   },
