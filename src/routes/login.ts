@@ -6,6 +6,7 @@ import url from "url"
 import urljoin from "url-join"
 import { doubleCsrfProtection, generateCsrfToken, hydraAdmin } from "../config.js"
 import { oidcConformityMaybeFakeAcr } from "./stub/oidc-cert.js"
+import jsonLogger from "../logging.js"
 
 // Sets up csrf protection
 // const csrfProtection = csrf({
@@ -55,6 +56,7 @@ router.get("/", doubleCsrfProtection, (req, res, next) => {
       }
 
       // If authentication can't be skipped we MUST show the login UI.
+      jsonLogger.info("getCsrf GET login", {csrf:generateCsrfToken(req, res)})
       res.render("login", {
         csrfToken: generateCsrfToken(req, res) || " ",
         challenge: challenge,
@@ -95,7 +97,7 @@ router.post("/", doubleCsrfProtection, (req, res, next) => {
   // for this!
   if (!(req.body.email === "foo@bar.com" && req.body.password === "foobar")) {
     // Looks like the user provided invalid credentials, let's show the ui again...
-
+    jsonLogger.info("getCsrf POST login", {csrf:generateCsrfToken(req, res)})
     res.render("login", {
       csrfToken: generateCsrfToken(req, res),
       challenge: challenge,
