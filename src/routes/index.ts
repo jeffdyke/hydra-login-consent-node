@@ -4,18 +4,13 @@
 import express from "express"
 import crypto from "crypto"
 import jsonLogger from "../logging.js"
-import csurf from "csurf"
 import {CLIENT_ID, doubleCsrfProtection} from "../config.js"
 const router = express.Router()
 
 
 const REDIRECT_URI = process.env.REDIRECT_URL || ""
 const HYDRA_URL = process.env.HYDRA_URL || ""
-// const csrfProtection = csurf({
-//   cookie: {
-//     sameSite: "lax",
-//   },
-// })
+
 // Helper function to generate base64url encoded string
 function base64URLEncode(buffer: Buffer): string {
   return buffer

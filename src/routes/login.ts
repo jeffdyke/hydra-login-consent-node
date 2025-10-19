@@ -4,9 +4,9 @@
 import express from "express"
 import url from "url"
 import urljoin from "url-join"
-import { doubleCsrfProtection, hydraAdmin } from "../config.js"
+import { doubleCsrfProtection, generateCsrfToken, hydraAdmin } from "../config.js"
 import { oidcConformityMaybeFakeAcr } from "./stub/oidc-cert.js"
-import csrf from "csurf"
+
 // Sets up csrf protection
 // const csrfProtection = csrf({
 //   cookie: {
@@ -56,7 +56,7 @@ router.get("/", doubleCsrfProtection, (req, res, next) => {
 
       // If authentication can't be skipped we MUST show the login UI.
       res.render("login", {
-        csrfToken: typeof req.csrfToken === "function" ? req.csrfToken() : "",
+        csrfToken: generateCsrfToken(req, res),
         challenge: challenge,
         action: urljoin(process.env.BASE_URL || "", "/login"),
         hint: loginRequest.oidc_context?.login_hint || "",
@@ -97,7 +97,7 @@ router.post("/", doubleCsrfProtection, (req, res, next) => {
     // Looks like the user provided invalid credentials, let's show the ui again...
 
     res.render("login", {
-      csrfToken: typeof req.csrfToken === "function" ? req.csrfToken() : "",
+      csrfToken: generateCsrfToken(req, res),
       challenge: challenge,
       error: "The username / password combination is not correct",
     })

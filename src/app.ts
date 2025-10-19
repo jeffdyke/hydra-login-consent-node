@@ -8,7 +8,6 @@ import path from "path"
 import cookieParser from "cookie-parser"
 import bodyParser from "body-parser"
 import session from "express-session"
-import connectPgSimple from "connect-pg-simple"
 
 import routes from "./routes/index.js"
 import login from "./routes/login.js"
@@ -17,7 +16,7 @@ import consent from "./routes/consent.js"
 import device from "./routes/device.js"
 import callback from "./routes/callback.js"
 
-import { pgConfig, hasClientId, CLIENT_ID } from "./config.js"
+import { pgConfig, hasClientId, CLIENT_ID, doubleCsrfProtection, PgStore } from "./config.js"
 import jsonLogger from "./logging.js"
 import { dirname } from 'path';
 import favicon from "serve-favicon";
@@ -27,18 +26,8 @@ import { requestLogger } from "./middleware/requestLogger.js";
 const app = express()
 app.use(requestLogger)
 
-const PgStore = connectPgSimple(session)
-const __dirname = import.meta.dirname;
-let exists = hasClientId()
-if (!exists) {
-  throw new Error("clientId returned false, this is required, query failed")
-} else {
-  jsonLogger.info("ClientId exists", {clientId: CLIENT_ID})
-}
-
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
-app.use(cookieParser())
 
 // Session middleware with PostgreSQL store
 app.use(
@@ -59,6 +48,8 @@ app.use(
     },
   })
 )
+// app.use(cookieParser())
+app.use(doubleCsrfProtection)
 // view engine setup
 app.set("views", path.join(__dirname, "views"))
 app.set("view engine", "pug")
