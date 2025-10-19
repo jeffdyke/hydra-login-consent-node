@@ -1,13 +1,18 @@
 import express from "express"
 import { googleTokenResponse } from "../google_auth.js"
 import jsonLogger  from "../logging.js"
-
-import {CLIENT_ID, doubleCsrfProtection} from "../config.js"
+import csrf from "csurf"
+import {CLIENT_ID} from "../config.js"
 const router = express.Router()
 const REDIRECT_URI = process.env.REDIRECT_URL || ""
 import axios from "axios"
+const csrfProtection = csrf({
+  cookie: {
+    sameSite: "lax",
+  },
+})
 
-router.get("/", doubleCsrfProtection, (req, res) => {
+router.get("/", csrfProtection, (req, res) => {
   const code = req.query.code
   const returnedState = req.query.state
 

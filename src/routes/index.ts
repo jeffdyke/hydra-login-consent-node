@@ -4,13 +4,18 @@
 import express from "express"
 import crypto from "crypto"
 import jsonLogger from "../logging.js"
-import {CLIENT_ID, doubleCsrfProtection} from "../config.js"
+import csurf from "csurf"
+import {CLIENT_ID} from "../config.js"
 const router = express.Router()
 
 
 const REDIRECT_URI = process.env.REDIRECT_URL || ""
 const HYDRA_URL = process.env.HYDRA_URL || ""
-
+const csrfProtection = csurf({
+  cookie: {
+    sameSite: "lax",
+  },
+})
 // Helper function to generate base64url encoded string
 function base64URLEncode(buffer: Buffer): string {
   return buffer
@@ -30,7 +35,7 @@ function generateCodeChallenge(verifier: string): string {
   return base64URLEncode(crypto.createHash("sha256").update(verifier).digest())
 }
 
-router.get("/", doubleCsrfProtection, (req, res) => {
+router.get("/", csrfProtection, (req, res) => {
   // Generate state for CSRF protection
   const state = crypto.randomBytes(16).toString("hex")
 

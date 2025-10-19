@@ -5,33 +5,34 @@ import { OAuth2Api } from "@ory/hydra-client-fetch/dist/index.js"
 import session from "express-session"
 import connectPgSimple from "connect-pg-simple"
 import pool from "./pool.js"
-import { doubleCsrf } from "csrf-csrf";
+
+// import { doubleCsrf } from "csrf-csrf";
 import jsonLogger from "./logging.js";
-const {
-  doubleCsrfProtection, // The middleware to protect routes
-  generateCsrfToken,        // Helper function to generate a CSRF token
-} = doubleCsrf({
-  getSecret: () => process.env.SECRETS_SYSTEM || "G6KaOf8aJsLagw566he8yxOTTO3tInKD",
-  cookieName: 'x-csrf-token',
-  cookieOptions: {
-    sameSite: 'lax', // Secure cookie settings
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    domain: "bondlink.org",
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-  },
-  getSessionIdentifier: (req) => {
-    return req.session.id
-  },
-  getCsrfTokenFromRequest: (req) => {
-    // A function that extracts the token from the incoming request.
-    // By default, this looks for 'x-csrf-token' in the headers.
-    // This example shows how to get it from a header.
-    let csrf = req.headers['x-csrf-token']
-    jsonLogger.info("Csrftoken %s and remaining headers %s", csrf, JSON.stringify(req.headers))
-    return csrf;
-  },
-});
+// const {
+//   doubleCsrfProtection, // The middleware to protect routes
+//   generateCsrfToken,        // Helper function to generate a CSRF token
+// } = doubleCsrf({
+//   getSecret: () => process.env.SECRETS_SYSTEM || "G6KaOf8aJsLagw566he8yxOTTO3tInKD",
+//   cookieName: 'x-csrf-token',
+//   cookieOptions: {
+//     sameSite: 'lax', // Secure cookie settings
+//     httpOnly: true,
+//     secure: process.env.NODE_ENV === 'production',
+//     domain: "bondlink.org",
+//     maxAge: 30 * 24 * 60 * 60 * 1000,
+//   },
+//   getSessionIdentifier: (req) => {
+//     return req.session.id
+//   },
+//   getCsrfTokenFromRequest: (req) => {
+//     // A function that extracts the token from the incoming request.
+//     // By default, this looks for 'x-csrf-token' in the headers.
+//     // This example shows how to get it from a header.
+//     let csrf = req.headers['x-csrf-token']
+//     jsonLogger.info("Csrftoken %s and remaining headers %s", csrf, JSON.stringify(req.headers))
+//     return csrf;
+//   },
+// });
 
 
 const baseOptions: any = {}
@@ -64,4 +65,4 @@ function hasClientId() {
   return res
 }
 
-export { hydraAdmin, pgConfig, CLIENT_ID, hasClientId, generateCsrfToken, doubleCsrfProtection}
+export { hydraAdmin, pgConfig, CLIENT_ID, hasClientId}
