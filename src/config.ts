@@ -27,6 +27,7 @@ const {
   getCsrfTokenFromRequest: (req) => {
     if (req.is('application/x-www-form-urlencoded')) {
         jsonLogger.info("Post for token ", {csrf:req.body._csrf})
+        req.headers['x-csrf-token'] = req.body._csrf
         // where _csrf is the name of a hidden field on the form
         // or is processed as such via the FormData
         return req.body._csrf;
