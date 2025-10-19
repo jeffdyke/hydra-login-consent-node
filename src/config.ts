@@ -69,5 +69,15 @@ function hasClientId() {
   const res = pool.query(s, [CLIENT_ID]);
   return res
 }
+function dumpSessionData() {
+  try {
+    const result = pool.query('SELECT * FROM session');
+    jsonLogger.info('Session data:', {session:result});
+    return result;
+  } catch (err) {
+    jsonLogger.error('Error fetching session data: %s', err);
+    throw err;
+  }
+}
 
-export { hydraAdmin, pgConfig, CLIENT_ID, hasClientId, doubleCsrfProtection, generateCsrfToken, PgStore}
+export { hydraAdmin, pgConfig, CLIENT_ID, hasClientId, doubleCsrfProtection, generateCsrfToken, PgStore, dumpSessionData}

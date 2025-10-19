@@ -8,7 +8,7 @@ const accessLogStream = createStream("hydra-consent.log", {
 });
 
 const settings: Partial<ISettings<ILogObj>> = {
-  type: "json",
+  type: "pretty",
   name: "express-main"
 };
 const jsonLogger = new Logger(settings)

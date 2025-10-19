@@ -15,7 +15,7 @@ import logout from "./routes/logout.js"
 import consent from "./routes/consent.js"
 import device from "./routes/device.js"
 import callback from "./routes/callback.js"
-
+import pool from "./pool.js"
 import { pgConfig, hasClientId, CLIENT_ID, doubleCsrfProtection, PgStore } from "./config.js"
 import jsonLogger from "./logging.js"
 import { dirname } from 'path';
@@ -33,7 +33,7 @@ app.use(cookieParser(process.env.SECRETS_SYSTEM));
 app.use(
   session({
     store: new PgStore({
-      conObject: pgConfig,
+      pool: pool,
       tableName: "session",
       createTableIfMissing: true,
     }),
