@@ -17,7 +17,7 @@ import consent from "./routes/consent.js"
 import device from "./routes/device.js"
 import callback from "./routes/callback.js"
 
-import { pgConfig, hasClientId, CLIENT_ID, doubleCsrfProtection, generateCsrfToken } from "./config.js"
+import { pgConfig, hasClientId, CLIENT_ID } from "./config.js"
 import jsonLogger from "./logging.js"
 import { dirname } from 'path';
 import favicon from "serve-favicon";
@@ -35,15 +35,11 @@ if (!exists) {
 } else {
   jsonLogger.info("ClientId exists", {clientId: CLIENT_ID})
 }
-// view engine setup
-app.set("views", path.join(__dirname, "views"))
-app.set("view engine", "pug")
-app.use(favicon(path.join(__dirname, '..', 'public', 'favicon.ico')));
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cookieParser())
-app.use(doubleCsrfProtection)
+
 // Session middleware with PostgreSQL store
 app.use(
   session({
@@ -63,6 +59,10 @@ app.use(
     },
   })
 )
+// view engine setup
+app.set("views", path.join(__dirname, "views"))
+app.set("view engine", "pug")
+app.use(favicon(path.join(__dirname, '..', 'public', 'favicon.ico')));
 
 app.use(express.static(path.join(dirname(import.meta.url), "public")))
 
@@ -72,6 +72,7 @@ app.use("/logout", logout)
 app.use("/consent", consent)
 app.use("/device", device)
 app.use("/callback", callback)
+
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
