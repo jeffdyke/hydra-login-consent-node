@@ -56,7 +56,7 @@ router.get("/", doubleCsrfProtection, (req, res, next) => {
 
       // If authentication can't be skipped we MUST show the login UI.
       res.render("login", {
-        csrfToken: generateCsrfToken(req, res) || "",
+        csrfToken: generateCsrfToken(req, res) || " ",
         challenge: challenge,
         action: urljoin(process.env.BASE_URL || "", "/login"),
         hint: loginRequest.oidc_context?.login_hint || "",

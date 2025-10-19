@@ -26,10 +26,12 @@ const {
   },
   getCsrfTokenFromRequest: (req) => {
     if (req.is('application/x-www-form-urlencoded')) {
+        jsonLogger.info("Post for token ", {csrf:req.body._csrf})
         // where _csrf is the name of a hidden field on the form
         // or is processed as such via the FormData
         return req.body._csrf;
     }
+    jsonLogger.info("After check of Post for token ", {csrf:req.body._csrf})
     // A function that extracts the token from the incoming request.
     // By default, this looks for 'x-csrf-token' in the headers.
     // This example shows how to get it from a header.
