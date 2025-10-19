@@ -22,13 +22,13 @@ import { dirname } from 'path';
 import favicon from "serve-favicon";
 
 import { requestLogger } from "./middleware/requestLogger.js";
-
+const __dirname = import.meta.dirname
 const app = express()
 app.use(requestLogger)
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
-
+app.use(cookieParser(process.env.SECRETS_SYSTEM));
 // Session middleware with PostgreSQL store
 app.use(
   session({
