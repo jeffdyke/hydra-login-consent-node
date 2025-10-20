@@ -16,7 +16,7 @@ import consent from "./routes/consent.js"
 import device from "./routes/device.js"
 import callback from "./routes/callback.js"
 import pool from "./pool.js"
-import { pgConfig, hasClientId, CLIENT_ID, doubleCsrfProtection, PgStore, generateCsrfToken } from "./config.js"
+import { httpOnly, doubleCsrfProtection, PgStore } from "./config.js"
 import jsonLogger from "./logging.js"
 import { dirname } from 'path';
 import favicon from "serve-favicon";
@@ -42,8 +42,8 @@ app.use(
     saveUninitialized: false,
     cookie: {
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-      secure: process.env.NODE_ENV === "production",
-      httpOnly: true,
+      secure: !httpOnly,
+      httpOnly: httpOnly,
       sameSite: "lax",
     },
   })

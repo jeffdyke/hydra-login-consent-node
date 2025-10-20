@@ -22,7 +22,7 @@ router.use((req,res,next) => {
   req.headers['x-csrf-token'] = token
   next()
 })
-router.get("/", doubleCsrfProtection, (req, res, next) => {
+router.get("/", (req, res, next) => {
   // Parses the URL query
   const query = url.parse(req.url, true).query
 
@@ -61,10 +61,10 @@ router.get("/", doubleCsrfProtection, (req, res, next) => {
       }
 
       // If authentication can't be skipped we MUST show the login UI.
-      jsonLogger.info("getCsrf GET login", {csrf:req.headers['x-csrf-token']})
-      jsonLogger.info("getCsrf GET login func", {csrf:generateCsrfToken(req, res)})
+      let token = generateCsrfToken(req, res)
+      jsonLogger.info("getCsrf GET login func", {csrf:token})
       res.render("login", {
-        csrfToken: req.headers['x-csrf-token'] || " ",
+        csrfToken: token,
         challenge: challenge,
         action: urljoin(process.env.BASE_URL || "", "/login"),
         hint: loginRequest.oidc_context?.login_hint || "",

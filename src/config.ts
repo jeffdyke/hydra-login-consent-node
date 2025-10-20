@@ -8,7 +8,7 @@ import pool from "./pool.js"
 
 import { doubleCsrf } from "csrf-csrf";
 import jsonLogger from "./logging.js";
-import { json } from "body-parser";
+const httpOnly = !process.env.BASE_URL?.startsWith("https")
 const {
   doubleCsrfProtection, // The middleware to protect routes
   generateCsrfToken,        // Helper function to generate a CSRF token
@@ -17,8 +17,8 @@ const {
   cookieName: 'xsrf_token',
   cookieOptions: {
     sameSite: 'lax', // Secure cookie settings
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    httpOnly: httpOnly,
+    secure: !httpOnly,
     domain: "bondlink.org",
     maxAge: 30 * 24 * 60 * 60 * 1000,
   },
@@ -104,4 +104,4 @@ function dumpSessionData() {
   }
 }
 
-export { hydraAdmin, pgConfig, CLIENT_ID, hasClientId, doubleCsrfProtection, generateCsrfToken, PgStore, dumpSessionData}
+export { hydraAdmin, pgConfig, CLIENT_ID, hasClientId, doubleCsrfProtection, generateCsrfToken, PgStore, httpOnly, dumpSessionData}
