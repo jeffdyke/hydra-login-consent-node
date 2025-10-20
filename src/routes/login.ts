@@ -77,7 +77,10 @@ router.get("/", (req, res, next) => {
 router.post("/", doubleCsrfProtection, (req, res, next) => {
   // The challenge is now a hidden input field, so let's take it from the request body instead
   const challenge = req.body.challenge
-
+  jsonLogger.info("LOGIN POST - csrfToken ", {
+    header:req.headers["x-csrf-token"],
+    func:generateCsrfToken(req, res)
+  })
   // Let's see if the user decided to accept or reject the consent request..
   if (req.body.submit === "Deny access") {
     // Looks like the consent request was denied by the user
