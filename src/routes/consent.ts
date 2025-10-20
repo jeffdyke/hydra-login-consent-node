@@ -8,6 +8,7 @@ import { hydraAdmin, generateCsrfToken } from "../config.js"
 import { oidcConformityMaybeFakeSession } from "./stub/oidc-cert.js"
 import { AcceptOAuth2ConsentRequestSession } from "@ory/client-fetch"
 import jsonLogger  from "../logging.js"
+import { doubleCsrfProtection } from "../config.js"
 
 const router = express.Router()
 
@@ -87,10 +88,9 @@ router.get("/", (req, res, next) => {
   // The consent request has now either been accepted automatically or rendered.
 })
 
-router.post("/", (req, res, next) => {
+router.post("/", doubleCsrfProtection, (req, res, next) => {
   // The challenge is now a hidden input field, so let's take it from the request body instead
   const challenge = req.body.challenge
-  jsonLogger.info("Stating POST /consent", {challenge:challenge})
   // Let's see if the user decided to accept or reject the consent request..
   if (req.body.submit === "Deny access") {
     // Looks like the consent request was denied by the user

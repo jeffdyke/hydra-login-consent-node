@@ -3,12 +3,12 @@
 
 import express from "express"
 import url from "url"
-import { hydraAdmin, generateCsrfToken } from "../config.js"
+import { hydraAdmin, generateCsrfToken, doubleCsrfProtection } from "../config.js"
 
 
 const router = express.Router()
 
-router.get("/verify", (req, res, next) => {
+router.get("/verify", doubleCsrfProtection, (req, res, next) => {
   // Parses the URL query
   const query = url.parse(req.url, true).query
 
@@ -26,7 +26,7 @@ router.get("/verify", (req, res, next) => {
   })
 })
 
-router.post("/verify", (req, res, next) => {
+router.post("/verify", doubleCsrfProtection, (req, res, next) => {
   // The code is a input field, so let's take it from the request body
   const { code: userCode, challenge } = req.body
   // All we need to do now is to redirect the user back to hydra!
