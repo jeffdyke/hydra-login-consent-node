@@ -8,12 +8,13 @@ import pool from "./pool.js"
 
 import { doubleCsrf } from "csrf-csrf";
 import jsonLogger from "./logging.js";
+import { json } from "body-parser";
 const {
   doubleCsrfProtection, // The middleware to protect routes
   generateCsrfToken,        // Helper function to generate a CSRF token
 } = doubleCsrf({
-  getSecret: () => process.env.SECRETS_SYSTEM || "G6KaOf8aJsLagw566he8yxOTTO3tInKD",
-  cookieName: 'x-csrf-token',
+  getSecret: () => "G6KaOf8aJsLagw566he8yxOTTO3tInKD",
+  cookieName: 'xsrf_token',
   cookieOptions: {
     sameSite: 'lax', // Secure cookie settings
     httpOnly: true,
@@ -24,22 +25,42 @@ const {
   getSessionIdentifier: (req) => {
     return req.session.id
   },
-  getCsrfTokenFromRequest: (req) => {
-    if (req.is('application/x-www-form-urlencoded')) {
-        jsonLogger.info("Post for token ", {csrf:req.body._csrf})
-        req.headers['x-csrf-token'] = req.body._csrf
-        // where _csrf is the name of a hidden field on the form
-        // or is processed as such via the FormData
-        return req.body._csrf;
-    }
-    jsonLogger.info("After check of Post for token ", {csrf:req.body._csrf})
-    // A function that extracts the token from the incoming request.
-    // By default, this looks for 'x-csrf-token' in the headers.
-    // This example shows how to get it from a header.
-    let csrf = 'x-csrf-token' in req.headers || {}
-    jsonLogger.info("Csrftoken %s and remaining headers %s", csrf, JSON.stringify(req.headers))
-    return csrf;
-  },
+  // getCsrfTokenFromRequest: (req) =>
+  // getCsrfTokenFromRequest: (req) => {
+  //   let originSrc, token
+  //   let tokenCheck = 'x-csrf-token' in req.headers || {}
+  //   jsonLogger.info("tokenCheck", {result:tokenCheck})
+  //   if (req.is('application/x-www-form-urlencoded')) {
+  //     token = req.body._csrf
+  //     req.headers['x-csrf-token'] = token
+  //     originSrc = 'form'
+  //   } else {
+  //     token = req.body.csrfToken
+  //     req.headers['x-csrf-token'] = token
+  //     originSrc = 'session'
+  //   }
+  //   jsonLogger.info("getCsrfTokenFromRequest called and returning", {token:token, src:originSrc} )
+  //   return token
+  //   if (!req.cookies['_csrf']) {
+  //     jsonLogger.info("Empty _csrf", {cookies: req.cookies})
+  //   } else {
+  //     jsonLogger.info("Csrf matched %s", req.cookies["_csrf"])
+  //   }
+  //   if (req.is('application/x-www-form-urlencoded')) {
+  //       jsonLogger.info("Post for token ", {cookies: req.cookies, csrf:req.body._csrf})
+  //       // req.headers['x-csrf-token'] = req.body._csrf
+  //       // where _csrf is the name of a hidden field on the form
+  //       // or is processed as such via the FormData
+  //       return req.body._csrf;
+  //   }
+  //   jsonLogger.info("After check of Post for token ", {csrf:req.body._csrf})
+  //   // A function that extracts the token from the incoming request.
+  //   // By default, this looks for 'x-csrf-token' in the headers.
+  //   // This example shows how to get it from a header.
+  //   let csrf = 'x-csrf-token' in req.headers || {}
+  //   jsonLogger.info("Csrftoken %s and remaining headers %s", csrf, JSON.stringify(req.headers))
+  //   return csrf;
+  // },
 });
 
 
