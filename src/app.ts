@@ -16,7 +16,7 @@ import consent from "./routes/consent.js"
 import device from "./routes/device.js"
 import callback from "./routes/callback.js"
 import pool from "./pool.js"
-import { pgConfig, hasClientId, CLIENT_ID, doubleCsrfProtection, PgStore } from "./config.js"
+import { pgConfig, hasClientId, CLIENT_ID, doubleCsrfProtection, PgStore, generateCsrfToken } from "./config.js"
 import jsonLogger from "./logging.js"
 import { dirname } from 'path';
 import favicon from "serve-favicon";
@@ -28,7 +28,7 @@ app.use(requestLogger)
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
-app.use(cookieParser(process.env.SECRETS_SYSTEM));
+
 // Session middleware with PostgreSQL store
 app.use(
   session({
@@ -48,8 +48,8 @@ app.use(
     },
   })
 )
-// app.use(cookieParser())
-app.use(doubleCsrfProtection)
+app.use(cookieParser(process.env.SECRETS_SYSTEM || "G6KaOf8aJsLagw566he8yxOTTO3tInKD"));
+
 // view engine setup
 app.set("views", path.join(__dirname, "views"))
 app.set("view engine", "pug")
@@ -63,7 +63,7 @@ app.use("/logout", logout)
 app.use("/consent", consent)
 app.use("/device", device)
 app.use("/callback", callback)
-
+app.use(doubleCsrfProtection)
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {

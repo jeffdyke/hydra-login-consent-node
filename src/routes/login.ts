@@ -16,8 +16,13 @@ import jsonLogger from "../logging.js"
 // })
 
 const router = express.Router()
-
-router.get("/", doubleCsrfProtection, (req, res, next) => {
+router.use((req,res,next) => {
+  let token = generateCsrfToken(req, res)
+  jsonLogger.info("Adding token to request", {token:token})
+  req.headers['x-csrf-token'] = token
+  next()
+})
+router.get("/", (req, res, next) => {
   // Parses the URL query
   const query = url.parse(req.url, true).query
 
