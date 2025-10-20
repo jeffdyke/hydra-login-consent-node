@@ -74,7 +74,7 @@ router.get("/", (req, res, next) => {
     .catch(next)
 })
 
-router.post("/", doubleCsrfProtection, (req, res, next) => {
+router.post("/", (req, res, next) => {
   // The challenge is now a hidden input field, so let's take it from the request body instead
   const challenge = req.body.challenge
   jsonLogger.info("LOGIN POST - csrfToken ", {
