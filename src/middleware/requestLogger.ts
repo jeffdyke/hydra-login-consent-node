@@ -12,6 +12,7 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
     logger.info({
       method: req.method,
       url: req.originalUrl,
+      csrfToken: req.headers["x-csrf-token"],
       statusCode: res.statusCode,
       durationMs: duration.toFixed(2),
       ip: req.ip,
