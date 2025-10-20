@@ -114,7 +114,7 @@ async function googleOAuthTokens(code: string): Promise<TokenPayload> {
 
   return await axios.post(
       GOOGLE_TOKEN_URL,
-      new URLSearchParams(convertClassToRecord(authCodeRequest)),
+      authCodeRequest,
       { headers: formHeader }
     ).then((resp) => { jsonLogger.info("Response is %s", resp.data); return resp.data})
     .catch((err) => { jsonLogger.error("Error fetching AuthCode", {
@@ -139,18 +139,18 @@ async function getGoogleUser(access_token: string, id_token: string): Promise<Us
 async function googleTokenResponse(code: string): Promise<GoogleTokenResponse> {
     const authClientConfig: AuthClientConfig = new AuthClientConfig(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
 
-    const urlParams = new URLSearchParams({code: code, grant_type: 'authorization_code'})
-    jsonLogger.info("Requesting TokenResponse", {config: authClientConfig, urlParams:urlParams} )
+    const params = {code: code, grant_type: 'authorization_code'}
+    jsonLogger.info("Requesting TokenResponse",  {auth:authClientConfig, params:params})
     return await axios.post(
       GOOGLE_TOKEN_URL,
-      urlParams,
+      params,
       { headers: formHeader })
       .then((resp) => { return resp.data })
       .catch((err) => { jsonLogger.info("GoogleTokenResponse Error",  {
         error:err,
         code:code,
         authClientConfig:authClientConfig,
-        urlParams:urlParams
+        urlParams:params
       });
       return err.response.data
     })
