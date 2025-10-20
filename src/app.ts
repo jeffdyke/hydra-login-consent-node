@@ -6,7 +6,7 @@ import express from "express"
 import { NextFunction, Response, Request } from "express"
 import path from "path"
 import cookieParser from "cookie-parser"
-import bodyParser from "body-parser"
+import bodyParser, { json } from "body-parser"
 import session from "express-session"
 
 import routes from "./routes/index.js"
@@ -16,7 +16,7 @@ import consent from "./routes/consent.js"
 import device from "./routes/device.js"
 import callback from "./routes/callback.js"
 import pool from "./pool.js"
-import { httpOnly, doubleCsrfProtection, PgStore } from "./config.js"
+import { httpOnly, doubleCsrfProtection, PgStore, generateCsrfToken } from "./config.js"
 import jsonLogger from "./logging.js"
 import { dirname } from 'path';
 import favicon from "serve-favicon";
@@ -40,12 +40,6 @@ app.use(
     secret: process.env.SESSION_SECRET || "change-me-in-production",
     resave: false,
     saveUninitialized: false,
-    cookie: {
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-      secure: !httpOnly,
-      httpOnly: httpOnly,
-      sameSite: "lax",
-    },
   })
 )
 app.use(cookieParser(process.env.SECRETS_SYSTEM || "G6KaOf8aJsLagw566he8yxOTTO3tInKD"));
@@ -56,6 +50,16 @@ app.set("view engine", "pug")
 app.use(favicon(path.join(__dirname, '..', 'public', 'favicon.ico')));
 
 app.use(express.static(path.join(dirname(import.meta.url), "public")))
+
+const csrfHeader = (req:Request, res:Response, next:Function) => {
+  if (req.is('application/x-www-form-urlencoded') && req.body.xsrf_token) {
+    jsonLogger.info("Setting csrf-token", {token: req.body.xsrf_token})
+    req.headers["x-csrf-token"] = req.body.xsrf_token
+  }
+  // You could also pass the token into the context of a HTML response.
+  next()
+};
+app.use(csrfHeader)
 app.use(doubleCsrfProtection)
 app.use("/", routes)
 app.use("/login", login)

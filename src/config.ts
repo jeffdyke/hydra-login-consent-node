@@ -9,6 +9,14 @@ import pool from "./pool.js"
 import { doubleCsrf } from "csrf-csrf";
 import jsonLogger from "./logging.js";
 const httpOnly = !process.env.BASE_URL?.startsWith("https")
+const lclCookieOptions = {
+  httpOnly:httpOnly,
+  secure:!httpOnly,
+  domain:"bondlink.org",
+  maxAge:30 * 24 * 60 * 60 * 1000,
+  sameSite:"lax"
+}
+jsonLogger.info("Cookie Options", lclCookieOptions)
 const {
   doubleCsrfProtection, // The middleware to protect routes
   generateCsrfToken,        // Helper function to generate a CSRF token

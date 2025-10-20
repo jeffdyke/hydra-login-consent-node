@@ -15,7 +15,7 @@ const router = express.Router()
 router.get("/", (req, res, next) => {
   // Parses the URL query
   const query = url.parse(req.url, true).query
-  jsonLogger.info("Stating /consent", {response:res} )
+
   // The challenge is used to fetch information about the consent request from ORY hydraAdmin.
   const challenge = String(query.consent_challenge)
   if (!challenge) {
