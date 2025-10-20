@@ -18,7 +18,7 @@ import jsonLogger from "../logging.js"
 const router = express.Router()
 router.use((req,res,next) => {
   let token = generateCsrfToken(req, res)
-  jsonLogger.info("Adding token to request", {token:token})
+  //jsonLogger.info("Adding token to request", {token:token})
   req.headers['x-csrf-token'] = token
   next()
 })
@@ -61,9 +61,10 @@ router.get("/", (req, res, next) => {
       }
 
       // If authentication can't be skipped we MUST show the login UI.
-      jsonLogger.info("getCsrf GET login", {csrf:generateCsrfToken(req, res)})
+      jsonLogger.info("getCsrf GET login", {csrf:req.headers['x-csrf-token']})
+      jsonLogger.info("getCsrf GET login func", {csrf:generateCsrfToken(req, res)})
       res.render("login", {
-        csrfToken: generateCsrfToken(req, res) || " ",
+        csrfToken: req.headers['x-csrf-token'] || " ",
         challenge: challenge,
         action: urljoin(process.env.BASE_URL || "", "/login"),
         hint: loginRequest.oidc_context?.login_hint || "",
