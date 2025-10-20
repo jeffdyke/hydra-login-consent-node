@@ -8,7 +8,7 @@ import { hydraAdmin, doubleCsrfProtection, generateCsrfToken } from "../config.j
 
 const router = express.Router()
 
-router.get("/", (req, res, next) => {
+router.get("/", doubleCsrfProtection, (req, res, next) => {
   // Parses the URL query
   const query = url.parse(req.url, true).query
 

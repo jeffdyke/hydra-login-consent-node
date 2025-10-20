@@ -25,7 +25,7 @@ router.use((req,res,next) => {
 
   next()
 })
-router.get("/", (req, res, next) => {
+router.get("/", doubleCsrfProtection, (req, res, next) => {
   // Parses the URL query
   const query = url.parse(req.url, true).query
 
