@@ -20,7 +20,7 @@ services:
     ports:
       - "4444:4444" # Public API
       - "4445:4445" # Admin API
-    command: serve all
+    command: serve all --dev
     env_file:
       - /etc/bondlink/hydra/.env
       - /etc/bondlink/hydra/.env.auth.hydra

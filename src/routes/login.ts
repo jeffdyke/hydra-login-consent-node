@@ -17,9 +17,12 @@ import jsonLogger from "../logging.js"
 
 const router = express.Router()
 router.use((req,res,next) => {
-  let token = generateCsrfToken(req, res)
-  jsonLogger.info("Adding token to request", {token:token})
-  req.headers['x-csrf-token'] = token
+  if (req.method.toLowerCase() == "post") {
+    let token = generateCsrfToken(req, res)
+    jsonLogger.info("Adding token to request", {token:token})
+    req.headers['x-csrf-token'] = token
+  }
+
   next()
 })
 router.get("/", (req, res, next) => {
