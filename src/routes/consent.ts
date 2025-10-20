@@ -31,7 +31,7 @@ router.get("/", (req, res, next) => {
     })
     // This will be called if the HTTP request was successful
     .then((consentRequest) => {
-      jsonLogger.info("Parsing consent request", {consentRequest:consentRequest})
+
       // If a user has granted this application the requested scope, hydra will tell us to not show the UI.
       // Any cast needed because the SDK changes are still unreleased.
       // TODO: Remove in a later version.

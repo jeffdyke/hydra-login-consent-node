@@ -21,7 +21,7 @@ function safeStringify(value: any): string {
     return JSON.stringify(value); // Attempt to stringify other types
   } catch (error) {
     // Handle potential errors during stringification (e.g., circular references)
-    jsonLogger.error("Error during JSON.stringify:", {error:error})
+    jsonLogger.warn("Error during JSON.stringify")
     return String(value); // Fallback to basic string conversion
   }
 }
