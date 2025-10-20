@@ -139,7 +139,7 @@ async function getGoogleUser(access_token: string, id_token: string): Promise<Us
 async function googleTokenResponse(code: string): Promise<GoogleTokenResponse> {
     const authClientConfig: AuthClientConfig = new AuthClientConfig(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
 
-    const urlParams = new URLSearchParams(JSON.stringify({code: code, grant_type: 'authorization_code'}))
+    const urlParams = new URLSearchParams({code: code, grant_type: 'authorization_code'})
     jsonLogger.info("Requesting TokenResponse", {config: authClientConfig, urlParams:urlParams} )
     return await axios.post(
       GOOGLE_TOKEN_URL,
