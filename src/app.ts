@@ -56,14 +56,14 @@ app.set("view engine", "pug")
 app.use(favicon(path.join(__dirname, '..', 'public', 'favicon.ico')));
 
 app.use(express.static(path.join(dirname(import.meta.url), "public")))
-
+app.use(doubleCsrfProtection)
 app.use("/", routes)
 app.use("/login", login)
 app.use("/logout", logout)
 app.use("/consent", consent)
 app.use("/device", device)
 app.use("/callback", callback)
-app.use(doubleCsrfProtection)
+
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
