@@ -4,9 +4,9 @@ import axios from 'axios';
 
 import { Property } from "@tsed/schema";
 import {Configuration} from "@tsed/di";
-import {TokenPayload } from 'google-auth-library';
+import {OAuth2Client, TokenPayload } from 'google-auth-library';
 import jsonLogger  from "./logging.js"
-import { URLSearchParams } from 'url';
+
 dotenv.config()
 
 Configuration({
@@ -73,43 +73,14 @@ function convertClassToRecord(obj: any): Record<string, string> {
   return record;
 }
 
-export class AuthClientConfig {
-  @Property()
-  clientId: string | undefined;
-  @Property()
-  clientSecret: string | undefined;
-  @Property()
-  redirectUri: string | undefined
-  constructor(clientId?: string, clientSecret?: string, redirectUri?: string) {
-    this.clientId = clientId;
-    this.clientSecret = clientSecret;
-    this.redirectUri = redirectUri;
-  }
-
-}
-export class AuthorizationCodeRequest {
-  @Property()
-  code: string | undefined;
-  @Property()
-  config: AuthClientConfig | undefined;
-  @Property()
-  grantType: string | undefined
-  constructor(code: string, config: AuthClientConfig, grantType?: string) {
-    this.code = code;
-    this.config = config;
-    this.grantType = grantType || undefined;
-  }
-
-
-}
-
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const formHeader = {
       "Content-Type": "application/x-www-form-urlencoded",
     };
 async function googleOAuthTokens(code: string): Promise<TokenPayload> {
-  const authClientConfig: AuthClientConfig = new AuthClientConfig(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
-  const authCodeRequest: AuthorizationCodeRequest = new AuthorizationCodeRequest(code, authClientConfig, "");
+  const client = new OAuth2Client({clientId: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET, redirectUri: process.env.GOOGLE_REDIRECT_URI})
+
+  const authCodeRequest: AuthorizationCodeRequest = new AuthorizationCodeRequest(code, client, "");
   jsonLogger.info("Auth Code Request", {request: authCodeRequest});
 
   return await axios.post(
@@ -137,6 +108,7 @@ async function getGoogleUser(access_token: string, id_token: string): Promise<Us
 
 }
 async function googleTokenResponse(code: string): Promise<GoogleTokenResponse> {
+
     const authClientConfig: AuthClientConfig = new AuthClientConfig(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
 
     const params = {code: code, grant_type: 'authorization_code'}
