@@ -79,17 +79,16 @@ const formHeader = {
     };
 async function googleOAuthTokens(code: string): Promise<TokenPayload> {
   const client = new OAuth2Client({clientId: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET, redirectUri: process.env.GOOGLE_REDIRECT_URI})
-
-  const authCodeRequest: AuthorizationCodeRequest = new AuthorizationCodeRequest(code, client, "");
-  jsonLogger.info("Auth Code Request", {request: authCodeRequest});
+  const params = {code: code, client: client}
+  jsonLogger.info("Auth Code Request", {request: params});
 
   return await axios.post(
       GOOGLE_TOKEN_URL,
-      authCodeRequest,
+      params,
       { headers: formHeader }
     ).then((resp) => { jsonLogger.info("Response is %s", resp.data); return resp.data})
     .catch((err) => { jsonLogger.error("Error fetching AuthCode", {
-      authCodeRequest:authCodeRequest,
+      authCodeRequest:params,
       error:err
     }); return err.response.data });
 
@@ -109,7 +108,7 @@ async function getGoogleUser(access_token: string, id_token: string): Promise<Us
 }
 async function googleTokenResponse(code: string): Promise<GoogleTokenResponse> {
 
-    const authClientConfig: AuthClientConfig = new AuthClientConfig(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
+    const authClientConfig: OAuth2Client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
 
     const params = {code: code, grant_type: 'authorization_code'}
     jsonLogger.info("Requesting TokenResponse",  {auth:authClientConfig, params:params})
