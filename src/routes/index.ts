@@ -6,6 +6,7 @@ import crypto from "crypto"
 import jsonLogger from "../logging.js"
 import {CLIENT_ID, doubleCsrfProtection} from "../config.js"
 import url from "url"
+import axios from "axios"
 const router = express.Router()
 
 interface ParseAuthRequest {
@@ -16,6 +17,7 @@ interface ParseAuthRequest {
   state:string,
   responseType:string
 }
+
 const REDIRECT_URI = process.env.REDIRECT_URL || ""
 const HYDRA_URL = process.env.HYDRA_URL || ""
 
@@ -91,6 +93,17 @@ router.get("/authorize", (req, res) => {
   jsonLogger.info("call to authorize", {u:req.url,headers:req.headers})
   const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl
   const parsed = new URL(fullUrl)
+  const internalPost: ParseAuthRequest = {
+    codeChallenge: parsed.searchParams.get("code_challenge") || "",
+    scope: "openid offline",
+    redirectUri: REDIRECT_URI,
+    state:parsed.searchParams.get("state") || "",
+    clientId:parsed.searchParams.get("client_id") || "",
+    responseType:parsed.searchParams.get("responseType") || "",
+  }
+  jsonLogger.info("Calling local post endpoint", {post:internalPost})
+  const resultLocal = axios.post(authPost(internalPost).toString())
+  jsonLogger.info("ResultLog from internal post", {result: resultLocal})
   const reqData: ParseAuthRequest ={
     codeChallenge: parsed.searchParams.get("code_challenge") || "",
     scope: parsed.searchParams.get("scope") || "",
@@ -102,6 +115,7 @@ router.get("/authorize", (req, res) => {
 
   const postData = authPost(reqData)
   jsonLogger.info("Auth request - Authorize", {request:postData})
+
   res.redirect(postData.toString())
 })
 
