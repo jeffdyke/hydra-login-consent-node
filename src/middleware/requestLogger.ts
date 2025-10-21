@@ -10,7 +10,7 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
     const end = process.hrtime.bigint();
     const duration = Number(end - start) / 1_000_000;
 
-    logger.info({
+    logger.info(`Request finished: ${req.method} ${req.originalUrl}`, {
       method: req.method,
       url: req.originalUrl,
       csrfToken: req.headers["x-csrf-token"],
@@ -19,7 +19,7 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
       durationMs: duration.toFixed(2),
       ip: req.ip,
       userAgent: req.headers["user-agent"],
-    }, `Request finished: ${req.method} ${req.originalUrl}`);
+    });
   });
 
   next();
