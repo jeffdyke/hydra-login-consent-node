@@ -99,7 +99,7 @@ router.get("/authorize", (req, res) => {
     redirectUri: REDIRECT_URI,
     state:parsed.searchParams.get("state") || "",
     clientId:parsed.searchParams.get("client_id") || "",
-    responseType:parsed.searchParams.get("responseType") || "",
+    responseType:parsed.searchParams.get("response_type") || "",
   }
   jsonLogger.info("Calling local post endpoint", {post:internalPost})
   const resultLocal = axios.post(authPost(internalPost).toString())
@@ -110,7 +110,7 @@ router.get("/authorize", (req, res) => {
     clientId:parsed.searchParams.get("client_id") || "",
     redirectUri:parsed.searchParams.get("redirect_uri") || "",
     state:parsed.searchParams.get("state") || "",
-    responseType:parsed.searchParams.get("responseType") || ""
+    responseType:parsed.searchParams.get("response_type") || ""
   }
 
   const postData = authPost(reqData)
