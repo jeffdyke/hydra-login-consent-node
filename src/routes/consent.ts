@@ -4,7 +4,7 @@
 import express from "express"
 import url from "url"
 import urljoin from "url-join"
-import { hydraAdmin, generateCsrfToken,XSRF_TOKEN } from "../config.js"
+import { hydraAdmin, generateCsrfToken,XSRF_TOKEN_NAME } from "../config.js"
 import { oidcConformityMaybeFakeSession } from "./stub/oidc-cert.js"
 import { AcceptOAuth2ConsentRequestSession } from "@ory/client-fetch"
 import jsonLogger  from "../logging.js"
@@ -74,7 +74,7 @@ router.get("/", doubleCsrfProtection, (req, res, next) => {
       jsonLogger.info("Rendering consent")
       res.render("consent", {
         csrfToken: generateCsrfToken(req, res),
-        envXsrfToken: XSRF_TOKEN,
+        envXsrfToken: XSRF_TOKEN_NAME,
         challenge: challenge,
         // We have a bunch of data available from the response, check out the API docs to find what these values mean
         // and what additional data you have available.

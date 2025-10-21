@@ -4,7 +4,7 @@
 import express from "express"
 import url from "url"
 import urljoin from "url-join"
-import { doubleCsrfProtection, generateCsrfToken, hydraAdmin, XSRF_TOKEN } from "../config.js"
+import { doubleCsrfProtection, generateCsrfToken, hydraAdmin, XSRF_TOKEN_NAME } from "../config.js"
 import { oidcConformityMaybeFakeAcr } from "./stub/oidc-cert.js"
 import jsonLogger from "../logging.js"
 
@@ -65,9 +65,9 @@ router.get("/", doubleCsrfProtection, (req, res, next) => {
 
       // If authentication can't be skipped we MUST show the login UI.
       let token = generateCsrfToken(req, res)
-      jsonLogger.info("getCsrf GET login func", {csrf:token, env_token:XSRF_TOKEN})
+      jsonLogger.info("getCsrf GET login func", {csrf:token, env_token:XSRF_TOKEN_NAME})
       res.render("login", {
-        envXsrfToken: XSRF_TOKEN,
+        envXsrfToken: XSRF_TOKEN_NAME,
         csrfToken: token,
         challenge: challenge,
         action: urljoin(process.env.BASE_URL || "", "/login"),
@@ -113,7 +113,7 @@ router.post("/", doubleCsrfProtection, (req, res, next) => {
     jsonLogger.info("getCsrf POST login", {csrf:generateCsrfToken(req, res)})
     res.render("login", {
       csrfToken: generateCsrfToken(req, res),
-      envXsrfToken: XSRF_TOKEN,
+      envXsrfToken: XSRF_TOKEN_NAME,
       challenge: challenge,
       error: "The username / password combination is not correct",
     })

@@ -16,7 +16,7 @@ import consent from "./routes/consent.js"
 import device from "./routes/device.js"
 import callback from "./routes/callback.js"
 import pool from "./pool.js"
-import { httpOnly, doubleCsrfProtection, PgStore, generateCsrfToken, XSRF_TOKEN } from "./config.js"
+import { httpOnly, doubleCsrfProtection, PgStore, generateCsrfToken, XSRF_TOKEN_NAME } from "./config.js"
 import jsonLogger from "./logging.js"
 import { dirname } from 'path';
 import favicon from "serve-favicon";
@@ -52,9 +52,9 @@ app.use(favicon(path.join(__dirname, '..', 'public', 'favicon.ico')));
 app.use(express.static(path.join(dirname(import.meta.url), "public")))
 
 const csrfHeader = (req:Request, res:Response, next:Function) => {
-  if (req.is('application/x-www-form-urlencoded') && req.body[XSRF_TOKEN]) {
-    jsonLogger.info("Setting csrf-token", {token: req.body[XSRF_TOKEN]})
-    req.headers["x-csrf-token"] = req.body[XSRF_TOKEN]
+  if (req.is('application/x-www-form-urlencoded') && req.body[XSRF_TOKEN_NAME]) {
+    jsonLogger.info("Setting csrf-token", {token: req.body[XSRF_TOKEN_NAME]})
+    req.headers["x-csrf-token"] = req.body[XSRF_TOKEN_NAME]
   }
   // You could also pass the token into the context of a HTML response.
   next()
