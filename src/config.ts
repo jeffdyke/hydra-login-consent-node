@@ -9,7 +9,7 @@ import pool from "./pool.js"
 import { doubleCsrf } from "csrf-csrf";
 import jsonLogger from "./logging.js";
 const httpOnly = !process.env.BASE_URL?.startsWith("https")
-const XSRF_TOKEN = !process.env.BASE_URL?.startsWith("https") ? 'dev_xsrf_token' : 'xsrf_token'
+const XSRF_TOKEN_NAME = !process.env.BASE_URL?.startsWith("https") ? 'dev_xsrf_token' : 'xsrf_token'
 const lclCookieOptions = {
   httpOnly:httpOnly,
   secure:!httpOnly,
@@ -23,7 +23,7 @@ const {
   generateCsrfToken,        // Helper function to generate a CSRF token
 } = doubleCsrf({
   getSecret: () => "G6KaOf8aJsLagw566he8yxOTTO3tInKD",
-  cookieName: XSRF_TOKEN,
+  cookieName: XSRF_TOKEN_NAME,
   cookieOptions: {
     sameSite: 'lax', // Secure cookie settings
     httpOnly: httpOnly,
@@ -87,5 +87,5 @@ export {
   PgStore,
   httpOnly,
   dumpSessionData,
-  XSRF_TOKEN
+  XSRF_TOKEN_NAME
 }

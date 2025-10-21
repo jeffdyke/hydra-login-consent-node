@@ -4,7 +4,7 @@
 import express from "express"
 import url from "url"
 import urljoin from "url-join"
-import { hydraAdmin, doubleCsrfProtection, generateCsrfToken, XSRF_TOKEN } from "../config.js"
+import { hydraAdmin, doubleCsrfProtection, generateCsrfToken, XSRF_TOKEN_NAME } from "../config.js"
 
 const router = express.Router()
 
@@ -28,7 +28,7 @@ router.get("/", doubleCsrfProtection, (req, res, next) => {
       // The most secure way to perform a logout request is by asking the user if he/she really want to log out.
       res.render("logout", {
         csrfToken: generateCsrfToken(req, res),
-        envXsrfToken: XSRF_TOKEN,
+        envXsrfToken: XSRF_TOKEN_NAME,
         challenge: challenge,
         action: urljoin(process.env.BASE_URL || "", "/logout"),
       })
