@@ -50,7 +50,7 @@ app.set("view engine", "pug")
 app.use(favicon(path.join(__dirname, '..', 'public', 'favicon.ico')));
 
 app.use(express.static(path.join(dirname(import.meta.url), "public")))
-const { v4: uuidv4 } = require('uuid');
+import { v4: uuidv4 } from 'uuid';
 function addUniqueToken(req:Request, res:Response, next:Function) {
   req.headers["x-bondlink-id"] = uuidv4(); // Generate a unique ID and attach it to the request object
   next(); // Pass control to the next middleware or route handler

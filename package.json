@@ -48,7 +48,8 @@
     "serve-favicon": "^2.5.1",
     "tslog": "^4.10.2",
     "typescript": "^5.9.3",
-    "url-join": "^5.0.0"
+    "url-join": "^5.0.0",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@ory/hydra-client-fetch": "^2.4.0-alpha.1",
