@@ -52,6 +52,11 @@ function authPost(data:ParseAuthRequest): URL {
   authUrl.searchParams.append("code_challenge_method", "S256")
   return authUrl
 }
+router.head('/', (req, res) => {
+  res.set('X-BondLink-Special', 'Head-Only-Value');
+  res.status(204).end();
+});
+
 // route / is local testing, /authorize is from claude, the / route is not really needed
 router.get("/", doubleCsrfProtection, (req, res) => {
   jsonLogger.info("At root ", {r:JSON.stringify(req)})
