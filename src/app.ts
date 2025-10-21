@@ -16,7 +16,7 @@ import consent from "./routes/consent.js"
 import device from "./routes/device.js"
 import callback from "./routes/callback.js"
 import pool from "./pool.js"
-import { httpOnly, doubleCsrfProtection, PgStore, generateCsrfToken, XSRF_TOKEN_NAME } from "./config.js"
+import { doubleCsrfProtection, PgStore, XSRF_TOKEN_NAME } from "./config.js"
 import jsonLogger from "./logging.js"
 import { dirname } from 'path';
 import favicon from "serve-favicon";
