@@ -54,6 +54,7 @@ function authPost(data:ParseAuthRequest): URL {
 }
 // route / is local testing, /authorize is from claude, the / route is not really needed
 router.get("/", doubleCsrfProtection, (req, res) => {
+  jsonLogger.info("At root ", {r:JSON.stringify(req)})
   // Generate state for CSRF protection
   const state = crypto.randomBytes(16).toString("hex")
 
