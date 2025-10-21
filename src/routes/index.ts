@@ -87,7 +87,7 @@ router.get("/", doubleCsrfProtection, (req, res) => {
   res.redirect(authPost(postData).toString())
 })
 
-router.get("/authorize", doubleCsrfProtection, (req, res) => {
+router.get("/authorize", (req, res) => {
   jsonLogger.info("URL", {u:req.url})
   const parsed = new URL(req.url)
   const reqData: ParseAuthRequest ={
