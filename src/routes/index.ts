@@ -88,8 +88,9 @@ router.get("/", doubleCsrfProtection, (req, res) => {
 })
 
 router.get("/authorize", (req, res) => {
-  jsonLogger.info("URL", {u:req.url})
-  const parsed = new URL(req.url)
+  jsonLogger.info("call to authorize", {u:req.url,headers:req.headers})
+  const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl
+  const parsed = new URL(fullUrl)
   const reqData: ParseAuthRequest ={
     codeChallenge: parsed.searchParams.get("code_challenge") || "",
     scope: parsed.searchParams.get("scope") || "",
