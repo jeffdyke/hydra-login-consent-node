@@ -1,6 +1,7 @@
 
 import { Request, Response, NextFunction } from "express";
 import logger  from "../logging.js";
+import { XSRF_TOKEN } from "../config.js";
 
 export function requestLogger(req: Request, res: Response, next: NextFunction) {
   const start = process.hrtime.bigint();
@@ -13,6 +14,7 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
       method: req.method,
       url: req.originalUrl,
       csrfToken: req.headers["x-csrf-token"],
+      envXsrfToken: XSRF_TOKEN,
       statusCode: res.statusCode,
       durationMs: duration.toFixed(2),
       ip: req.ip,

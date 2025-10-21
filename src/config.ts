@@ -9,6 +9,7 @@ import pool from "./pool.js"
 import { doubleCsrf } from "csrf-csrf";
 import jsonLogger from "./logging.js";
 const httpOnly = !process.env.BASE_URL?.startsWith("https")
+const XSRF_TOKEN = !process.env.BASE_URL?.startsWith("https") ? 'dev_xsrf_token' : 'xsrf_token'
 const lclCookieOptions = {
   httpOnly:httpOnly,
   secure:!httpOnly,
@@ -22,7 +23,7 @@ const {
   generateCsrfToken,        // Helper function to generate a CSRF token
 } = doubleCsrf({
   getSecret: () => "G6KaOf8aJsLagw566he8yxOTTO3tInKD",
-  cookieName: 'xsrf_token',
+  cookieName: XSRF_TOKEN,
   cookieOptions: {
     sameSite: 'lax', // Secure cookie settings
     httpOnly: httpOnly,
@@ -76,4 +77,15 @@ function dumpSessionData() {
   }
 }
 
-export { hydraAdmin, pgConfig, CLIENT_ID, hasClientId, doubleCsrfProtection, generateCsrfToken, PgStore, httpOnly, dumpSessionData}
+export {
+  hydraAdmin,
+  pgConfig,
+  CLIENT_ID,
+  hasClientId,
+  doubleCsrfProtection,
+  generateCsrfToken,
+  PgStore,
+  httpOnly,
+  dumpSessionData,
+  XSRF_TOKEN
+}
