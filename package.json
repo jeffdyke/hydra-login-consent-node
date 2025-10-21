@@ -43,6 +43,7 @@
     "express": "^5.1.0",
     "express-session": "^1.18.1",
     "google-auth-library": "^10.4.0",
+    "pug": "^3.0.3",
     "rotating-file-stream": "^3.2.7",
     "serve-favicon": "^2.5.1",
     "tslog": "^4.10.2",

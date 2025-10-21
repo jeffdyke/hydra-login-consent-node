@@ -10,7 +10,7 @@ block content
         p.
             #{error}
     form(action=action, method="POST")
-        input(type="hidden", name="xsrf_token", value=csrfToken)
+        input(type="hidden", name=envXsrfToken, value=csrfToken)
         input(type="hidden", name="challenge", value=challenge)
         table(style="")
             tr

@@ -78,10 +78,11 @@ router.get("/", doubleCsrfProtection, (req, res) => {
 
   jsonLogger.info("Auth request - Index", {request:postData})
   // Redirect to Hydra for authorization
-  res.redirect(postData.toString())
+  res.redirect(authPost(postData).toString())
 })
 
 router.get("/authorize", (req, res) => {
+  jsonLogger.info("URL", {u:req.url})
   const parsed = new URL(req.url)
   const reqData: ParseAuthRequest ={
     codeChallenge: parsed.searchParams.get("code_challenge") || "",
