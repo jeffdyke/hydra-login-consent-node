@@ -60,7 +60,7 @@ const csrfHeader = (req:Request, res:Response, next:Function) => {
   if (req.method.toLowerCase() == 'post') {
 
     const token = generateCsrfToken(req, res)
-    jsonLogger.info("Setting csrf-token", {token: token, headers:req.headers})
+    jsonLogger.info("Setting csrf-token", {token: token})
     req.headers["x-csrf-token"] = token
   }
   // You could also pass the token into the context of a HTML response.

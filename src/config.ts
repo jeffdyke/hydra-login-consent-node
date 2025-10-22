@@ -14,7 +14,7 @@ const XSRF_TOKEN_NAME = !process.env.BASE_URL?.startsWith("https") ? 'dev_xsrf_t
 const lclCookieOptions = {
   httpOnly:httpOnly,
   secure:!httpOnly,
-  domain:"bondlink.org",
+  // domain:"bondlink.org",
   maxAge:30 * 24 * 60 * 60 * 1000,
   sameSite:"none"
 }
@@ -29,7 +29,7 @@ const {
     sameSite: 'none', // Secure cookie settings
     httpOnly: httpOnly,
     secure: !httpOnly,
-    domain: "bondlink.org",
+    // domain: "bondlink.org",
     maxAge: 30 * 24 * 60 * 60 * 1000,
   },
   getSessionIdentifier: (req) => {
