@@ -10,12 +10,13 @@ import { doubleCsrf } from "csrf-csrf";
 import jsonLogger from "./logging.js";
 const httpOnly = !process.env.BASE_URL?.startsWith("https")
 const XSRF_TOKEN_NAME = !process.env.BASE_URL?.startsWith("https") ? 'dev_xsrf_token' : 'xsrf_token'
+// CookieOptions is an interface, this is currently unused
 const lclCookieOptions = {
   httpOnly:httpOnly,
   secure:!httpOnly,
   domain:"bondlink.org",
   maxAge:30 * 24 * 60 * 60 * 1000,
-  sameSite:"lax"
+  sameSite:"none"
 }
 jsonLogger.info("Cookie Options", lclCookieOptions)
 const {
@@ -25,7 +26,7 @@ const {
   getSecret: () => "G6KaOf8aJsLagw566he8yxOTTO3tInKD",
   cookieName: XSRF_TOKEN_NAME,
   cookieOptions: {
-    sameSite: 'lax', // Secure cookie settings
+    sameSite: 'none', // Secure cookie settings
     httpOnly: httpOnly,
     secure: !httpOnly,
     domain: "bondlink.org",
