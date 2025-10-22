@@ -15,7 +15,7 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
     userAgent: req.headers["user-agent"],
     headers: req.headers
   }
-  // logger.info("Request started", res.locals.logData)
+
   res.on("finish", () => {
     const end = process.hrtime.bigint();
     const duration = Number(end - start) / 1_000_000;
@@ -25,7 +25,6 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
       durationMs: duration.toFixed(2),
       csrfToken: req.headers["x-csrf-token"],
       ...res.locals.logData,
-      resp:res
     });
   });
 
