@@ -1,47 +1,67 @@
+
+
+db:
+  ignore_unknown_table_names: true
+
+log:
+  level: {{debug}}
+  leak_sensitive_values: false
+  redaction_text: ""
+  format: json
+dsn: "{{pg_dsn}}"
 serve:
   cookies:
-    same_site_mode: None
-    domain: "https://auth.staging.bondlink.org"
+    same_site_mode: Lax
+    domain: "{{base_url}}"
     same_site_workaround: true
-
+  public:
+    cors:
+      enabled: true
+      allowed_origins:
+        - "{{base_url}}"
+        - https://claude.ai
+      allowed_methods:
+        - POST
+        - PUT
+        - DELETE
+        - PATCH
+      debug: true
+  admin:
+    cors:
+      enabled: true
+      allowed_origins:
+        - "{{base_url}}"
+      allowed_methods:
+        - POST
+        - PUT
+        - DELETE
+        - PATCH
 
 
 urls:
   self:
-    issuer: http://hydra:4444
-  consent: http://127.0.0.1:3000/consent
-  login: http://127.0.0.1:3000/login
-  logout: http://127.0.0.1:3000/logout
-
+    issuer: "{{base_url}}"
+    public: "{{base_url}}"
+    admin: {{admin_local}}
+  consent: "{{base_url}}"/consent
+  login: "{{base_url}}"/login
+  logout: "{{base_url}}"/logout
+  #not used
+  device:
+    verification: "{{base_url}}"/device_verification
+    success: "{{base_url}}"/device_done
 oidc:
   subject_identifiers:
     supported_types:
       - pairwise
       - public
     pairwise:
-      salt:GOOGLE_REDIRECT_URI="https://auth.staging.bondlink.org/callback"
-
-HYDRA_ADMIN_URL=http://10.1.1.230:4445
-HYDRA_URL=https://auth.staging.bondlink.org
-POSTGRES_HOST=10.1.1.230
-BASE_URL=https://auth.staging.bondlink.org
-URLS_SELF_ISSUER=https://auth.staging.bondlink.org
-URLS_CONSENT=https://auth.staging.bondlink.org/consent
-URLS_LOGIN=https://auth.staging.bondlink.org/login
-BASE_URL=https://auth.staging.bondlink.org
-REDIRECT_URL=https://auth.staging.bondlink.org/callback
-NODE_ENV=develovp
-SERVE_COOKIES_DOMAIN=bondlink.org
-
-SERVE_COOKIES_SAME_SITE_WORKAROUND=true
-SERVE_PUBLIC_CORS_ENABLED=true
-SERVE_ADMIN_CORS_ENABLED=true
-SERVE_PUBLIC_CORS_ALLOWED_ORIGINS="*"
-SERVE_ADMIN_CORS_ALLOWED_ORIGINS="*"
-DSN=postgres://hydra:shaken!stirred@10.1.1.230:5432/hydra?sslmode=disable
-SERVE_PUBLIC_CORS_ALLOWED_METHODS=POST,GET,PUT,DELETE
-SERVE_ADMIN_CORS_ALLOWED_METHODS=POST,GET,PUT,DELETE
-OAUTH2_EXPOSE_INTERNAL_ERRORS=true
-LOG_LEAK_SENSITIVE_VALUES=true
-LOG_LEVEL=info
-LOG_FORMAT=json
+      - salt: {{secrets_pairwise}}
+oauth2:
+  expose_internal_errors: true
+secrets:
+  system:
+    - {{secrets_system}}
+  cookies:
+    - {{secrets_cookie}}
+dev: {{is_dev}}
