@@ -115,7 +115,7 @@ router.post("/", doubleCsrfProtection, (req, res, next) => {
   // label:consent-deny-end
 
   let grantScope = req.body.grant_scope
-  jsonLogger.info("Passed deny access with scope", {grant:grantScope})
+
   if (!Array.isArray(grantScope)) {
     grantScope = [grantScope]
   }
