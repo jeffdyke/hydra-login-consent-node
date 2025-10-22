@@ -58,8 +58,9 @@ function addUniqueToken(req:Request, res:Response, next:Function) {
 app.use(addUniqueToken)
 const csrfHeader = (req:Request, res:Response, next:Function) => {
   if (req.method.toLowerCase() == 'post') {
+
     const token = generateCsrfToken(req, res)
-    jsonLogger.info("Setting csrf-token", {token: token})
+    jsonLogger.info("Setting csrf-token", {token: token, headers:req.headers})
     req.headers["x-csrf-token"] = token
   }
   // You could also pass the token into the context of a HTML response.
