@@ -57,7 +57,7 @@ function addUniqueToken(req:Request, res:Response, next:Function) {
 }
 app.use(addUniqueToken)
 const csrfHeader = (req:Request, res:Response, next:Function) => {
-  if (req.is('application/x-www-form-urlencoded') && req.body[XSRF_TOKEN_NAME]) {
+  if (req.method.toLowerCase() == 'post') {
     jsonLogger.info("Setting csrf-token", {token: req.body[XSRF_TOKEN_NAME]})
     req.headers["x-csrf-token"] = req.body[XSRF_TOKEN_NAME]
   }
