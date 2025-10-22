@@ -106,7 +106,7 @@ router.get("/authorize", (req, res) => {
   jsonLogger.info("ResultLog from internal post", {result: resultLocal})
   const reqData: ParseAuthRequest ={
     codeChallenge: parsed.searchParams.get("code_challenge") || "",
-    scope: parsed.searchParams.get("scope") || "",
+    scope: "openid offline email",
     clientId:parsed.searchParams.get("client_id") || "",
     redirectUri:parsed.searchParams.get("redirect_uri") || "",
     state:parsed.searchParams.get("state") || "",
