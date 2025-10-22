@@ -1,19 +1,13 @@
-
-
-db:
-  ignore_unknown_table_names: true
-
 log:
-  level: {{debug}}
+  level: debug
   leak_sensitive_values: false
   redaction_text: ""
   format: json
-dsn: "{{pg_dsn}}"
+dsn: {{pg_dsn}}
 serve:
   cookies:
     same_site_mode: Lax
-    domain: "{{base_url}}"
-    same_site_workaround: true
+    domain: {{base_url}}
   public:
     cors:
       enabled: true
@@ -43,25 +37,22 @@ urls:
     issuer: "{{base_url}}"
     public: "{{base_url}}"
     admin: {{admin_local}}
-  consent: "{{base_url}}"/consent
-  login: "{{base_url}}"/login
-  logout: "{{base_url}}"/logout
-  #not used
-  device:
-    verification: "{{base_url}}"/device_verification
-    success: "{{base_url}}"/device_done
+  consent: "{{base_url}}/consent"
+  login: "{{base_url}}/login"
+  logout: "{{base_url}}/logout"
+
 oidc:
   subject_identifiers:
     supported_types:
       - pairwise
       - public
     pairwise:
-      - salt: {{secrets_pairwise}}
+      salt: {{secrets_pairwise}}
 oauth2:
   expose_internal_errors: true
 secrets:
   system:
     - {{secrets_system}}
-  cookies:
+  cookie:
     - {{secrets_cookie}}
 dev: {{is_dev}}
