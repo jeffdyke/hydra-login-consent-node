@@ -60,8 +60,8 @@ router.head('/', (req, res) => {
 });
 
 // route / is local testing, /authorize is from claude, the / route is not really needed
-router.get("/", doubleCsrfProtection, (req, res) => {
-  jsonLogger.info("At root ", {r:JSON.stringify(req)})
+router.get("/", (req, res) => {
+  jsonLogger.info("At root for local testing")
   // Generate state for CSRF protection
   const state = crypto.randomBytes(16).toString("hex")
 
