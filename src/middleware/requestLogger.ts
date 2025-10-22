@@ -10,6 +10,7 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
     url: req.originalUrl,
     csrfToken: req.headers["x-csrf-token"],
     envXsrfToken: XSRF_TOKEN_NAME,
+    cookies: req.cookies,
     ip: req.ip,
     body: req.body,
     userAgent: req.headers["user-agent"],
