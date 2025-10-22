@@ -1,0 +1,6 @@
+FROM oryd/hydra:v2.2.0
+USER root
+RUN mkdir -p /etc/bondlink/hydra \
+  && chmod 777 /etc/bondlink/hydra \
+  && mkdir -p /var/log/bondlink/hydra \
+  && chmod 777 /var/log/bondlink/hydra

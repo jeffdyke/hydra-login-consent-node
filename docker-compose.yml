@@ -20,20 +20,24 @@ services:
     ports:
       - "4444:4444" # Public API
       - "4445:4445" # Admin API
-    command: serve all --dev
-    env_file:
-      - /etc/bondlink/hydra/.env
-      - /etc/bondlink/hydra/.env.auth.hydra
-      - /etc/bondlink/hydra/.env.auth.google
+    command: serve all --dev --config /etc/bondlink/hydra/hydra.yml
+    # env_file:
+    #   - /etc/bondlink/hydra/.env
+    #   - /etc/bondlink/hydra/.env.auth.hydra
+    #   - /etc/bondlink/hydra/.env.auth.google
     environment:
       #TODO: These should be moved to perm locations, as they should never change, or
       # database must be rebuilt
       - SECRETS_SYSTEM=G6KaOf8aJsLagw566he8yxOTTO3tInKD
       - OIDC_SUBJECT_IDENTIFIERS_PAIRWISE_SALT=1AvfImNiD7yPGE7LYBcT5hJXOzydEEW1
-
+      - DSN=postgres://hydra:shaken!stirred@postgres:5432/hydra?sslmode=disable
+    build:
+      context: .
+      dockerfile: Dockerfile.hydra
     restart: unless-stopped
     volumes:
       - /var/log/bondlink/hydra:/var/log/bondlink/hydra
+      - /etc/bondlink/hydra:/etc/bondlink/hydra
     depends_on:
       - hydra-migrate
     networks:
