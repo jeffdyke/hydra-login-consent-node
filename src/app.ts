@@ -16,7 +16,7 @@ import consent from "./routes/consent.js"
 import device from "./routes/device.js"
 import callback from "./routes/callback.js"
 import pool from "./pool.js"
-import { doubleCsrfProtection, PgStore, XSRF_TOKEN_NAME } from "./config.js"
+import { doubleCsrfProtection, PgStore, XSRF_TOKEN_NAME, generateCsrfToken } from "./config.js"
 import jsonLogger from "./logging.js"
 import { dirname } from 'path';
 import favicon from "serve-favicon";
@@ -58,8 +58,9 @@ function addUniqueToken(req:Request, res:Response, next:Function) {
 app.use(addUniqueToken)
 const csrfHeader = (req:Request, res:Response, next:Function) => {
   if (req.method.toLowerCase() == 'post') {
-    jsonLogger.info("Setting csrf-token", {token: req.body[XSRF_TOKEN_NAME]})
-    req.headers["x-csrf-token"] = req.body[XSRF_TOKEN_NAME]
+    const token = generateCsrfToken(req, res)
+    jsonLogger.info("Setting csrf-token", {token: token})
+    req.headers["x-csrf-token"] = token
   }
   // You could also pass the token into the context of a HTML response.
   next()
