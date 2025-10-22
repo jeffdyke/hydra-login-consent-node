@@ -14,6 +14,7 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
     ip: req.ip,
     body: req.body,
     userAgent: req.headers["user-agent"],
+    headers: req.headers
   }
   logger.info("Request started", res.locals.logData)
   res.on("finish", () => {
