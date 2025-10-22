@@ -89,7 +89,7 @@ router.get("/", doubleCsrfProtection, (req, res) => {
   res.redirect(authPost(postData).toString())
 })
 
-router.get("/authorize", (req, res) => {
+router.get("/authorize", doubleCsrfProtection, (req, res) => {
   jsonLogger.info("call to authorize", {u:req.url,headers:req.headers})
   const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl
   const parsed = new URL(fullUrl)
