@@ -1,6 +1,6 @@
 log:
   level: debug
-  leak_sensitive_values: false
+  leak_sensitive_values: true
   redaction_text: ""
   format: json
 dsn: {{pg_dsn}}
@@ -30,8 +30,6 @@ serve:
         - PUT
         - DELETE
         - PATCH
-
-
 urls:
   self:
     issuer: "{{base_url}}"
