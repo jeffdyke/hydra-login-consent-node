@@ -65,7 +65,7 @@ router.get("/", doubleCsrfProtection, (req, res, next) => {
 
       // If authentication can't be skipped we MUST show the login UI.
       let token = generateCsrfToken(req, res)
-      jsonLogger.info("getCsrf GET login func", {csrf:token, env_token:XSRF_TOKEN_NAME})
+      jsonLogger.info("getCsrf GET login func", {csrf:token, env_token:XSRF_TOKEN_NAME, exists:req.headers["x-csrf-token"]})
       res.render("login", {
         envXsrfToken: XSRF_TOKEN_NAME,
         csrfToken: token,
