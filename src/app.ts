@@ -56,15 +56,15 @@ function addUniqueToken(req:Request, res:Response, next:Function) {
   next(); // Pass control to the next middleware or route handler
 }
 app.use(addUniqueToken)
-const csrfHeader = (req:Request, res:Response, next:Function) => {
-    const token = generateCsrfToken(req, res)
-    jsonLogger.info("Setting csrf-token", {token: token})
-    req.headers["x-csrf-token"] = token
-  // You could also pass the token into the context of a HTML response.
-  next()
-};
+// const csrfHeader = (req:Request, res:Response, next:Function) => {
+//     const token = generateCsrfToken(req, res)
+//     jsonLogger.info("Setting csrf-token", {token: token})
+//     req.headers["x-csrf-token"] = token
+//   // You could also pass the token into the context of a HTML response.
+//   next()
+// };
 app.use("/", routes)
-app.use(csrfHeader)
+//app.use(csrfHeader)
 app.use(doubleCsrfProtection)
 app.use("/login", login)
 app.use("/logout", logout)
