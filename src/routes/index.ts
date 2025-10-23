@@ -7,6 +7,7 @@ import jsonLogger from "../logging.js"
 import {CLIENT_ID, generateCsrfToken} from "../config.js"
 import url from "url"
 import axios from "axios"
+axios.defaults.withCredentials = true
 const router = express.Router()
 
 interface ParseAuthRequest {
@@ -20,7 +21,7 @@ interface ParseAuthRequest {
 
 const REDIRECT_URI = process.env.REDIRECT_URL || ""
 const HYDRA_URL = process.env.HYDRA_URL || ""
-
+jsonLogger.info("enviornmet", {e:HYDRA_URL})
 // Helper function to generate base64url encoded string
 function base64URLEncode(buffer: Buffer): string {
   return buffer
@@ -45,6 +46,7 @@ function queryToObject(req: Request): any {
 }
 function authPost(data:ParseAuthRequest): URL {
   const authUrl = new URL(`${HYDRA_URL}/oauth2/auth`)
+  jsonLogger.info("authUrl", authUrl)
   authUrl.searchParams.append("client_id", data.clientId)
   authUrl.searchParams.append("redirect_uri", data.redirectUri)
   authUrl.searchParams.append("response_type", data.responseType)

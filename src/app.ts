@@ -64,7 +64,6 @@ app.use(addUniqueToken)
 //   next()
 // };
 app.use("/", routes)
-//app.use(csrfHeader)
 app.use(doubleCsrfProtection)
 app.use("/login", login)
 app.use("/logout", logout)
