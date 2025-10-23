@@ -63,8 +63,9 @@ app.use(addUniqueToken)
 //   // You could also pass the token into the context of a HTML response.
 //   next()
 // };
-app.use("/", routes)
+
 app.use(doubleCsrfProtection)
+app.use("/", routes)
 app.use("/login", login)
 app.use("/logout", logout)
 app.use("/consent", consent)
