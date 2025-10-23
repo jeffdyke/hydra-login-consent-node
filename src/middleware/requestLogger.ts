@@ -18,15 +18,18 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
   }
 
   res.on("finish", () => {
-    const end = process.hrtime.bigint();
-    const duration = Number(end - start) / 1_000_000;
+    if (req.originalUrl != "/favicon.ico" ){
+      const end = process.hrtime.bigint();
+      const duration = Number(end - start) / 1_000_000;
 
-    logger.info(`Request finished: ${req.method} ${req.originalUrl}`, {
-      statusCode: res.statusCode,
-      durationMs: duration.toFixed(2),
-      csrfToken: req.headers["x-csrf-token"],
-      ...res.locals.logData,
-    });
+      logger.info(`Request finished: ${req.method} ${req.originalUrl}`, {
+        statusCode: res.statusCode,
+        durationMs: duration.toFixed(2),
+        csrfToken: req.headers["x-csrf-token"],
+        ...res.locals.logData,
+      });
+    }
+
   });
 
   next();

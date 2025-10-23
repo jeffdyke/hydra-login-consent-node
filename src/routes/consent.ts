@@ -177,11 +177,15 @@ router.post("/", doubleCsrfProtection, (req, res, next) => {
           remember_for: 3600,
         },
       })
+      jsonLogger.info("Consent passed, redirect_to is", {redirect:new URL(redirect_to)})
       // All we need to do now is to redirect the user back to hydra!
       res.redirect(String(redirect_to))
     })
     // This will handle any error that happens when making HTTP calls to hydra
-    .catch(next)
+    .catch((err) => {
+      jsonLogger.info("Error authenticating to hydra", {e:err})
+      next
+    })
   // label:docs-accept-consent
 })
 
