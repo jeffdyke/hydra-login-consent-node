@@ -5,6 +5,7 @@ import { XSRF_TOKEN_NAME } from "../config.js";
 
 export function requestLogger(req: Request, res: Response, next: NextFunction) {
   const start = process.hrtime.bigint();
+  const logStarts = /Claude-User|python-http/
   res.locals.logData = {
     method: req.method,
     url: req.originalUrl,
@@ -13,10 +14,10 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
     sessionId: req.session,
     ip: req.ip,
     body: req.body,
-    userAgent: req.headers["user-agent"],
+    userAgent: req.headers["user-agent"] || "Empty UA",
     headers: req.headers
   }
-  if (res.locals.userAgent == "Claude-User") {
+  if (req.originalUrl != "/favicon.ico" && logStarts.test(res.locals.logData.userAgent)) {
     logger.info("Started request for claude", res.locals.logData)
   }
   res.on("finish", () => {
