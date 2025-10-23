@@ -1,7 +1,7 @@
 
 import dotenv from 'dotenv';
 import axios from 'axios';
-
+axios.defaults.withCredentials = true
 import { Property } from "@tsed/schema";
 import {Configuration} from "@tsed/di";
 import {OAuth2Client, TokenPayload } from 'google-auth-library';

@@ -16,7 +16,7 @@ const lclCookieOptions = {
   secure:!httpOnly,
   // domain:"bondlink.org",
   maxAge:30 * 24 * 60 * 60 * 1000,
-  sameSite:"none"
+  sameSite:httpOnly ? "lax" : "none"
 }
 jsonLogger.info("Cookie Options", lclCookieOptions)
 
@@ -27,7 +27,7 @@ const {
   getSecret: () => "G6KaOf8aJsLagw566he8yxOTTO3tInKD",
   cookieName: XSRF_TOKEN_NAME,
   cookieOptions: {
-    sameSite: 'none', // Secure cookie settings
+    sameSite:httpOnly ? "lax" : "none",
     httpOnly: httpOnly,
     secure: !httpOnly,
     // domain: "bondlink.org",
@@ -48,7 +48,7 @@ const configuration = new Configuration({
   accessToken: process.env.ORY_API_KEY || process.env.ORY_PAT,
   headers: baseOptions.headers,
 })
-const CLIENT_ID = process.env.AUTH_FLOW_CLIENT_ID || ""
+const CLIENT_ID = process.env.AUTH_FLOW_CLIENT_ID || "633b91cd-550f-4b80-8d01-58a2a786c8da"
 if (!CLIENT_ID) {
   throw new Error("CLIENT_ID environment is not legit `{process.env.AUTH_FLOW_CLIENT_ID}`")
 }

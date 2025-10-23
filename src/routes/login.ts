@@ -122,7 +122,7 @@ router.post("/", doubleCsrfProtection, (req, res, next) => {
   }
 
   // Seems like the user authenticated! Let's tell hydra...
-
+  jsonLogger.info("Contacting admin")
   hydraAdmin
     .getOAuth2LoginRequest({ loginChallenge: challenge })
     .then((loginRequest) =>
@@ -154,12 +154,16 @@ router.post("/", doubleCsrfProtection, (req, res, next) => {
           },
         })
         .then(({ redirect_to }) => {
+          jsonLogger.info("redirecting to ", {redirect_to:redirect_to})
           // All we need to do now is to redirect the user back to hydra!
           res.redirect(String(redirect_to))
         }),
     )
     // This will handle any error that happens when making HTTP calls to hydra
-    .catch(next)
+    .catch((e) => {
+      jsonLogger.info("cauth error sending call to hydra", {error:e})
+      next()
+    })
 
   // You could also deny the login request which tells hydra that no one authenticated!
   //   hydraAdmin.rejectOAuth2LoginRequest({
