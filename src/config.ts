@@ -19,6 +19,7 @@ const lclCookieOptions = {
   sameSite:"none"
 }
 jsonLogger.info("Cookie Options", lclCookieOptions)
+
 const {
   doubleCsrfProtection, // The middleware to protect routes
   generateCsrfToken,        // Helper function to generate a CSRF token
