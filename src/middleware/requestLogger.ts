@@ -16,7 +16,9 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
     userAgent: req.headers["user-agent"],
     headers: req.headers
   }
-
+  if (res.locals.userAgent == "Claude-User") {
+    logger.info("Started request for claude", res.locals.logData)
+  }
   res.on("finish", () => {
     if (req.originalUrl != "/favicon.ico" ){
       const end = process.hrtime.bigint();
