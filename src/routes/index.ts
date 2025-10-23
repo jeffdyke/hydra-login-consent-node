@@ -60,7 +60,7 @@ router.head('/', (req, res) => {
 });
 router.use((req,res,next) => {
   let token = generateCsrfToken(req, res)
-  jsonLogger.info("Adding token to request", {token:token})
+  jsonLogger.info("Adding token to request", {token:token, exists:req.headers['x-csrf-token']})
   req.headers['x-csrf-token'] = token
   next()
 })
