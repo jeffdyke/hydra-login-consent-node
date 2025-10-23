@@ -4,7 +4,7 @@
 import express from "express"
 import crypto from "crypto"
 import jsonLogger from "../logging.js"
-import {CLIENT_ID, doubleCsrfProtection} from "../config.js"
+import {CLIENT_ID, generateCsrfToken} from "../config.js"
 import url from "url"
 import axios from "axios"
 const router = express.Router()
@@ -58,7 +58,12 @@ router.head('/', (req, res) => {
   res.set('X-BondLink-Special', 'Head-Only-Value');
   res.status(204).end();
 });
-
+router.use((req,res,next) => {
+  let token = generateCsrfToken(req, res)
+  jsonLogger.info("Adding token to request", {token:token})
+  req.headers['x-csrf-token'] = token
+  next()
+})
 // route / is local testing, /authorize is from claude, the / route is not really needed
 router.get("/", (req, res) => {
   jsonLogger.info("At root for local testing")
@@ -89,7 +94,7 @@ router.get("/", (req, res) => {
   res.redirect(authPost(postData).toString())
 })
 
-router.get("/authorize", doubleCsrfProtection, (req, res) => {
+router.get("/authorize", (req, res) => {
   jsonLogger.info("call to authorize", {u:req.url,headers:req.headers})
   const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl
   const parsed = new URL(fullUrl)

@@ -63,9 +63,9 @@ const csrfHeader = (req:Request, res:Response, next:Function) => {
   // You could also pass the token into the context of a HTML response.
   next()
 };
+app.use("/", routes)
 app.use(csrfHeader)
 app.use(doubleCsrfProtection)
-app.use("/", routes)
 app.use("/login", login)
 app.use("/logout", logout)
 app.use("/consent", consent)
