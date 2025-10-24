@@ -6,8 +6,8 @@ import crypto from "crypto"
 import jsonLogger from "../logging.js"
 import {CLIENT_ID, generateCsrfToken} from "../config.js"
 import url from "url"
-import axios from "axios"
-axios.defaults.withCredentials = true
+import axios from "../middleware/axios.js"
+
 const router = express.Router()
 
 interface ParseAuthRequest {

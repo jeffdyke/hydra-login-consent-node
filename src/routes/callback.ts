@@ -4,8 +4,7 @@ import jsonLogger  from "../logging.js"
 import {CLIENT_ID, doubleCsrfProtection} from "../config.js"
 const router = express.Router()
 const REDIRECT_URI = process.env.REDIRECT_URL || ""
-import axios from "axios"
-axios.defaults.withCredentials = true
+import axios from "../middleware/axios.js"
 
 router.get("/", doubleCsrfProtection, (req, res) => {
   const code = req.query.code
