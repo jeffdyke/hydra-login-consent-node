@@ -1,14 +1,18 @@
 import express from "express"
 import { googleTokenResponse } from "../google_auth.js"
 import jsonLogger  from "../logging.js"
-import {CLIENT_ID, doubleCsrfProtection} from "../config.js"
+import {doubleCsrfProtection} from "../config.js"
+import axios from "../middleware/axios.js"
+import {v4} from "uuid"
+import {CLIENT_ID} from "../setup/hydra.js"
+
 const router = express.Router()
 const REDIRECT_URI = process.env.REDIRECT_URL || ""
-import axios from "../middleware/axios.js"
 
 router.get("/", doubleCsrfProtection, (req, res) => {
   const code = req.query.code
   const returnedState = req.query.state
+  const createClientId = CLIENT_ID
 
   if (code && req.session) {
     const storedState = req.session.state
@@ -25,11 +29,12 @@ router.get("/", doubleCsrfProtection, (req, res) => {
       res.status(400).send("State mismatch - possible CSRF attack")
       return
     }
+    // Not sure this should be auto generated
     let body = new URLSearchParams({
           grant_type: "authorization_code",
           code: code as string,
           redirect_uri: REDIRECT_URI,
-          client_id: CLIENT_ID,
+          client_id: createClientId,
           code_verifier: codeVerifier ?? "",
         })
     // Exchange code for tokens WITH code_verifier

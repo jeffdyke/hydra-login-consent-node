@@ -4,7 +4,8 @@
 import express from "express"
 import url from "url"
 import urljoin from "url-join"
-import { doubleCsrfProtection, generateCsrfToken, hydraAdmin, XSRF_TOKEN_NAME } from "../config.js"
+import { doubleCsrfProtection, generateCsrfToken, XSRF_TOKEN_NAME } from "../config.js"
+import { hydraAdmin } from "../setup/hydra.js"
 import { oidcConformityMaybeFakeAcr } from "./stub/oidc-cert.js"
 import jsonLogger from "../logging.js"
 
