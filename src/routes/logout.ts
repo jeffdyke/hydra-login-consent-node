@@ -4,7 +4,8 @@
 import express from "express"
 import url from "url"
 import urljoin from "url-join"
-import { hydraAdmin, doubleCsrfProtection, generateCsrfToken, XSRF_TOKEN_NAME } from "../config.js"
+import { doubleCsrfProtection, generateCsrfToken, XSRF_TOKEN_NAME } from "../config.js"
+import { hydraAdmin } from "../setup/hydra.js"
 
 const router = express.Router()
 

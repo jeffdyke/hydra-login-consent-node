@@ -3,8 +3,8 @@
 
 import express from "express"
 import url from "url"
-import { hydraAdmin, generateCsrfToken, doubleCsrfProtection, XSRF_TOKEN_NAME } from "../config.js"
-
+import { generateCsrfToken, doubleCsrfProtection, XSRF_TOKEN_NAME } from "../config.js"
+import { hydraAdmin } from "../setup/hydra.js"
 
 const router = express.Router()
 

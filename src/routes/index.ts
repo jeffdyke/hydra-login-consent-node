@@ -4,10 +4,10 @@
 import express from "express"
 import crypto from "crypto"
 import jsonLogger from "../logging.js"
-import {CLIENT_ID, generateCsrfToken} from "../config.js"
+import {generateCsrfToken} from "../config.js"
 import url from "url"
 import axios from "../middleware/axios.js"
-
+import {CLIENT_ID} from "../setup/hydra.js"
 const router = express.Router()
 
 interface ParseAuthRequest {
