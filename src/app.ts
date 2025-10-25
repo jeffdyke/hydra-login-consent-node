@@ -15,6 +15,7 @@ import logout from "./routes/logout.js"
 import consent from "./routes/consent.js"
 import device from "./routes/device.js"
 import callback from "./routes/callback.js"
+import testClient from "./routes/test-client.js"
 import pool from "./pool.js"
 import { doubleCsrfProtection, PgStore, XSRF_TOKEN_NAME, generateCsrfToken } from "./config.js"
 import jsonLogger from "./logging.js"
@@ -63,7 +64,7 @@ app.use(addUniqueToken)
 //   // You could also pass the token into the context of a HTML response.
 //   next()
 // };
-
+app.use("/test-client", testClient)
 app.use(doubleCsrfProtection)
 app.use("/", routes)
 app.use("/login", login)
@@ -73,10 +74,11 @@ app.use("/device", device)
 app.use("/callback", callback)
 
 
+
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
   jsonLogger.warn("404 in app.ts", {url: req.originalUrl})
-  next(new Error("Generic Not Found `{$req.originalUrl}`" ))
+  next(new Error("Generic Not Found `{req.originalUrl}`" ))
 })
 
 // error handlers
