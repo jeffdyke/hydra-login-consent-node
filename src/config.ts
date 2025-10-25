@@ -5,10 +5,47 @@ import session from "express-session"
 import connectPgSimple from "connect-pg-simple"
 import pool from "./pool.js"
 
-import { doubleCsrf } from "csrf-csrf";
+import { doubleCsrf, SameSiteType } from "csrf-csrf";
 import jsonLogger from "./logging.js";
 const httpOnly = !process.env.BASE_URL?.startsWith("https")
 const XSRF_TOKEN_NAME = !process.env.BASE_URL?.startsWith("https") ? 'dev_xsrf_token' : 'xsrf_token'
+
+interface AppConfigI {
+  csrfTokenName: string,
+  hostName: string
+  redirectUri: string
+  sameSite: SameSiteType
+  httpOnly: boolean
+  secure: boolean
+  googleClientId?: string
+  googleClientSecret?: string
+
+}
+
+class DevAppConfig implements AppConfigI {
+  csrfTokenName: string = "dev_xsrf_token"
+  hostName: string = "http://dev.bondlin.org:3000"
+  redirectUri: string = "http://dev.bondlin.org:3000/callback"
+  sameSite: SameSiteType = "lax"
+  httpOnly: boolean = true
+  secure: boolean = false
+  googleClientId?: string | undefined = undefined
+  googleClientSecret?: string | undefined = undefined
+}
+
+class StagingAppConfig implements AppConfigI {
+  csrfTokenName: string = "xsrf_token"
+  hostName: string = "http://auth.staging.bondlink.org"
+  redirectUri: string = "http://auth.staging.bondlink.org/callback"
+  sameSite: SameSiteType = "none"
+  httpOnly: boolean = false
+  secure: boolean = true
+  googleClientId?: string | undefined = process.env.GOOGLE_CLIENT_ID;
+  googleClientSecret?: string | undefined = process.env.GOOGLE_CLIENT_SECRET
+
+}
+const appConfig = (httpOnly) ? new DevAppConfig() : new StagingAppConfig()
+
 // CookieOptions is an interface, this is currently unused
 const lclCookieOptions = {
   httpOnly:httpOnly,
@@ -24,11 +61,11 @@ const {
   generateCsrfToken,        // Helper function to generate a CSRF token
 } = doubleCsrf({
   getSecret: () => "G6KaOf8aJsLagw566he8yxOTTO3tInKD",
-  cookieName: XSRF_TOKEN_NAME,
+  cookieName: appConfig.csrfTokenName,
   cookieOptions: {
-    sameSite:httpOnly ? "lax" : "none",
-    httpOnly: httpOnly,
-    secure: !httpOnly,
+    sameSite: appConfig.sameSite,
+    httpOnly: appConfig.httpOnly,
+    secure: appConfig.secure,
     // domain: "bondlink.org",
     maxAge: 30 * 24 * 60 * 60 * 1000,
   },
@@ -70,5 +107,6 @@ export {
   PgStore,
   httpOnly,
   dumpSessionData,
-  XSRF_TOKEN_NAME
+  XSRF_TOKEN_NAME,
+  appConfig
 }
