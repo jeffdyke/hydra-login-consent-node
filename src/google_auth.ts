@@ -6,7 +6,7 @@ import { Property } from "@tsed/schema";
 import {Configuration} from "@tsed/di";
 import {OAuth2Client, TokenPayload } from 'google-auth-library';
 import jsonLogger  from "./logging.js"
-
+import {appConfig} from "./config.js"
 dotenv.config()
 
 Configuration({
@@ -78,13 +78,25 @@ const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 const formHeader = {
       "Content-Type": "application/x-www-form-urlencoded",
     };
-async function googleOAuthTokens(code: string): Promise<TokenPayload> {
-  const client = new OAuth2Client({
-    clientId: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+const client = new OAuth2Client({
+    clientId: appConfig.googleClientId,
+    clientSecret: appConfig.googleClientSecret,
     // this is for a middleware callback
-    redirectUri: process.env.HYDRA_REDIRECT_URL
+    redirectUri: appConfig.redirectUri
   })
+
+async function googleAuthUrl(scope: string, incomingState: string): Promise<string> {
+  const authUri = await client.generateAuthUrl({
+    access_type:'offline',
+    scope: scope,
+    prompt: 'consent',
+    state: incomingState,
+    response_type: "code",
+  })
+  return authUri
+}
+async function googleOAuthTokens(code: string): Promise<TokenPayload> {
+
   const params = {code: code, client: client}
   jsonLogger.info("Auth Code Request", {request: params});
 
@@ -99,6 +111,7 @@ async function googleOAuthTokens(code: string): Promise<TokenPayload> {
     }); return err.response.data });
 
 }
+
 
 async function getGoogleUser(access_token: string, id_token: string): Promise<UserInfo> {
   const url = `https://www.googleapis.com/oauth2/v2/userinfo?alt=json&access_token=${access_token}`;
@@ -133,4 +146,4 @@ async function googleTokenResponse(code: string): Promise<GoogleTokenResponse> {
     })
   }
 
-export { googleOAuthTokens, getGoogleUser, googleTokenResponse }
+export { googleOAuthTokens, getGoogleUser, googleTokenResponse, googleAuthUrl }

@@ -4,6 +4,7 @@ import express from "express"
 import {v4} from "uuid"
 import jsonLogger from "../logging.js"
 import { OAuth2Client } from "google-auth-library"
+import { googleOAuthTokens } from "../google_auth.js"
 
 const router = express.Router()
 router.get("/", (req, res) => {
@@ -12,6 +13,7 @@ router.get("/", (req, res) => {
 
   try {
     newClient(cId).then(client => {
+
       jsonLogger.info("Created client", {client: client, from:cId})
       getClient(cId).then(getC => {
         jsonLogger.info("new client", {c:getC})

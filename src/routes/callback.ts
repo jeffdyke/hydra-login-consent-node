@@ -1,13 +1,12 @@
 import express from "express"
 import { googleTokenResponse } from "../google_auth.js"
 import jsonLogger  from "../logging.js"
-import {doubleCsrfProtection} from "../config.js"
+import {doubleCsrfProtection, appConfig} from "../config.js"
 import axios from "../middleware/axios.js"
 import {v4} from "uuid"
 import {CLIENT_ID} from "../setup/hydra.js"
 
 const router = express.Router()
-const REDIRECT_URI = process.env.REDIRECT_URL || ""
 
 router.get("/", doubleCsrfProtection, (req, res) => {
   const code = req.query.code
@@ -33,7 +32,7 @@ router.get("/", doubleCsrfProtection, (req, res) => {
     let body = new URLSearchParams({
           grant_type: "authorization_code",
           code: code as string,
-          redirect_uri: REDIRECT_URI,
+          redirect_uri: appConfig.redirectUri,
           client_id: createClientId,
           code_verifier: codeVerifier ?? "",
         })

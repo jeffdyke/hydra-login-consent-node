@@ -4,10 +4,13 @@
 import express from "express"
 import crypto from "crypto"
 import jsonLogger from "../logging.js"
-import {generateCsrfToken} from "../config.js"
+import {generateCsrfToken, appConfig} from "../config.js"
 import url from "url"
 import axios from "../middleware/axios.js"
-import {CLIENT_ID} from "../setup/hydra.js"
+import {CLIENT_ID, hydraAdmin} from "../setup/hydra.js"
+import { newClient } from "../authFlow.js"
+import { googleAuthUrl } from "../google_auth.js"
+import { json } from "body-parser"
 const router = express.Router()
 
 interface ParseAuthRequest {
@@ -19,9 +22,9 @@ interface ParseAuthRequest {
   responseType:string
 }
 
-const REDIRECT_URI = process.env.REDIRECT_URL || ""
+
 const HYDRA_URL = process.env.HYDRA_URL || ""
-jsonLogger.info("environment", {hydraUrl:HYDRA_URL, redirect:REDIRECT_URI})
+jsonLogger.info("environment", {hydraUrl:HYDRA_URL, redirect:appConfig.redirectUri})
 // Helper function to generate base64url encoded string
 function base64URLEncode(buffer: Buffer): string {
   return buffer
@@ -67,6 +70,7 @@ router.use((req,res,next) => {
   next()
 })
 // route / is local testing, /authorize is from claude, the / route is not really needed
+// This endpoint is rather useless, needs to be updated after the claude flow is complete
 router.get("/", (req, res) => {
   jsonLogger.info("At root for local testing")
   // Generate state for CSRF protection
@@ -85,7 +89,7 @@ router.get("/", (req, res) => {
   const postData: ParseAuthRequest = {
     clientId:CLIENT_ID,
     scope: "openid offline",
-    redirectUri:REDIRECT_URI,
+    redirectUri:appConfig.redirectUri,
     state:state,
     codeChallenge:codeChallenge,
     responseType: "code"
@@ -97,6 +101,11 @@ router.get("/", (req, res) => {
 })
 
 router.get("/authorize", (req, res) => {
+  /**
+   * Create a new client, will need to dedupe later
+   * Authenticate to google with middle redirect
+   * capture google response
+   */
 
   const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl
   const parsed = new URL(fullUrl)
@@ -104,12 +113,24 @@ router.get("/authorize", (req, res) => {
   const internalPost: ParseAuthRequest = {
     codeChallenge: parsed.searchParams.get("code_challenge") || "",
     scope: "openid offline",
-    redirectUri: REDIRECT_URI,
+    redirectUri: appConfig.redirectUri,
     state:parsed.searchParams.get("state") || "",
     clientId:parsed.searchParams.get("client_id") || "",
     responseType:parsed.searchParams.get("response_type") || "",
   }
+
   jsonLogger.info("Calling local post endpoint", {post:internalPost})
+  newClient(internalPost.clientId).then(client => {
+    jsonLogger.info("new client created", {c:client})
+    googleAuthUrl(internalPost.scope, internalPost.state).then(authUrl => {
+      jsonLogger.info("redirecting to google", {url:authUrl})
+      res.redirect(authUrl)
+    }).catch(err => {
+      jsonLogger.warn("caught error trying to redirect to authUrl", {e: err})
+      return err
+    })
+
+  })
   const resultLocal = axios.post(authPost(internalPost).toString())
   jsonLogger.info("ResultLog from internal post", {result: resultLocal})
   const reqData: ParseAuthRequest ={
