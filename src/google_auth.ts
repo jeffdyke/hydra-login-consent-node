@@ -74,11 +74,17 @@ function convertClassToRecord(obj: any): Record<string, string> {
 }
 
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
+const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 const formHeader = {
       "Content-Type": "application/x-www-form-urlencoded",
     };
 async function googleOAuthTokens(code: string): Promise<TokenPayload> {
-  const client = new OAuth2Client({clientId: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET, redirectUri: process.env.GOOGLE_REDIRECT_URI})
+  const client = new OAuth2Client({
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    // this is for a middleware callback
+    redirectUri: process.env.HYDRA_REDIRECT_URL
+  })
   const params = {code: code, client: client}
   jsonLogger.info("Auth Code Request", {request: params});
 
