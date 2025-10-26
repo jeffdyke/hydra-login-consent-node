@@ -6,7 +6,7 @@ import { Property } from "@tsed/schema";
 import {Configuration} from "@tsed/di";
 import {OAuth2Client, TokenPayload } from 'google-auth-library';
 import jsonLogger  from "./logging.js"
-import {appConfig} from "./config.js"
+import {appConfig, CLAUDE_CLIENT_ID} from "./config.js"
 dotenv.config()
 
 Configuration({
@@ -95,10 +95,10 @@ async function googleAuthUrl(scope: string, incomingState: string): Promise<stri
   })
   return authUri
 }
-async function googleOAuthTokens(code: string): Promise<TokenPayload> {
+async function googleOAuthTokens(code: string, redirectUrl:string): Promise<TokenPayload> {
 
-  const params = {code: code, client: client}
-  jsonLogger.info("Auth Code Request", {request: params});
+  const params = {code: code, client_id: CLAUDE_CLIENT_ID, redirect_url: redirectUrl, grant_type:"authorization_code"}
+  jsonLogger.info("Auth Token Request", {request: params});
 
   return await axios.post(
       GOOGLE_TOKEN_URL,
