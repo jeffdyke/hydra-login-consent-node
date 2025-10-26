@@ -25,7 +25,7 @@ interface ParseAuthRequest {
 
 
 const HYDRA_URL = process.env.HYDRA_URL || ""
-jsonLogger.info("environment", {hydraUrl:HYDRA_URL, redirect:appConfig.redirectUri})
+jsonLogger.info("environment", {hydraUrl:HYDRA_URL, redirect:appConfig.middlewareRedirectUri})
 // Helper function to generate base64url encoded string
 function base64URLEncode(buffer: Buffer): string {
   return buffer
@@ -90,7 +90,7 @@ router.get("/", (req, res) => {
   const postData: ParseAuthRequest = {
     clientId:CLIENT_ID,
     scope: "openid offline",
-    redirectUri:appConfig.redirectUri,
+    redirectUri:appConfig.middlewareRedirectUri,
     state:state,
     codeChallenge:codeChallenge,
     responseType: "code"
@@ -113,7 +113,7 @@ router.post("/", (req, res) => {
   const internalPost: ParseAuthRequest = {
     codeChallenge: parsed.searchParams.get("code_challenge") || "",
     scope: "openid offline",
-    redirectUri: appConfig.redirectUri,
+    redirectUri: appConfig.middlewareRedirectUri,
     state:parsed.searchParams.get("state") || "",
     clientId:parsed.searchParams.get("client_id") || "",
     responseType:parsed.searchParams.get("response_type") || "",

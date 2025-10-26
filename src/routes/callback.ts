@@ -32,7 +32,7 @@ router.get("/", (req, res) => {
     let body = new URLSearchParams({
           grant_type: "authorization_code",
           code: code as string,
-          redirect_uri: appConfig.redirectUri,
+          redirect_uri: appConfig.claudeRedirectUri,
           client_id: createClientId,
           code_verifier: codeVerifier ?? "",
         })

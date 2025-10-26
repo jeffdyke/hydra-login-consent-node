@@ -82,7 +82,7 @@ const client = new OAuth2Client({
     clientId: appConfig.googleClientId,
     clientSecret: appConfig.googleClientSecret,
     // this is for a middleware callback
-    redirectUri: appConfig.redirectUri
+    redirectUri: appConfig.middlewareRedirectUri
   })
 
 async function googleAuthUrl(scope: string, incomingState: string): Promise<string> {
@@ -93,6 +93,7 @@ async function googleAuthUrl(scope: string, incomingState: string): Promise<stri
     state: incomingState,
     response_type: "code",
   })
+  jsonLogger.info("Auth URL", {authUrl:authUri})
   return authUri
 }
 async function googleOAuthTokens(code: string, redirectUrl:string): Promise<TokenPayload> {
