@@ -23,7 +23,7 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
   }
   res.on("finish", () => {
     if (stripArgs.test(req.originalUrl)) {
-      res.locals.logData.url = res.locals.logData.url.split("?")
+      res.locals.logData.url = res.locals.logData.url.split("?")[0]
     }
     if (req.originalUrl != "/favicon.ico" ){
       const end = process.hrtime.bigint();
