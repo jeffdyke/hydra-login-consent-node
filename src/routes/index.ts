@@ -109,7 +109,7 @@ router.post("/", (req, res) => {
   // jsonLogger.info("post body", {body:req.body})
   const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl
   const parsed = new URL(fullUrl)
-  jsonLogger.info("Post from Claude", {u:req.url,headers:req.headers,incoming:parsed})
+  jsonLogger.info("Post from Claude", {u:req.url,body:req.body})
   const internalPost: ParseAuthRequest = {
     codeChallenge: parsed.searchParams.get("code_challenge") || "",
     scope: "openid offline",
@@ -132,19 +132,19 @@ router.post("/", (req, res) => {
 
   })
 
-  axios.post(authPost(internalPost).toString()).then(resultLocal => {
-    jsonLogger.info("ResultLog from internal post", {result: resultLocal})
-    const reqData: ParseAuthRequest = {
-      codeChallenge: parsed.searchParams.get("code_challenge") || "",
-      scope: "openid offline email",
-      clientId:parsed.searchParams.get("client_id") || "",
-      redirectUri:parsed.searchParams.get("redirect_uri") || "",
-      state:parsed.searchParams.get("state") || "",
-      responseType:parsed.searchParams.get("response_type") || ""
+  // axios.post(authPost(internalPost).toString()).then(resultLocal => {
+  //   jsonLogger.info("ResultLog from internal post", {result: resultLocal})
+  //   const reqData: ParseAuthRequest = {
+  //     codeChallenge: parsed.searchParams.get("code_challenge") || "",
+  //     scope: "openid offline email",
+  //     clientId:parsed.searchParams.get("client_id") || "",
+  //     redirectUri:parsed.searchParams.get("redirect_uri") || "",
+  //     state:parsed.searchParams.get("state") || "",
+  //     responseType:parsed.searchParams.get("response_type") || ""
 
-    }
-    const postData = authPost(reqData)
-    res.redirect(postData.toString())
+  //   }
+    // const postData = authPost(reqData)
+    // res.redirect(postData.toString())
   })
 
 
