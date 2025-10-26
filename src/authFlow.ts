@@ -27,12 +27,13 @@ async function getClient(clientId: string): Promise<OAuth2Client> {
   params.append('id', clientId)
 
   const response = await hydraAdmin.getOAuth2Client({id:clientId}).then(client => {
-    jsonLogger.info("Fetch client returned ", {raw:typeof response,resp:client})
+    jsonLogger.info("Fetch client returned ", {resp:client})
     return client
   }).catch(err => {
     jsonLogger.info("caught an error fetch the client", {e:err.toString(), clientId:clientId})
     return err
   })
+  jsonLogger.info("response is of type ", {t:typeof response})
   return response
 }
 async function newClient(clientId:string): Promise<OAuth2Client> {
