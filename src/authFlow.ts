@@ -38,23 +38,24 @@ async function getClient(clientId: string): Promise<OAuth2Client> {
 }
 async function newClient(clientId:string): Promise<OAuth2Client> {
   const clientPost = new ClientCreatePost(clientId, {})
-  const exists = await getClient(clientId).then(clientData => {
-    jsonLogger.warn("getClient is complaining about no client found", {c:clientData,id:clientId})
-    if (!clientData) {
-      jsonLogger.info("Could not find client", {client:clientData})
-      hydraAdmin.createOAuth2Client({oAuth2Client:clientPost}).then(client => {
-        jsonLogger.info("Have a new client", {id:clientId,c:client})
-        return client
-      })
-    } else {
+  const exists = getClient(clientId).then(clientData => {
+    jsonLogger.warn("getClient is returning a client", {c:clientData,id:clientData._clientId})
+    // if (!clientData) {
+    //   jsonLogger.info("Could not find client", {client:clientData})
+    //   hydraAdmin.createOAuth2Client({oAuth2Client:clientPost}).then(client => {
+    //     jsonLogger.info("Have a new client", {id:clientId,c:client})
+    //     return client
+    //   })
+    // } else {
+    //   return clientData
+    // }}).catch(err => {
+    //   if (err.statusCode == 409) {
+    //     jsonLogger.info("Client data already exists, find out why its missed", {clientId:clientId})
+    //     return {}
+    //   }
+    //   jsonLogger.error("Failed to create client", {error:err})
+    //   return err
       return clientData
-    }}).catch(err => {
-      if (err.statusCode == 409) {
-        jsonLogger.info("Client data already exists, find out why its missed", {clientId:clientId})
-        return {}
-      }
-      jsonLogger.error("Failed to create client", {error:err})
-      return err
     })
 
   return exists

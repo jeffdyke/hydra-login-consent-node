@@ -9,7 +9,7 @@ import url from "url"
 
 import axios from "../middleware/axios.js"
 import {CLIENT_ID, hydraAdmin} from "../setup/hydra.js"
-import { newClient } from "../authFlow.js"
+import { newClient, getClient } from "../authFlow.js"
 import { googleAuthUrl } from "../google_auth.js"
 import { json } from "body-parser"
 const router = express.Router()
@@ -120,16 +120,14 @@ router.post("/", (req, res) => {
   }
 
   jsonLogger.info("Calling local post endpoint", {post:internalPost})
-  newClient(CLAUDE_CLIENT_ID).then(client => {
-    jsonLogger.info("new client created", {c:client})
-    googleAuthUrl(internalPost.scope, req.session.state || "").then(authUrl => {
-      jsonLogger.info("redirecting to google", {url:authUrl})
-      res.redirect(authUrl)
-    }).catch(err => {
-      jsonLogger.warn("caught error trying to redirect to authUrl", {e: err})
-      return err
-    })
-
+  const existing = getClient(CLAUDE_CLIENT_ID)
+  jsonLogger.info("existing return", {e:existing})
+  googleAuthUrl(internalPost.scope, req.session.state || "").then(authUrl => {
+    jsonLogger.info("redirecting to google", {url:authUrl})
+    res.redirect(authUrl)
+  }).catch(err => {
+    jsonLogger.warn("caught error trying to redirect to authUrl", {e: err})
+    return err
   })
 
   // axios.post(authPost(internalPost).toString()).then(resultLocal => {
@@ -146,12 +144,6 @@ router.post("/", (req, res) => {
     // const postData = authPost(reqData)
     // res.redirect(postData.toString())
   //})
-
-
-
-
-
-
 
 })
 
