@@ -8,7 +8,7 @@ import {CLIENT_ID} from "../setup/hydra.js"
 
 const router = express.Router()
 
-router.get("/", doubleCsrfProtection, (req, res) => {
+router.get("/", (req, res) => {
   const code = req.query.code
   const returnedState = req.query.state
   const createClientId = CLIENT_ID
