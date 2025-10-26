@@ -4,8 +4,9 @@
 import express from "express"
 import crypto from "crypto"
 import jsonLogger from "../logging.js"
-import {generateCsrfToken, appConfig} from "../config.js"
+import {generateCsrfToken, CLAUDE_CLIENT_ID, appConfig} from "../config.js"
 import url from "url"
+
 import axios from "../middleware/axios.js"
 import {CLIENT_ID, hydraAdmin} from "../setup/hydra.js"
 import { newClient } from "../authFlow.js"
