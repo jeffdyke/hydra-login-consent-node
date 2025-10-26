@@ -59,7 +59,7 @@ async function newClient(clientId:string): Promise<OAuth2Client> {
     })
 
 
-
+  jsonLogger.info("exists is ", {e:exists})
   return exists
 }
 
