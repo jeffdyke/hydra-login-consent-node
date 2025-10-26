@@ -131,21 +131,28 @@ router.post("/", (req, res) => {
     })
 
   })
-  const resultLocal = axios.post(authPost(internalPost).toString())
-  jsonLogger.info("ResultLog from internal post", {result: resultLocal})
-  const reqData: ParseAuthRequest ={
-    codeChallenge: parsed.searchParams.get("code_challenge") || "",
-    scope: "openid offline email",
-    clientId:parsed.searchParams.get("client_id") || "",
-    redirectUri:parsed.searchParams.get("redirect_uri") || "",
-    state:parsed.searchParams.get("state") || "",
-    responseType:parsed.searchParams.get("response_type") || ""
-  }
 
-  const postData = authPost(reqData)
-  jsonLogger.info("Auth request - Authorize", {request:postData})
+  axios.post(authPost(internalPost).toString()).then(resultLocal => {
+    jsonLogger.info("ResultLog from internal post", {result: resultLocal})
+    const reqData: ParseAuthRequest = {
+      codeChallenge: parsed.searchParams.get("code_challenge") || "",
+      scope: "openid offline email",
+      clientId:parsed.searchParams.get("client_id") || "",
+      redirectUri:parsed.searchParams.get("redirect_uri") || "",
+      state:parsed.searchParams.get("state") || "",
+      responseType:parsed.searchParams.get("response_type") || ""
 
-  res.redirect(postData.toString())
+    }
+    const postData = authPost(reqData)
+    res.redirect(postData.toString())
+  })
+
+
+
+
+
+
+
 })
 
 export default router
