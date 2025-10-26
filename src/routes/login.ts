@@ -42,7 +42,7 @@ router.get("/", (req, res, next) => {
       loginChallenge: challenge,
     })
     .then(loginRequest => {
-      jsonLogger.info("passed login challenge, now requesting login", {lr: loginRequest})
+      jsonLogger.info("passed login challenge, now requesting login", {lr: loginRequest.client.client_id})
       // If hydra was already able to authenticate the user, skip will be true and we do not need to re-authenticate
       // the user.
       // JND Removed login prompt
