@@ -100,7 +100,7 @@ router.get("/", (req, res) => {
   res.redirect(authPost(postData).toString())
 })
 
-router.get("/authorize", (req, res) => {
+router.post("/authorize", (req, res) => {
   /**
    * Create a new client, will need to dedupe later
    * Authenticate to google with middle redirect

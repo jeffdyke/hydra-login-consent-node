@@ -41,12 +41,12 @@ router.get("/", doubleCsrfProtection, (req, res, next) => {
     .getOAuth2LoginRequest({
       loginChallenge: challenge,
     })
-    .then((loginRequest) => {
+    .then(loginRequest => {
       // If hydra was already able to authenticate the user, skip will be true and we do not need to re-authenticate
       // the user.
-      if (loginRequest.skip) {
-        // You can apply logic here, for example update the number of times the user logged in.
-        // ...
+      // JND Removed login prompt
+      // You can apply logic here, for example update the number of times the user logged in.
+      // ...
 
         // Now it's time to grant the login request. You could also deny the request if something went terribly wrong
         // (e.g. your arch-enemy logging in...)
@@ -62,22 +62,22 @@ router.get("/", doubleCsrfProtection, (req, res, next) => {
             // All we need to do now is to redirect the user back to hydra!
             res.redirect(String(redirect_to))
           })
-      }
+      // This will handle any error that happens when making HTTP calls to hydra
+      }).catch(next)
 
-      // If authentication can't be skipped we MUST show the login UI.
-      let token = generateCsrfToken(req, res)
-      jsonLogger.info("getCsrf GET login func", {csrf:token, env_token:XSRF_TOKEN_NAME, exists:req.headers["x-csrf-token"]})
-      res.render("login", {
-        envXsrfToken: XSRF_TOKEN_NAME,
-        csrfToken: token,
-        challenge: challenge,
-        action: urljoin(process.env.BASE_URL || "", "/login"),
-        hint: loginRequest.oidc_context?.login_hint || "",
-      })
+      // // If authentication can't be skipped we MUST show the login UI.
+      // let token = generateCsrfToken(req, res)
+      // jsonLogger.info("getCsrf GET login func", {csrf:token, env_token:XSRF_TOKEN_NAME, exists:req.headers["x-csrf-token"]})
+      // res.render("login", {
+      //   envXsrfToken: XSRF_TOKEN_NAME,
+      //   csrfToken: token,
+      //   challenge: challenge,
+      //   action: urljoin(process.env.BASE_URL || "", "/login"),
+      //   hint: loginRequest.oidc_context?.login_hint || "",
+      // })
     })
-    // This will handle any error that happens when making HTTP calls to hydra
-    .catch(next)
-})
+
+
 
 router.post("/", doubleCsrfProtection, (req, res, next) => {
   // The challenge is now a hidden input field, so let's take it from the request body instead
@@ -107,21 +107,6 @@ router.post("/", doubleCsrfProtection, (req, res, next) => {
     )
   }
 
-  // Let's check if the user provided valid credentials. Of course, you'd use a database or some third-party service
-  // for this!
-  if (!(req.body.email === "foo@bar.com" && req.body.password === "foobar")) {
-    // Looks like the user provided invalid credentials, let's show the ui again...
-    jsonLogger.info("getCsrf POST login", {csrf:generateCsrfToken(req, res)})
-    res.render("login", {
-      csrfToken: generateCsrfToken(req, res),
-      envXsrfToken: XSRF_TOKEN_NAME,
-      challenge: challenge,
-      error: "The username / password combination is not correct",
-    })
-
-    return
-  }
-
   // Seems like the user authenticated! Let's tell hydra...
   jsonLogger.info("Contacting admin")
   hydraAdmin
@@ -132,7 +117,7 @@ router.post("/", doubleCsrfProtection, (req, res, next) => {
           loginChallenge: challenge,
           acceptOAuth2LoginRequest: {
             // Subject is an alias for user ID. A subject can be a random string, a UUID, an email address, ....
-            subject: "foo@bar.com",
+            subject: "claude@claude.ai",
 
             // This tells hydra to remember the browser and automatically authenticate the user in future requests. This will
             // set the "skip" parameter in the other route to true on subsequent requests!
