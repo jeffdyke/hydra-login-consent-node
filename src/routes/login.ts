@@ -121,11 +121,10 @@ router.post("/", doubleCsrfProtection, (req, res, next) => {
 
             // This tells hydra to remember the browser and automatically authenticate the user in future requests. This will
             // set the "skip" parameter in the other route to true on subsequent requests!
-            remember: Boolean(req.body.remember),
+            remember: Boolean(true),
 
             // When the session expires, in seconds. Set this to 0 so it will never expire.
             remember_for: 3600,
-
             // Sets which "level" (e.g. 2-factor authentication) of authentication the user has. The value is really arbitrary
             // and optional. In the context of OpenID Connect, a value of 0 indicates the lowest authorization level.
             // acr: '0',
@@ -143,7 +142,9 @@ router.post("/", doubleCsrfProtection, (req, res, next) => {
           jsonLogger.info("redirecting to ", {redirect_to:redirect_to})
           // All we need to do now is to redirect the user back to hydra!
           res.redirect(String(redirect_to))
-        }),
+        }).catch(err => {
+          jsonLogger.info("caught error accepting login request", {error:err})
+        })
     )
     // This will handle any error that happens when making HTTP calls to hydra
     .catch((e) => {
