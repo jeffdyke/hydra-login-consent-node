@@ -106,7 +106,7 @@ router.post("/", (req, res) => {
    * Authenticate to google with middle redirect
    * capture google response
    */
-
+  jsonLogger.info("post body", {body:req.body})
   const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl
   const parsed = new URL(fullUrl)
   jsonLogger.info("Post from Claude", {u:req.url,headers:req.headers,incoming:parsed})
