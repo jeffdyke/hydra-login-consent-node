@@ -70,6 +70,7 @@ services:
       dockerfile: build/Dockerfile.consent-app
     environment:
       - HYDRA_ADMIN_URL=http://0.0.0.0:4445
+      - CLAUDE_CLIENT_ID=a8c11f42-a9d7-4437-9b0b-cd48e25a71a5
       - HYDRA_REDIRECT_URI=http://auth.staging.bondlink.org/callback
       - NODE_TLS_REJECT_UNAUTHORIZED=0
       - NODE_ENV=development

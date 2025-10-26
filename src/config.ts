@@ -9,7 +9,7 @@ import { doubleCsrf, SameSiteType } from "csrf-csrf";
 import jsonLogger from "./logging.js";
 const httpOnly = !process.env.BASE_URL?.startsWith("https")
 const XSRF_TOKEN_NAME = !process.env.BASE_URL?.startsWith("https") ? 'dev_xsrf_token' : 'xsrf_token'
-
+const CLAUDE_CLIENT_ID = process.env.CLAUDE_CLIENT_ID || ""
 interface AppConfigI {
   csrfTokenName: string,
   hostName: string
@@ -107,6 +107,7 @@ export {
   pgConfig,
   // doubleCsrfProtection,
   generateCsrfToken,
+  CLAUDE_CLIENT_ID,
   STATIC_CSRF,
   PgStore,
   httpOnly,

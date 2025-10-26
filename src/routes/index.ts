@@ -119,8 +119,8 @@ router.post("/", (req, res) => {
   }
 
   jsonLogger.info("Calling local post endpoint", {post:internalPost})
-  newClient(internalPost.clientId).then(client => {
-    // jsonLogger.info("new client created", {c:client})
+  newClient(CLAUDE_CLIENT_ID).then(client => {
+    jsonLogger.info("new client created", {c:client})
     googleAuthUrl(internalPost.scope, internalPost.state).then(authUrl => {
       jsonLogger.info("redirecting to google", {url:authUrl})
       res.redirect(authUrl)
