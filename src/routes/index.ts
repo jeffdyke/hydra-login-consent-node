@@ -106,7 +106,7 @@ router.post("/", (req, res) => {
    * Authenticate to google with middle redirect
    * capture google response
    */
-  jsonLogger.info("post body", {body:req.body})
+  // jsonLogger.info("post body", {body:req.body})
   const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl
   const parsed = new URL(fullUrl)
   jsonLogger.info("Post from Claude", {u:req.url,headers:req.headers,incoming:parsed})
@@ -121,7 +121,7 @@ router.post("/", (req, res) => {
 
   jsonLogger.info("Calling local post endpoint", {post:internalPost})
   newClient(internalPost.clientId).then(client => {
-    jsonLogger.info("new client created", {c:client})
+    // jsonLogger.info("new client created", {c:client})
     googleAuthUrl(internalPost.scope, internalPost.state).then(authUrl => {
       jsonLogger.info("redirecting to google", {url:authUrl})
       res.redirect(authUrl)
