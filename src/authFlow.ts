@@ -1,12 +1,13 @@
 
 import axios from "axios"
+import { CLAUDE_CLIENT_ID } from "./config.js";
 import { hydraAdmin } from "./setup/hydra.js"
 import { OAuth2Client, OAuth2ClientOptions } from 'google-auth-library';
 import jsonLogger from "./logging.js";
 import { URLSearchParams } from "url";
 
 class ClientCreatePost extends OAuth2Client {
-  client_id: string | undefined
+  client_id: string = CLAUDE_CLIENT_ID
   client_name: string = "Claude MCP Incoming client"
   scope: string = "openid email profile offline_access"
   grant_types: Array<string> = ["authorization_code", "refresh_token"]
