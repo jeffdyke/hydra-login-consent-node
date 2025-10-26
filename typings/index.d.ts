@@ -2,7 +2,7 @@ import "express-session"
 
 declare module "express-session" {
   interface SessionData {
-    state?: string
-    codeVerifier?: string
+    state?: string | undefined
+    codeVerifier?: string | undefined
   }
 }

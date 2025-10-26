@@ -43,6 +43,7 @@ app.use(
     saveUninitialized: false,
   })
 )
+
 app.use(cookieParser(process.env.SECRETS_SYSTEM || "G6KaOf8aJsLagw566he8yxOTTO3tInKD"));
 
 // view engine setup
