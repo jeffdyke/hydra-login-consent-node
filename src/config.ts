@@ -56,24 +56,27 @@ const lclCookieOptions = {
 }
 jsonLogger.info("Cookie Options", lclCookieOptions)
 
-const {
-  doubleCsrfProtection, // The middleware to protect routes
-  generateCsrfToken,        // Helper function to generate a CSRF token
-} = doubleCsrf({
-  getSecret: () => "G6KaOf8aJsLagw566he8yxOTTO3tInKD",
-  cookieName: appConfig.csrfTokenName,
-  cookieOptions: {
-    sameSite: appConfig.sameSite,
-    httpOnly: appConfig.httpOnly,
-    secure: appConfig.secure,
-    // domain: "bondlink.org",
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-  },
-  getSessionIdentifier: (req) => {
-    return req.session.id
-  },
-});
-
+// function csrfToken(req:Request, res:Response) {
+// }
+// const {
+//   doubleCsrfProtection, // The middleware to protect routes
+//   generateCsrfToken,        // Helper function to generate a CSRF token
+// } = doubleCsrf({
+//   getSecret: () => "G6KaOf8aJsLagw566he8yxOTTO3tInKD",
+//   cookieName: appConfig.csrfTokenName,
+//   cookieOptions: {
+//     sameSite: appConfig.sameSite,
+//     httpOnly: appConfig.httpOnly,
+//     secure: appConfig.secure,
+//     // domain: "bondlink.org",
+//     maxAge: 30 * 24 * 60 * 60 * 1000,
+//   },
+//   getSessionIdentifier: (req) => {
+//     return req.session.id
+//   },
+// });
+const STATIC_CSRF = "YOU-ARE-USING-THE-STATIC-CSRF"
+const generateCsrfToken = (req:any, res:any) => STATIC_CSRF
 
 const pgConfig = {
   user: process.env.POSTGRES_USER || "hydra",
@@ -102,8 +105,9 @@ function dumpSessionData() {
 
 export {
   pgConfig,
-  doubleCsrfProtection,
+  // doubleCsrfProtection,
   generateCsrfToken,
+  STATIC_CSRF,
   PgStore,
   httpOnly,
   dumpSessionData,

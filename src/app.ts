@@ -17,7 +17,7 @@ import device from "./routes/device.js"
 import callback from "./routes/callback.js"
 import testClient from "./routes/test-client.js"
 import pool from "./pool.js"
-import { doubleCsrfProtection, PgStore, XSRF_TOKEN_NAME, generateCsrfToken } from "./config.js"
+import {PgStore, STATIC_CSRF} from "./config.js"
 import jsonLogger from "./logging.js"
 import { dirname } from 'path';
 import favicon from "serve-favicon";
