@@ -66,7 +66,7 @@ app.use(addUniqueToken)
 // };
 app.use("/test-client", testClient)
 app.use("/", routes)
-app.use(doubleCsrfProtection)
+// app.use(doubleCsrfProtection)
 
 app.use("/login", login)
 app.use("/logout", logout)
