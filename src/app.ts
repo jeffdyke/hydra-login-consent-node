@@ -51,12 +51,12 @@ app.set("view engine", "pug")
 app.use(favicon(path.join(__dirname, '..', 'public', 'favicon.ico')));
 
 app.use(express.static(path.join(dirname(import.meta.url), "public")))
-import {v4} from 'uuid';
-function addUniqueToken(req:Request, res:Response, next:Function) {
-  req.headers["x-bondlink-id"] = v4(); // Generate a unique ID and attach it to the request object
-  next(); // Pass control to the next middleware or route handler
-}
-app.use(addUniqueToken)
+//import {v4} from 'uuid';
+// function addUniqueToken(req:Request, res:Response, next:Function) {
+//   req.headers["x-bondlink-id"] = v4(); // Generate a unique ID and attach it to the request object
+//   next(); // Pass control to the next middleware or route handler
+// }
+// app.use(addUniqueToken)
 // const csrfHeader = (req:Request, res:Response, next:Function) => {
 //     const token = generateCsrfToken(req, res)
 //     jsonLogger.info("Setting csrf-token", {token: token})
@@ -64,8 +64,9 @@ app.use(addUniqueToken)
 //   // You could also pass the token into the context of a HTML response.
 //   next()
 // };
-app.use("/test-client", testClient)
 app.use("/", routes)
+app.use("/test-client", testClient)
+
 // app.use(doubleCsrfProtection)
 
 app.use("/login", login)

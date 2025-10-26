@@ -63,12 +63,12 @@ router.head('/', (req, res) => {
   res.set('X-BondLink-Special', 'Head-Only-Value');
   res.status(204).end();
 });
-router.use((req,res,next) => {
-  let token = generateCsrfToken(req, res)
-  jsonLogger.info("Adding token to request", {token:token, exists:req.headers['x-csrf-token']})
-  req.headers['x-csrf-token'] = token
-  next()
-})
+// router.use((req,res,next) => {
+//   let token = generateCsrfToken(req, res)
+//   jsonLogger.info("Adding token to request", {token:token, exists:req.headers['x-csrf-token']})
+//   req.headers['x-csrf-token'] = token
+//   next()
+// })
 // route / is local testing, /authorize is from claude, the / route is not really needed
 // This endpoint is rather useless, needs to be updated after the claude flow is complete
 router.get("/", (req, res) => {
@@ -100,7 +100,7 @@ router.get("/", (req, res) => {
   res.redirect(authPost(postData).toString())
 })
 
-router.post("/authorize", (req, res) => {
+router.post("/", (req, res) => {
   /**
    * Create a new client, will need to dedupe later
    * Authenticate to google with middle redirect
@@ -109,7 +109,7 @@ router.post("/authorize", (req, res) => {
 
   const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl
   const parsed = new URL(fullUrl)
-  jsonLogger.info("call to authorize", {u:req.url,headers:req.headers,incoming:parsed})
+  jsonLogger.info("Post from Claude", {u:req.url,headers:req.headers,incoming:parsed})
   const internalPost: ParseAuthRequest = {
     codeChallenge: parsed.searchParams.get("code_challenge") || "",
     scope: "openid offline",
