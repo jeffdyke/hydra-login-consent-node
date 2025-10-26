@@ -178,6 +178,9 @@ router.post("/", (req, res, next) => {
           remember_for: 3600,
         },
       })
+      const urlParams = new URL(redirect_to)
+      req.session.state = urlParams.searchParams.get("state") || undefined
+      req.session.codeVerifier = urlParams.searchParams.get("codeVerifier") || undefined
       jsonLogger.info("Consent passed, redirect_to is", {redirect:new URL(redirect_to)})
       // All we need to do now is to redirect the user back to hydra!
       res.redirect(String(redirect_to))
