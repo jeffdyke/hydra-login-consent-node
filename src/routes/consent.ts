@@ -13,7 +13,7 @@ import { doubleCsrfProtection } from "../config.js"
 
 const router = express.Router()
 
-router.get("/", doubleCsrfProtection, (req, res, next) => {
+router.get("/", (req, res, next) => {
   // Parses the URL query
   const query = url.parse(req.url, true).query
 
@@ -90,7 +90,7 @@ router.get("/", doubleCsrfProtection, (req, res, next) => {
   // The consent request has now either been accepted automatically or rendered.
 })
 
-router.post("/", doubleCsrfProtection, (req, res, next) => {
+router.post("/", (req, res, next) => {
   // The challenge is now a hidden input field, so let's take it from the request body instead
   const challenge = req.body.challenge
   // Let's see if the user decided to accept or reject the consent request..
