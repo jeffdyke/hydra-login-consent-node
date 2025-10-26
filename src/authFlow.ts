@@ -47,6 +47,10 @@ async function newClient(clientId:string): Promise<OAuth2Client> {
     } else {
       return clientData
     }}).catch(err => {
+      if (err.statusCode == 409) {
+        jsonLogger.info("Client data already exists, find out why its missed", {clientId:clientId})
+        return {}
+      }
       jsonLogger.error("Failed to create client", {error:err})
       return err
     })
