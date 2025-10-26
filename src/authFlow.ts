@@ -37,7 +37,7 @@ async function getClient(clientId: string): Promise<OAuth2Client> {
 }
 async function newClient(clientId:string): Promise<OAuth2Client> {
   const clientPost = new ClientCreatePost(clientId, {})
-  const exists = getClient(clientId).then(clientData => {
+  const exists = await getClient(clientId).then(clientData => {
     jsonLogger.warn("getClient is returning a client", {c:clientData,id:clientData._clientId})
     // if (!clientData) {
     //   jsonLogger.info("Could not find client", {client:clientData})
