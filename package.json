@@ -30,6 +30,7 @@
     "@tsed/json-mapper": "^8.17.3",
     "@tsed/logger": "^8.0.4",
     "@tsed/schema": "^8.17.3",
+    "@typed/either": "^8.3.0",
     "@types/connect-pg-simple": "^7.0.3",
     "@types/cookie-parser": "^1.4.9",
     "@types/morgan": "^1.9.10",
