@@ -33,7 +33,6 @@ async function getClient(clientId: string): Promise<OAuth2Client> {
     jsonLogger.info("caught an error fetch the client", {e:err.toString(), clientId:clientId})
     return err
   })
-  jsonLogger.info("response is of type ", {t:typeof response, resp:response})
   return response
 }
 async function newClient(clientId:string): Promise<OAuth2Client> {
@@ -56,8 +55,11 @@ async function newClient(clientId:string): Promise<OAuth2Client> {
     //   jsonLogger.error("Failed to create client", {error:err})
     //   return err
       return clientData
+    }).catch(err => {
+      jsonLogger.info("I'M IN THE ERROR CLAUSE WITH ", {e:err})
+      return err
     })
-
+  jsonLogger.info("exists is ", {e:exists})
   return exists
 }
 
