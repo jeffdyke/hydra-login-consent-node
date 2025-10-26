@@ -33,7 +33,7 @@ async function getClient(clientId: string): Promise<OAuth2Client> {
     jsonLogger.info("caught an error fetch the client", {e:err.toString(), clientId:clientId})
     return err
   })
-  jsonLogger.info("response is of type ", {t:typeof response})
+  jsonLogger.info("response is of type ", {t:typeof response, resp:response})
   return response
 }
 async function newClient(clientId:string): Promise<OAuth2Client> {
