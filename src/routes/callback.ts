@@ -1,7 +1,7 @@
 import express from "express"
 import { googleTokenResponse } from "../google_auth.js"
 import jsonLogger  from "../logging.js"
-import {doubleCsrfProtection, appConfig} from "../config.js"
+import {appConfig} from "../config.js"
 import axios from "../middleware/axios.js"
 import {v4} from "uuid"
 import {CLIENT_ID} from "../setup/hydra.js"

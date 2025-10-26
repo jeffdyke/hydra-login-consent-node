@@ -4,12 +4,12 @@
 import express from "express"
 import url from "url"
 import urljoin from "url-join"
-import { generateCsrfToken,XSRF_TOKEN_NAME } from "../config.js"
+import { generateCsrfToken, XSRF_TOKEN_NAME } from "../config.js"
 import { hydraAdmin } from "../setup/hydra.js"
 import { oidcConformityMaybeFakeSession } from "./stub/oidc-cert.js"
 import { AcceptOAuth2ConsentRequestSession } from "@ory/client-fetch"
 import jsonLogger  from "../logging.js"
-import { doubleCsrfProtection } from "../config.js"
+
 
 const router = express.Router()
 

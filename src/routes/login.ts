@@ -4,7 +4,6 @@
 import express from "express"
 import url from "url"
 import urljoin from "url-join"
-import { doubleCsrfProtection, generateCsrfToken, XSRF_TOKEN_NAME } from "../config.js"
 import { hydraAdmin } from "../setup/hydra.js"
 import { oidcConformityMaybeFakeAcr } from "./stub/oidc-cert.js"
 import jsonLogger from "../logging.js"
@@ -26,6 +25,7 @@ const router = express.Router()
 
 //   next()
 // })
+
 router.get("/", (req, res, next) => {
   // Parses the URL query
   const query = url.parse(req.url, true).query
@@ -82,10 +82,7 @@ router.get("/", (req, res, next) => {
 router.post("/", (req, res, next) => {
   // The challenge is now a hidden input field, so let's take it from the request body instead
   const challenge = req.body.challenge
-  jsonLogger.info("LOGIN POST - csrfToken ", {
-    header:req.headers["x-csrf-token"],
-    func:generateCsrfToken(req, res)
-  })
+
   // Let's see if the user decided to accept or reject the consent request..
   if (req.body.submit === "Deny access") {
     // Looks like the consent request was denied by the user
