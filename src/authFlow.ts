@@ -36,14 +36,20 @@ async function getClient(clientId: string): Promise<OAuth2Client> {
 }
 async function newClient(clientId:string): Promise<OAuth2Client> {
   const clientPost = new ClientCreatePost(clientId, {})
-  const created = await hydraAdmin.createOAuth2Client({oAuth2Client:clientPost}).then(client => {
-    jsonLogger.info("Have a new client", {id:clientId,c:client})
-    return client
-  }).catch(err => {
-    jsonLogger.error("Failed to create client", {error:err})
+  const exists = await getClient(clientId).catch(err => {
+    jsonLogger.info("Could not find client", {clientId:clientId})
+      hydraAdmin.createOAuth2Client({oAuth2Client:clientPost}).then(client => {
+      jsonLogger.info("Have a new client", {id:clientId,c:client})
+      return client
+    }).catch(err => {
+      jsonLogger.error("Failed to create client", {error:err})
+      return err
+    })
+    jsonLogger.info("exists check returned error", {error:err})
     return err
   })
-  return created
+
+  return exists
 }
 
 export {newClient, getClient}
