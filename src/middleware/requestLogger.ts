@@ -10,12 +10,12 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
     method: req.method,
     url: req.originalUrl,
     envXsrfToken: XSRF_TOKEN_NAME,
-    cookies: req.cookies,
-    sessionId: req.session,
+    // cookies: req.cookies,
+    // sessionId: req.session,
     ip: req.ip,
     body: req.body,
     userAgent: req.headers["user-agent"] || "Empty UA",
-    headers: req.headers
+    // headers: req.headers
   }
   if (req.originalUrl != "/favicon.ico" && logStarts.test(res.locals.logData.userAgent)) {
     logger.info("Started request for claude", res.locals.logData)
