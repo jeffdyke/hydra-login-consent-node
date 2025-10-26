@@ -13,37 +13,52 @@ const CLAUDE_CLIENT_ID = process.env.CLAUDE_CLIENT_ID || ""
 interface AppConfigI {
   csrfTokenName: string,
   hostName: string
-  redirectUri: string
+  middlewareRedirectUri: string
   sameSite: SameSiteType
   httpOnly: boolean
   secure: boolean
   googleClientId?: string
   googleClientSecret?: string
+  claudeRedirectUri: string
 
 }
 
 class DevAppConfig implements AppConfigI {
   csrfTokenName: string = "dev_xsrf_token"
   hostName: string = "http://dev.bondlin.org:3000"
-  redirectUri: string = "http://dev.bondlin.org:3000/callback"
+  middlewareRedirectUri: string = "http://dev.bondlin.org:3000/callback"
   sameSite: SameSiteType = "lax"
   httpOnly: boolean = true
   secure: boolean = false
   googleClientId?: string | undefined = undefined
   googleClientSecret?: string | undefined = undefined
+  claudeRedirectUri: string = "http://claude.ai/api/mcp/auth_callback"
 }
 
 class StagingAppConfig implements AppConfigI {
   csrfTokenName: string = "xsrf_token"
   hostName: string = "http://auth.staging.bondlink.org"
-  redirectUri: string = "http://auth.staging.bondlink.org/callback"
+  middlewareRedirectUri: string = "http://auth.staging.bondlink.org/callback"
   sameSite: SameSiteType = "none"
   httpOnly: boolean = false
   secure: boolean = true
   googleClientId?: string | undefined = process.env.GOOGLE_CLIENT_ID;
   googleClientSecret?: string | undefined = process.env.GOOGLE_CLIENT_SECRET
+  claudeRedirectUri: string = "http://claude.ai/api/mcp/auth_callback"
 
 }
+// class ProdAppConfig implements AppConfigI {
+//   csrfTokenName: string = "xsrf_token"
+//   hostName: string = "http://auth.staging.bondlink.org"
+//   middlewareRedirectUri: string = "http://auth.staging.bondlink.org/callback"
+//   sameSite: SameSiteType = "none"
+//   httpOnly: boolean = false
+//   secure: boolean = true
+//   googleClientId?: string | undefined = process.env.GOOGLE_CLIENT_ID;
+//   googleClientSecret?: string | undefined = process.env.GOOGLE_CLIENT_SECRET
+//   claudeRedirectUri: string = "http://claude.ai/api/mcp/auth_callback"
+
+// }
 const appConfig = (httpOnly) ? new DevAppConfig() : new StagingAppConfig()
 
 // CookieOptions is an interface, this is currently unused
