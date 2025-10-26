@@ -40,7 +40,7 @@ async function newClient(clientId:string): Promise<OAuth2Client> {
   const clientPost = new ClientCreatePost(clientId, {})
   const exists = await getClient(clientId).then(clientData => {
     // jsonLogger.warn("getClient is complaining about no client found", {c:clientData,id:clientId})
-    jsonLogger.info("can i print this", {id:clientData._clientId})
+    jsonLogger.info("can i print this", {id:clientData})
     if (!clientData) {
       jsonLogger.info("Could not find client", {client:clientData})
       hydraAdmin.createOAuth2Client({oAuth2Client:clientPost}).then(client => {
