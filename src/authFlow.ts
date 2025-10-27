@@ -6,7 +6,8 @@ import { OAuth2Client, OAuth2ClientOptions } from 'google-auth-library';
 import jsonLogger from "./logging.js";
 import { URLSearchParams } from "url";
 
-class ClientCreatePost extends OAuth2Client {
+const CLAUDE_REDIRECT_URL="https://claude.ai/api/mcp/auth_callback"
+class ClaudeClient extends OAuth2Client {
   client_id: string = CLAUDE_CLIENT_ID
   client_name: string = "Claude MCP Incoming client"
   scope: string = "openid email profile offline_access"
@@ -35,7 +36,7 @@ async function getClient(clientId: string): Promise<OAuth2Client> {
   return response
 }
 async function newClient(clientId:string): Promise<OAuth2Client> {
-  const clientPost = new ClientCreatePost(clientId, {})
+  const clientPost = new ClaudeClient(clientId, {})
   const exists = await getClient(clientId)
 
   jsonLogger.warn("getClient is returning a client", {c:exists._clientId,id:exists})
@@ -57,4 +58,4 @@ async function newClient(clientId:string): Promise<OAuth2Client> {
   return exists
 }
 
-export {newClient, getClient}
+export {newClient, getClient, CLAUDE_REDIRECT_URL}

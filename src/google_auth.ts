@@ -6,6 +6,7 @@ import { Property } from "@tsed/schema";
 import {Configuration} from "@tsed/di";
 import {OAuth2Client, TokenPayload } from 'google-auth-library';
 import jsonLogger  from "./logging.js"
+import { CLAUDE_REDIRECT_URL } from './authFlow.js';
 import {appConfig, CLAUDE_CLIENT_ID} from "./config.js"
 dotenv.config()
 
@@ -85,18 +86,19 @@ const client = new OAuth2Client({
     redirectUri: appConfig.middlewareRedirectUri
   })
 
-async function googleAuthUrl(scope: string, incomingState: string): Promise<string> {
+async function googleAuthUrl(scope: string, incomingState: string, redirectUrl: string = CLAUDE_REDIRECT_URL): Promise<string> {
   const authUri = await client.generateAuthUrl({
     access_type:'offline',
     scope: scope,
     prompt: 'consent',
     state: incomingState,
     response_type: "code",
+    redirect_uri: redirectUrl
   })
   jsonLogger.info("Auth URL", {authUrl:authUri})
   return authUri
 }
-async function googleOAuthTokens(code: string, redirectUrl:string): Promise<TokenPayload> {
+async function googleOAuthTokens(code: string, redirectUrl:string = CLAUDE_REDIRECT_URL): Promise<TokenPayload> {
 
   const params = {code: code, client_id: CLAUDE_CLIENT_ID, redirect_url: redirectUrl, grant_type:"authorization_code"}
   jsonLogger.info("Auth Token Request", {request: params});
