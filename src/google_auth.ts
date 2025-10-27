@@ -142,15 +142,18 @@ async function googleTokenResponse(code: string, redirectUrl: string = CLAUDE_RE
       GOOGLE_TOKEN_URL,
       params,
       { headers: formHeader })
-      .then((resp) => { return resp.data })
-      .catch((err) => { jsonLogger.info("GoogleTokenResponse Error",  {
-        error:err,
-        code:code,
-        authClientConfig:authClientConfig,
-        urlParams:params
-      });
-      return err.response.data
-    })
+      .then((resp) => {
+        return resp.data
+      })
+      .catch((err) => {
+        jsonLogger.info("GoogleTokenResponse Error",  {
+          error:err,
+          code:code,
+          authClientConfig:authClientConfig,
+          urlParams:params
+        });
+        return err.response.data
+      })
     jsonLogger.info("result from token request", {resp:tokenResponse})
     return tokenResponse
   }
