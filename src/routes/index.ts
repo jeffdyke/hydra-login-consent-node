@@ -121,7 +121,7 @@ router.post("/", async (req, res) => {
 
   jsonLogger.info("Calling local post endpoint", {post:internalPost})
   const existing = await getClient(CLAUDE_CLIENT_ID).then(c => {
-    jsonLogger.info("We found a client named...cookie cookie cookie starts with", {c:c})
+    jsonLogger.info("Client exists", {clientId:CLAUDE_CLIENT_ID})
     let auth = googleAuthUrl(internalPost.scope, req.session.state || "").then(authUrl => {
       jsonLogger.info("redirecting to google", {url:authUrl})
       res.redirect(authUrl)
