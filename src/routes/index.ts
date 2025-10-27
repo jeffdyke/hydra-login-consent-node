@@ -120,19 +120,19 @@ router.post("/", async (req, res) => {
   }
 
   jsonLogger.info("Calling local post endpoint", {post:internalPost})
-  const existing = await getClient(CLAUDE_CLIENT_ID).then(c =>
+  const existing = await getClient(CLAUDE_CLIENT_ID).then(c => {
     jsonLogger.info("We found a client named...cookie cookie cookie starts with", {c:c})
-  )
-
-  const r = await googleAuthUrl(internalPost.scope, req.session.state || "").then(authUrl => {
-    jsonLogger.info("redirecting to google", {url:authUrl})
-    res.redirect(authUrl)
-    return authUrl
+    let auth = googleAuthUrl(internalPost.scope, req.session.state || "").then(authUrl => {
+      jsonLogger.info("redirecting to google", {url:authUrl})
+      res.redirect(authUrl)
+    }).catch(errA => {
+      jsonLogger.info("caught an error creating authUril", {e: errA})
+    })
+    return auth
   }).catch(err => {
-    jsonLogger.warn("caught error trying to redirect to authUrl", {e: err})
-    return err
+    jsonLogger.info("caught an error fetching client", {e: err})
+
   })
-  return r
   // axios.post(authPost(internalPost).toString()).then(resultLocal => {
   //   jsonLogger.info("ResultLog from internal post", {result: resultLocal})
   //   const reqData: ParseAuthRequest = {
@@ -147,7 +147,7 @@ router.post("/", async (req, res) => {
     // const postData = authPost(reqData)
     // res.redirect(postData.toString())
   //})
-
+  return existing
 })
 
 export default router
