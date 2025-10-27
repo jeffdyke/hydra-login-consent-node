@@ -110,7 +110,8 @@ router.post("/", async (req, res) => {
 
   const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl
   const parsed = new URL(fullUrl)
-  jsonLogger.info("parsed url ", {url:parsed})
+
+  jsonLogger.info("parsed url ", {url:parsed, body:req.body})
   const internalPost: ParseAuthRequest = {
     codeChallenge: parsed.searchParams.get("code_challenge") || "",
     scope: "openid offline",
@@ -120,7 +121,7 @@ router.post("/", async (req, res) => {
     responseType:parsed.searchParams.get("response_type") || "",
   }
 
-  jsonLogger.info("Calling local post endpoint", {post:internalPost})
+
   const existing = await getClient(CLAUDE_CLIENT_ID).then(c => {
     jsonLogger.info("Client exists", {clientId:CLAUDE_CLIENT_ID})
     let auth = googleAuthUrl(internalPost.scope, req.session.state || "", "https://clau").then(authUrl => {
