@@ -12,7 +12,7 @@ router.get("/", (req, res) => {
   const code = req.query.code
   const returnedState = req.query.state
   const createClientId = CLIENT_ID
-
+  jsonLogger.info("CALLBACK GET", {code:code,state:returnedState,createClientId})
   if (code && req.session) {
     const storedState = req.session.state
     const codeVerifier = req.session.codeVerifier
@@ -40,7 +40,7 @@ router.get("/", (req, res) => {
     axios.post(`${process.env.HYDRA_URL}/oauth2/token`, body.toString(), {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
     }).then(data => {
-        jsonLogger.info("Post Success", {state: req.session.state, verifier: req.session.codeVerifier})
+        jsonLogger.info("Post Success", {response: data, state: req.session.state, verifier: req.session.codeVerifier})
         // Clear stored values from session
         if (req.session) {
           delete req.session.codeVerifier

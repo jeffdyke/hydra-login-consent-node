@@ -1,5 +1,7 @@
 import { Configuration, CreateOAuth2ClientRequest } from "@ory/hydra-client-fetch";
 import { OAuth2Api } from "@ory/hydra-client-fetch/dist/index.js"
+import { CLAUDE_CLIENT_ID } from "../config.js";
+import jsonLogger from "../logging.js";
 
 const baseOptions: any = {}
 if (process.env.MOCK_TLS_TERMINATION) {
@@ -10,10 +12,12 @@ const configuration = new Configuration({
   accessToken: process.env.ORY_API_KEY || process.env.ORY_PAT,
   headers: baseOptions.headers,
 })
-const CLIENT_ID = process.env.AUTH_FLOW_CLIENT_ID || "633b91cd-550f-4b80-8d01-58a2a786c8da"
+
+const CLIENT_ID = process.env.AUTH_FLOW_CLIENT_ID || CLAUDE_CLIENT_ID
 if (!CLIENT_ID) {
   throw new Error("CLIENT_ID environment is not legit `{process.env.AUTH_FLOW_CLIENT_ID}`")
 }
+jsonLogger.info("Using client and configuration", {clientId:CLIENT_ID,config:configuration})
 const hydraAdmin = new OAuth2Api(configuration)
 
 export {hydraAdmin, CLIENT_ID}
