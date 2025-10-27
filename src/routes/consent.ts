@@ -147,7 +147,7 @@ router.post("/", (req, res, next) => {
     .getOAuth2ConsentRequest({ consentChallenge: challenge })
     // This will be called if the HTTP request was successful
     .then(async (consentRequest) => {
-      const { redirect_to } = await hydraAdmin.acceptOAuth2ConsentRequest({
+      const requestData = {
         consentChallenge: challenge,
         acceptOAuth2ConsentRequest: {
           // We can grant all scopes that have been requested - hydra already checked for us that no additional scopes
@@ -176,8 +176,10 @@ router.post("/", (req, res, next) => {
 
           // When this "remember" session expires, in seconds. Set this to 0 so it will never expire.
           remember_for: 3600,
-        },
-      })
+        }
+      }
+
+      const { redirect_to } = await hydraAdmin.acceptOAuth2ConsentRequest(requestData)
       const urlParams = new URL(redirect_to)
       req.session.state = urlParams.searchParams.get("state") || undefined
       req.session.codeVerifier = urlParams.searchParams.get("codeVerifier") || undefined
