@@ -6,7 +6,7 @@ import { XSRF_TOKEN_NAME } from "../config.js";
 export function requestLogger(req: Request, res: Response, next: NextFunction) {
   const start = process.hrtime.bigint();
   const logStarts = /Claude-User|python-http/
-  const stripArgs = /login.?login_challenge/
+  const stripArgs = /login.?login_challenge|consent.?consent_challenge/
   res.locals.logData = {
     method: req.method,
     url: req.originalUrl,
@@ -25,7 +25,7 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
     if (stripArgs.test(req.originalUrl)) {
       res.locals.logData.url = res.locals.logData.url.split("?")[0]
     }
-    if (req.originalUrl != "/favicon.ico" || stripArgs.test(req.originalUrl)){
+    if (req.originalUrl != "/favicon.ico" || !stripArgs.test(req.originalUrl)){
       const end = process.hrtime.bigint();
       const duration = Number(end - start) / 1_000_000;
 
