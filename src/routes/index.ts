@@ -101,7 +101,7 @@ router.get("/", (req, res) => {
   res.redirect(authPost(postData).toString())
 })
 
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
   /**
    * Create a new client, will need to dedupe later
    * Authenticate to google with middle redirect
@@ -120,16 +120,18 @@ router.post("/", (req, res) => {
   }
 
   jsonLogger.info("Calling local post endpoint", {post:internalPost})
-  const existing = getClient(CLAUDE_CLIENT_ID)
+  const existing = await getClient(CLAUDE_CLIENT_ID)
   jsonLogger.info("existing return", {e:existing})
-  googleAuthUrl(internalPost.scope, req.session.state || "").then(authUrl => {
+
+  const r = await googleAuthUrl(internalPost.scope, req.session.state || "").then(authUrl => {
     jsonLogger.info("redirecting to google", {url:authUrl})
     res.redirect(authUrl)
+    return authUrl
   }).catch(err => {
     jsonLogger.warn("caught error trying to redirect to authUrl", {e: err})
     return err
   })
-
+  return r
   // axios.post(authPost(internalPost).toString()).then(resultLocal => {
   //   jsonLogger.info("ResultLog from internal post", {result: resultLocal})
   //   const reqData: ParseAuthRequest = {
