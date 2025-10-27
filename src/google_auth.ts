@@ -128,13 +128,17 @@ async function getGoogleUser(access_token: string, id_token: string): Promise<Us
   })  ;
 
 }
-async function googleTokenResponse(code: string): Promise<GoogleTokenResponse> {
-
-    const authClientConfig: OAuth2Client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
+async function googleTokenResponse(code: string, redirectUrl: string = CLAUDE_REDIRECT_URL): Promise<GoogleTokenResponse> {
+    jsonLogger.info("Calling googleTokenResponse with args", {code:code, redirectUrl:redirectUrl})
+    const authClientConfig: OAuth2Client = new OAuth2Client(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      redirectUrl
+    )
 
     const params = {code: code, grant_type: 'authorization_code'}
     jsonLogger.info("Requesting TokenResponse",  {auth:authClientConfig, params:params})
-    return await axios.post(
+    const tokenResponse = await axios.post(
       GOOGLE_TOKEN_URL,
       params,
       { headers: formHeader })
@@ -147,6 +151,8 @@ async function googleTokenResponse(code: string): Promise<GoogleTokenResponse> {
       });
       return err.response.data
     })
+    jsonLogger.info("result from token request", {resp:tokenResponse})
+    return tokenResponse
   }
 
 export { googleOAuthTokens, getGoogleUser, googleTokenResponse, googleAuthUrl }
