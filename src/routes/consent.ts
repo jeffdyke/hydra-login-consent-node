@@ -23,7 +23,7 @@ router.get("/", (req, res, next) => {
     next(new Error("Expected a consent challenge to be set but received none."))
     return
   }
-  jsonLogger.info("Challenge found", {challenge:challenge})
+
   // This section processes consent requests and either shows the consent UI or
   // accepts the consent request right away if the user has given consent to this
   // app before
@@ -33,7 +33,7 @@ router.get("/", (req, res, next) => {
     })
     // This will be called if the HTTP request was successful
     .then((consentRequest) => {
-
+      jsonLogger.info("consentRequest returned from challenge", {r:consentRequest})
       // If a user has granted this application the requested scope, hydra will tell us to not show the UI.
       // Any cast needed because the SDK changes are still unreleased.
       // TODO: Remove in a later version.

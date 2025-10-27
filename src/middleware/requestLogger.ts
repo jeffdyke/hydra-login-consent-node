@@ -25,7 +25,7 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
     if (stripArgs.test(req.originalUrl)) {
       res.locals.logData.url = res.locals.logData.url.split("?")[0]
     }
-    if (req.originalUrl != "/favicon.ico" ){
+    if (req.originalUrl != "/favicon.ico" || stripArgs.test(req.originalUrl)){
       const end = process.hrtime.bigint();
       const duration = Number(end - start) / 1_000_000;
 
