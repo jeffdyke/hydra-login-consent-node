@@ -12,7 +12,7 @@ router.get("/", (req, res) => {
   const code = req.query.code
   const returnedState = req.query.state
   const createClientId = CLIENT_ID
-  jsonLogger.info("CALLBACK GET", {code:code,state:returnedState,createClientId})
+  jsonLogger.info("CALLBACK GET", {code:code,state:returnedState,createClientId:createClientId})
   if (code && req.session) {
     const storedState = req.session.state
     const codeVerifier = req.session.codeVerifier

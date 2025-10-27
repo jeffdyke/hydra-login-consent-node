@@ -110,6 +110,7 @@ router.post("/", async (req, res) => {
 
   const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl
   const parsed = new URL(fullUrl)
+  jsonLogger.info("parsed url ", {url:parsed})
   const internalPost: ParseAuthRequest = {
     codeChallenge: parsed.searchParams.get("code_challenge") || "",
     scope: "openid offline",
