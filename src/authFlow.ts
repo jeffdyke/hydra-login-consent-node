@@ -36,8 +36,9 @@ async function getClient(clientId: string): Promise<OAuth2Client> {
 }
 async function newClient(clientId:string): Promise<OAuth2Client> {
   const clientPost = new ClientCreatePost(clientId, {})
-  const exists = await getClient(clientId).then(clientData => {
-    jsonLogger.warn("getClient is returning a client", {c:clientData,id:clientData._clientId})
+  const exists = await getClient(clientId)
+
+  jsonLogger.warn("getClient is returning a client", {c:exists._clientId,id:exists})
     // if (!clientData) {
     //   jsonLogger.info("Could not find client", {client:clientData})
     //   hydraAdmin.createOAuth2Client({oAuth2Client:clientPost}).then(client => {
@@ -53,12 +54,6 @@ async function newClient(clientId:string): Promise<OAuth2Client> {
     //   }
     //   jsonLogger.error("Failed to create client", {error:err})
     //   return err
-      return clientData
-    }).catch(err => {
-      jsonLogger.info("I'M IN THE ERROR CLAUSE WITH ", {e:err})
-      return err
-    })
-  jsonLogger.info("exists is ", {e:exists})
   return exists
 }
 
