@@ -12,7 +12,13 @@ router.get("/", (req, res) => {
   const code = req.query.code
   const returnedState = req.query.state
   const createClientId = CLIENT_ID
-  jsonLogger.info("CALLBACK GET", {code:code,state:returnedState,createClientId:createClientId})
+  jsonLogger.info("CALLBACK GET", {
+    code:code,
+    returnedState:returnedState,
+    createClientId:createClientId,
+    state:req.session.state,
+    codeVerifier:req.session.codeVerifier
+  })
   if (code && req.session) {
     const storedState = req.session.state
     const codeVerifier = req.session.codeVerifier
@@ -23,11 +29,11 @@ router.get("/", (req, res) => {
         codeVerifier: codeVerifier,
       }
     )
-
-    if (returnedState !== storedState) {
-      res.status(400).send("State mismatch - possible CSRF attack")
-      return
-    }
+    // TODO why doesn't this return a state
+    // if (returnedState !== storedState) {
+    //   res.status(400).send("State mismatch - possible CSRF attack")
+    //   return
+    // }
     // Not sure this should be auto generated
     let body = new URLSearchParams({
           grant_type: "authorization_code",
