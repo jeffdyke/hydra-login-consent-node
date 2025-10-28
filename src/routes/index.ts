@@ -20,12 +20,13 @@ const proxyOptions = {
   target: process.env.HYDRA_PUBLIC_URL,
   changeOrigin: true,
   prependPath: false,
+  logger: console,
   onProxyReq: (proxyReq:Request, req:Request, res:Response) => {
 
     const parsed = new URL(req.protocol + '://' + req.get('host') + req.originalUrl)
     req.session.state = parsed.searchParams.get("state") || "StateNotFound"
     req.session.codeVerifier = parsed.searchParams.get("code_challenge") || "ChallengeNotFound"
-    jsonLogger.info("proxy request", {state:proxyReq.session.state,challenge:proxyReq.session.codeVerifier})
+    console.log("proxy request", {state:proxyReq.session.state,challenge:proxyReq.session.codeVerifier})
   }
 }
 router.get("/oauth2/auth", createProxyMiddleware(proxyOptions))
