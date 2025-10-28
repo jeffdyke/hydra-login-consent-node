@@ -88,7 +88,7 @@ const client = new OAuth2Client({
 
 async function googleAuthUrl(scope: string, incomingState: string, redirectUrl: string = CLAUDE_REDIRECT_URL): Promise<string> {
   const authUri = await client.generateAuthUrl({
-    access_type:'offline_access',
+    access_type:'offline',
     scope: scope,
     prompt: 'consent',
     state: incomingState,
