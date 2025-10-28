@@ -66,7 +66,7 @@ router.head('/', (req, res) => {
 });
 
 router.get("/oauth2/auth", async (req, res) => {
-  const parsed = new URL(req.originalUrl)
+  const parsed = new URL(req.protocol + '://' + req.get('host') + req.originalUrl)
   const { method, headers, body } = req
   const newHeaders = { ...headers }
   delete newHeaders.host;
