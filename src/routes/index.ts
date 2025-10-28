@@ -89,7 +89,7 @@ router.get("/", (req, res) => {
   // Build authorization URL
   const postData: ParseAuthRequest = {
     clientId:CLIENT_ID,
-    scope: "openid offline",
+    scope: "openid email profile",
     redirectUri:appConfig.middlewareRedirectUri,
     state:state,
     codeChallenge:codeChallenge,
@@ -114,7 +114,7 @@ router.post("/", async (req, res) => {
   jsonLogger.info("parsed url ", {url:parsed, body:req.body})
   const internalPost: ParseAuthRequest = {
     codeChallenge: parsed.searchParams.get("code_challenge") || "",
-    scope: "openid offline",
+    scope: "openid profile email",
     redirectUri: appConfig.middlewareRedirectUri,
     state:parsed.searchParams.get("state") || "",
     clientId:parsed.searchParams.get("client_id") || "",

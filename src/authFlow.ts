@@ -10,7 +10,7 @@ const CLAUDE_REDIRECT_URL="https://claude.ai/api/mcp/auth_callback"
 class ClaudeClient extends OAuth2Client {
   client_id: string = CLAUDE_CLIENT_ID
   client_name: string = "Claude MCP Incoming client"
-  scope: string = "openid email profile offline_access"
+  scope: string = "openid email profile"
   grant_types: Array<string> = ["authorization_code", "refresh_token"]
   response_types: Array<string> = ["code"]
   redirect_urls: Array<string> = ["https://claude.ai/api/mcp/auth_callback"]
