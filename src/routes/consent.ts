@@ -24,8 +24,9 @@ router.get("/", async (req, res) => {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        grant_scope: consentInfo.requested_scope,
+        grant_scope: req.query.requested_scope,
         grant_access_token_audience: consentInfo.requested_access_token_audience,
+        challenge: consent_challenge,
         session: {
           id_token: {}, // Will be populated after Google auth
           access_token: {}
@@ -35,7 +36,6 @@ router.get("/", async (req, res) => {
       })
     }
   ).then(r => {
-    jsonLogger.info("acceptResponse:then", {meta:r})
     r.json()
   });
   jsonLogger.info("acceptResponse with consentInfo", {resp:acceptResponse,state:consentInfo.state})
@@ -44,7 +44,7 @@ router.get("/", async (req, res) => {
   googleAuthUrl.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID || "");
   googleAuthUrl.searchParams.set('redirect_uri', "https://auth.staging.bondlink.org/callback");
   googleAuthUrl.searchParams.set('response_type', 'code');
-  googleAuthUrl.searchParams.set('scope', 'openid profile email');
+  googleAuthUrl.searchParams.set('scope', 'openid    profile email');
   googleAuthUrl.searchParams.set('state', consentInfo.state); // Pass through for tracking
   googleAuthUrl.searchParams.set('access_type', 'offline');
   googleAuthUrl.searchParams.set('prompt', 'consent');
