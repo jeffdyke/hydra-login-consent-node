@@ -65,10 +65,27 @@ router.head('/', (req, res) => {
   res.status(204).end();
 });
 
-router.get("/oauth2/auth", (req, res) => {
-  const url = req.originalUrl
-  jsonLogger.info("in my auth", {u:url})
-  return axios.get(HYDRA_CONFIG.basePath, req.params)
+router.get("/oauth2/auth", async (req, res) => {
+  const parsed = new URL(req.originalUrl)
+  const { method, headers, body } = req
+  const newHeaders = { ...headers }
+  delete newHeaders.host;
+  jsonLogger.info("Caught request for ouath2/auth")
+  req.session.state = parsed.searchParams.get("state") || "emptyInSession"
+  req.session.codeVerifier = parsed.searchParams.get("code_challenge") || "emptyInSession"
+  try {
+    const response = await axios({
+      method,
+      url: `${process.env.HYDRA_PUBLIC_URL}/oauth2/auth`,
+      headers: newHeaders,
+      data: body,
+      validateStatus: (status) => true, // Forward all status codes
+    });
+    res.status(response.status).set(response.headers).send(response.data);
+  } catch (error) {
+    jsonLogger.error('Error forwarding request:', error);
+    res.status(500).send('Error forwarding request');
+  }
 })
 // router.use((req,res,next) => {
 //   let token = generateCsrfToken(req, res)
