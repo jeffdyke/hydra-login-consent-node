@@ -14,7 +14,9 @@ router.get("/", async (req, res) => {
     jsonLogger.error("caught error requesting consentInfo", {e:err})
     res.status(400).render(`Failed to get consent info ${err}`)
   });
-  jsonLogger.info("Consent info ", {referrer:new URL(consentInfo.request_url)})
+  const forState = new URL(consentInfo.request_url)
+  req.session.state = forState.searchParams.get("state") || "Not foundIn Parsed"
+  jsonLogger.info("Consent info ", {referrer:forState.searchParams.get("state")})
   const acceptResponse = await fetch(
     `${HYDRA_CONFIG.basePath}/admin/oauth2/auth/requests/consent/accept?challenge=${consent_challenge}`,
     {
