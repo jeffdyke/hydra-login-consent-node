@@ -12,8 +12,23 @@ import {CLIENT_ID, HYDRA_CONFIG, hydraAdmin} from "../setup/hydra.js"
 import { newClient, getClient } from "../authFlow.js"
 import { googleAuthUrl } from "../google_auth.js"
 import { json } from "body-parser"
+import { Request, Response, NextFunction, RequestHandler } from 'express'
+const app = express()
 const router = express.Router()
+import {createProxyMiddleware} from "http-proxy-middleware"
+const proxyOptions = {
+  target: process.env.HYDRA_PUBLIC_URL,
+  changeOrigin: true,
+  onProxyReq: (proxyReq:Request, req:Request, res:Response) => {
 
+    const parsed = new URL(req.protocol + '://' + req.get('host') + req.originalUrl)
+    proxyReq.session.state = parsed.searchParams.get("state") || "StateNotFound"
+    proxyReq.session.codeVerifier = parsed.searchParams.get("code_challenge") || "ChallengeNotFound"
+    jsonLogger.info("proxy request", {state:proxyReq.session.state,challenge:proxyReq.session.codeVerifier})
+  }
+  }
+
+app.use("/oauth2/auth", createProxyMiddleware(proxyOptions))
 interface ParseAuthRequest {
   codeChallenge:string,
   scope:string,
@@ -65,28 +80,29 @@ router.head('/', (req, res) => {
   res.status(204).end();
 });
 
-router.get("/oauth2/auth", async (req, res) => {
-  const parsed = new URL(req.protocol + '://' + req.get('host') + req.originalUrl)
-  const { method, headers, body } = req
-  const newHeaders = { ...headers }
-  delete newHeaders.host;
-  jsonLogger.info("Caught request for ouath2/auth")
-  req.session.state = parsed.searchParams.get("state") || "emptyInSession"
-  req.session.codeVerifier = parsed.searchParams.get("code_challenge") || "emptyInSession"
-  try {
-    const response = await axios({
-      method,
-      url: `${process.env.HYDRA_PUBLIC_URL}/oauth2/auth`,
-      headers: newHeaders,
-      data: body,
-      validateStatus: (status) => true, // Forward all status codes
-    });
-    res.status(response.status).set(response.headers).send(response.data);
-  } catch (error) {
-    jsonLogger.error('Error forwarding request:', error);
-    res.status(500).send('Error forwarding request');
-  }
-})
+
+// router.get("/oauth2/auth", async (req, res) => {
+//   const parsed = new URL(req.protocol + '://' + req.get('host') + req.originalUrl)
+//   const { method, headers, body } = req
+//   const newHeaders = { ...headers }
+//   delete newHeaders.host;
+//   jsonLogger.info("Caught request for ouath2/auth", {method:method,body:body})
+//   req.session.state = parsed.searchParams.get("state") || "emptyInSession"
+//   req.session.codeVerifier = parsed.searchParams.get("code_challenge") || "emptyInSession"
+//   try {
+//     const response = await axios({
+//       method,
+//       url: `${process.env.HYDRA_PUBLIC_URL}${req.originalUrl}`,
+//       headers: newHeaders,
+//       data: body,
+//       validateStatus: (status) => true, // Forward all status codes
+//     });
+//     res.status(response.status).set(response.headers).send(response.data);
+//   } catch (error) {
+//     jsonLogger.error('Error forwarding request:', error);
+//     res.status(500).send('Error forwarding request');
+//   }
+// })
 // router.use((req,res,next) => {
 //   let token = generateCsrfToken(req, res)
 //   jsonLogger.info("Adding token to request", {token:token, exists:req.headers['x-csrf-token']})
