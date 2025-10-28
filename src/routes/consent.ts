@@ -14,8 +14,9 @@ router.get("/", async (req, res) => {
   const consentInfo = await fetch(
     `${HYDRA_CONFIG.basePath}/admin/oauth2/auth/requests/consent?challenge=${consent_challenge}`
   ).then(r => {
-    jsonLogger.info("response for challenge", {resp:r.json()})
-    return r.json()
+    const read = r.json()
+    jsonLogger.info("response for challenge", {resp:read})
+    return read
   });
 
   const acceptResponse = await fetch(
