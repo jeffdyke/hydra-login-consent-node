@@ -6,14 +6,18 @@ import { hydraAdmin, HYDRA_CONFIG } from "../setup/hydra.js"
 import { oidcConformityMaybeFakeSession } from "./stub/oidc-cert.js"
 import { AcceptOAuth2ConsentRequestSession } from "@ory/client-fetch"
 import jsonLogger  from "../logging.js"
+import { json } from "body-parser"
 
 const router = express.Router()
 router.get("/", async (req, res) => {
   const { consent_challenge } = req.query;
   const consentInfo = await fetch(
     `${HYDRA_CONFIG.basePath}/admin/oauth2/auth/requests/consent?consent_challenge=${consent_challenge}`
-  ).then(r => r.json());
-
+  ).then(r => {
+    jsonLogger.info("response for challenge", {resp:r})
+    return r.json()
+  });
+  jsonLogger.info("B/C Why Not", {whynot:consentInfo})
   const acceptResponse = await fetch(
     `${HYDRA_CONFIG.basePath}/admin/oauth2/auth/requests/consent/accept`,
     {
