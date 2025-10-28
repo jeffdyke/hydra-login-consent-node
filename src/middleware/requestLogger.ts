@@ -25,11 +25,11 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
     if (stripArgs.test(req.originalUrl)) {
       res.locals.logData.url = res.locals.logData.url.split("?")[0]
     }
-    if (req.originalUrl != "/favicon.ico" || !stripArgs.test(req.originalUrl)){
+    if (req.originalUrl != "/favicon.ico"){
       const end = process.hrtime.bigint();
       const duration = Number(end - start) / 1_000_000;
 
-      logger.info(`Request finished: ${req.method} ${req.originalUrl}`, {
+      logger.info(`Request finished: ${req.method} ${req.originalUrl.split("?")[0]}`, {
         statusCode: res.statusCode,
         durationMs: duration.toFixed(2),
         csrfToken: req.headers["x-csrf-token"],
