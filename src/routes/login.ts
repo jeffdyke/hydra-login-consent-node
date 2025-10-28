@@ -86,7 +86,6 @@ router.get("/", (req, res, next) => {
 router.post("/", (req, res, next) => {
   // The challenge is now a hidden input field, so let's take it from the request body instead
   const challenge = req.body.challenge
-
   // Let's see if the user decided to accept or reject the consent request..
   if (req.body.submit === "Deny access") {
     // Looks like the consent request was denied by the user
