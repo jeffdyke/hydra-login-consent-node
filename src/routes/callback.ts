@@ -17,16 +17,16 @@ router.get("/", (req, res) => {
     returnedState:returnedState,
     createClientId:createClientId,
     state:req.session.state,
-    codeVerifier:req.session.codeVerifier
+    codeChallenge:req.session.codeChallenge
   })
   if (code && req.session) {
     const storedState = req.session.state
-    const codeVerifier = req.session.codeVerifier
+    const codeChallenge = req.session.codeChallenge
     jsonLogger.info(
       "State vs ReturnedState",{
         storedState: storedState,
         returnedState: returnedState,
-        codeVerifier: codeVerifier,
+        codeChallenge: codeChallenge,
       }
     )
     // TODO why doesn't this return a state
@@ -40,17 +40,17 @@ router.get("/", (req, res) => {
           code: code as string,
           redirect_uri: appConfig.claudeRedirectUri,
           client_id: createClientId,
-          code_verifier: codeVerifier ?? "",
+          code_verifier: codeChallenge ?? "",
           state: req.session.state ?? "",
         })
     // Exchange code for tokens WITH code_verifier
     axios.post(`${process.env.HYDRA_URL}/oauth2/token`, body.toString(), {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
     }).then(data => {
-        jsonLogger.info("Post Success", {response: data, state: req.session.state, verifier: req.session.codeVerifier})
+        jsonLogger.info("Post Success", {response: data, state: req.session.state, verifier: req.session.codeChallenge})
         // Clear stored values from session
         if (req.session) {
-          delete req.session.codeVerifier
+          delete req.session.codeChallenge
           delete req.session.state
         }
         const resp = googleTokenResponse(code as string)

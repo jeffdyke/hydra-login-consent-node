@@ -5,28 +5,11 @@ import express from "express"
 import crypto from "crypto"
 import jsonLogger from "../logging.js"
 import {generateCsrfToken, CLAUDE_CLIENT_ID, appConfig} from "../config.js"
-import url from "url"
 import {CLIENT_ID} from "../setup/hydra.js"
 import { getClient } from "../authFlow.js"
 import { googleAuthUrl } from "../google_auth.js"
-import { Request, Response, NextFunction, RequestHandler } from 'express'
 const router = express.Router()
-// import {createProxyMiddleware} from "http-proxy-middleware"
-// const proxyOptions = {
-//   target: process.env.HYDRA_PUBLIC_URL,
-//   changeOrigin: true,
-//   prependPath: false,
-//   logger: console,
-//   onProxyReq: (proxyReq:Request, req:Request, res:Response) => {
 
-//     const parsed = new URL(req.protocol + '://' + req.get('host') + req.originalUrl)
-//     req.session.state = parsed.searchParams.get("state") || "StateNotFound"
-//     req.session.codeVerifier = parsed.searchParams.get("code_challenge") || "ChallengeNotFound"
-//     console.log("proxy request", {state:proxyReq.session.state,challenge:proxyReq.session.codeVerifier})
-//   }
-// }
-//router.get("/oauth2/auth", createProxyMiddleware(proxyOptions))
-//app.use("/oauth2/auth", createProxyMiddleware(proxyOptions))
 interface ParseAuthRequest {
   codeChallenge:string,
   scope:string,
@@ -35,10 +18,7 @@ interface ParseAuthRequest {
   state:string,
   responseType:string
 }
-
-
 const HYDRA_URL = process.env.HYDRA_URL || ""
-jsonLogger.info("environment", {hydraUrl:HYDRA_URL, redirect:appConfig.middlewareRedirectUri})
 // Helper function to generate base64url encoded string
 function base64URLEncode(buffer: Buffer): string {
   return buffer
@@ -57,45 +37,12 @@ function generateCodeVerifier(): string {
 function generateCodeChallenge(verifier: string): string {
   return base64URLEncode(crypto.createHash("sha256").update(verifier).digest())
 }
-function queryToObject(req: Request): any {
-  const parsed = url.parse(req.url, true)
 
-}
 router.head('/', (req, res) => {
   res.set('X-BondLink-Special', 'Head-Only-Value');
   res.status(204).end();
 });
 
-
-// router.get("/oauth2/auth", async (req, res) => {
-//   const parsed = new URL(req.protocol + '://' + req.get('host') + req.originalUrl)
-//   const { method, headers, body } = req
-//   const newHeaders = { ...headers }
-//   delete newHeaders.host;
-//   jsonLogger.info("Caught request for ouath2/auth", {method:method,body:body})
-//   req.session.state = parsed.searchParams.get("state") || "emptyInSession"
-//   req.session.codeVerifier = parsed.searchParams.get("code_challenge") || "emptyInSession"
-//   try {
-//     const response = await axios({
-//       method,
-//       url: `${process.env.HYDRA_PUBLIC_URL}${req.originalUrl}`,
-//       headers: newHeaders,
-//       data: body,
-//       validateStatus: (status) => true, // Forward all status codes
-//     });
-//     res.status(response.status).set(response.headers).send(response.data);
-//   } catch (error) {
-//     jsonLogger.error('Error forwarding request:', error);
-//     res.status(500).send('Error forwarding request');
-//   }
-// })
-// router.use((req,res,next) => {
-//   let token = generateCsrfToken(req, res)
-//   jsonLogger.info("Adding token to request", {token:token, exists:req.headers['x-csrf-token']})
-//   req.headers['x-csrf-token'] = token
-//   next()
-// })
-// route / is local testing, /authorize is from claude, the / route is not really needed
 // This endpoint is rather useless, needs to be updated after the claude flow is complete
 router.get("/", (req, res) => {
   jsonLogger.info("At root for local testing")
@@ -149,8 +96,8 @@ router.post("/", async (req, res) => {
 
   const existing = await getClient(CLAUDE_CLIENT_ID).then(c => {
     jsonLogger.info("Client exists", {clientId:CLAUDE_CLIENT_ID})
-    let auth = googleAuthUrl(internalPost.scope, req.session.state || "", "https://clau").then(authUrl => {
-      jsonLogger.info("redirecting to google", {url:authUrl})
+    let auth = googleAuthUrl(internalPost.scope, req.session.state || "").then(authUrl => {
+      jsonLogger.info("redirecting to google", {url:authUrl,state:req.session.state})
       res.redirect(authUrl)
     }).catch(errA => {
       jsonLogger.info("caught an error creating authUril", {e: errA})
