@@ -64,18 +64,6 @@ function queryToObject(req: Request): any {
   const parsed = url.parse(req.url, true)
 
 }
-function authPost(data:ParseAuthRequest): URL {
-  const authUrl = new URL(`${HYDRA_URL}/oauth2/auth`)
-  jsonLogger.info("authUrl", authUrl)
-  authUrl.searchParams.append("client_id", data.clientId)
-  authUrl.searchParams.append("redirect_uri", data.redirectUri)
-  authUrl.searchParams.append("response_type", data.responseType)
-  authUrl.searchParams.append("scope", data.scope)
-  authUrl.searchParams.append("state", data.state)
-  authUrl.searchParams.append("code_challenge", data.codeChallenge)
-  authUrl.searchParams.append("code_challenge_method", "S256")
-  return authUrl
-}
 router.head('/', (req, res) => {
   res.set('X-BondLink-Special', 'Head-Only-Value');
   res.status(204).end();
@@ -140,7 +128,7 @@ router.get("/", (req, res) => {
 
   jsonLogger.info("Auth request - Index", {request:postData})
   // Redirect to Hydra for authorization
-  res.redirect(authPost(postData).toString())
+
 })
 
 router.post("/", async (req, res) => {
@@ -175,20 +163,7 @@ router.post("/", async (req, res) => {
     jsonLogger.info("caught an error fetching client", {e: err})
 
   })
-  // axios.post(authPost(internalPost).toString()).then(resultLocal => {
-  //   jsonLogger.info("ResultLog from internal post", {result: resultLocal})
-  //   const reqData: ParseAuthRequest = {
-  //     codeChallenge: parsed.searchParams.get("code_challenge") || "",
-  //     scope: "openid offline email",
-  //     clientId:parsed.searchParams.get("client_id") || "",
-  //     redirectUri:parsed.searchParams.get("redirect_uri") || "",
-  //     state:parsed.searchParams.get("state") || "",
-  //     responseType:parsed.searchParams.get("response_type") || ""
 
-  //   }
-    // const postData = authPost(reqData)
-    // res.redirect(postData.toString())
-  //})
   return existing
 })
 

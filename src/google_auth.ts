@@ -54,28 +54,7 @@ export class GoogleTokenResponse {
   @Property()
   refresh_token?: string; // Optional: Present if offline access is requested
 }
-export type StringRecord = Record<string, string>;
-
-function convertClassToRecord(obj: any): Record<string, string> {
-  const record: Record<string, string> = {};
-  for (const key in obj) {
-      // Ensure the property belongs to the object itself, not its prototype chain
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-          const value = obj[key];
-          if (typeof value === 'object' && value !== null) {
-              // Handle nested objects by converting them to JSON strings
-              record[key] = JSON.stringify(value);
-          } else if (typeof value !== 'function') {
-              // Exclude methods and convert other values to strings
-              record[key] = String(value);
-          }
-      }
-  }
-  return record;
-}
-
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
-const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 const formHeader = {
       "Content-Type": "application/x-www-form-urlencoded",
     };

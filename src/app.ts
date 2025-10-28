@@ -75,7 +75,7 @@ app.use("/test-client", testClient)
 app.use("/login", login)
 app.use("/logout", logout)
 app.use("/consent", consent)
-app.use("/device", device)
+//app.use("/device", device)
 app.use("/callback", callback)
 
 
