@@ -23,14 +23,13 @@ router.get("/", async (req, res) => {
   });
 
   const acceptResponse = await fetch(
-    `${HYDRA_CONFIG.basePath}/admin/oauth2/auth/requests/consent/accept`,
+    `${HYDRA_CONFIG.basePath}/admin/oauth2/auth/requests/consent/accept?challenge=${consent_challenge}`,
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         grant_scope: req.query.requested_scope,
         grant_access_token_audience: consentInfo.requested_access_token_audience,
-        challenge: consent_challenge,
         session: {
           id_token: {}, // Will be populated after Google auth
           access_token: {}
