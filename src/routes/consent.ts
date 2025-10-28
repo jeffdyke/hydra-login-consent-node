@@ -16,7 +16,7 @@ router.get("/", async (req, res) => {
   ).then(r => {
     const read = r.json()
     jsonLogger.info("response for challenge", {resp:r})
-    return r
+    return read
   }).catch(err => {
     jsonLogger.error("caught error requesting consentInfo", {e:err})
     res.status(400).render(`Failed to get consent info ${err}`)

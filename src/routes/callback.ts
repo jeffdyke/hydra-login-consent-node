@@ -67,7 +67,7 @@ router.get("/", (req, res) => {
         // res.send(JSON.stringify(data, null, 2))
       })
       .catch((err) => {
-        res.status(500).send(`Error Caught in callback: ${err.message}`)
+        res.status(500).send(`Error Caught in callback: ${err.message} with body ${body}`)
       })
   } else {
     jsonLogger.info("Missing code session ", {code:code, session:JSON.stringify(req.session)})
