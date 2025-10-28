@@ -48,3 +48,5 @@ router.get("/", async (req, res) => {
 
   res.redirect(googleAuthUrl.toString());
 })
+
+export default router
