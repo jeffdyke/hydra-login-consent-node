@@ -25,6 +25,7 @@ import favicon from "serve-favicon";
 import { requestLogger } from "./middleware/requestLogger.js";
 const __dirname = import.meta.dirname
 const app = express()
+app.set('trust proxy', 1)
 app.use(requestLogger)
 
 app.use(bodyParser.json())
@@ -41,9 +42,22 @@ app.use(
     secret: process.env.SESSION_SECRET || "change-me-in-production",
     resave: false,
     saveUninitialized: false,
+    proxy: true
   })
 )
+import {createProxyMiddleware} from "http-proxy-middleware"
+const proxyOptions = {
+  target: process.env.HYDRA_PUBLIC_URL,
+  changeOrigin: true,
+  onProxyReq: (proxyReq:Request, req:Request, res:Response) => {
 
+    const parsed = new URL(req.protocol + '://' + req.get('host') + req.originalUrl)
+    proxyReq.session.state = parsed.searchParams.get("state") || "StateNotFound"
+    proxyReq.session.codeVerifier = parsed.searchParams.get("code_challenge") || "ChallengeNotFound"
+    jsonLogger.info("proxy request", {state:proxyReq.session.state,challenge:proxyReq.session.codeVerifier})
+  }
+  }
+app.use("/oauth2/auth", createProxyMiddleware(proxyOptions))
 app.use(cookieParser(process.env.SECRETS_SYSTEM || "G6KaOf8aJsLagw566he8yxOTTO3tInKD"));
 
 // view engine setup
