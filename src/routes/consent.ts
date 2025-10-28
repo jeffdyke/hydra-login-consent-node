@@ -17,10 +17,13 @@ router.get("/", async (req, res) => {
     const read = r.json()
     jsonLogger.info("response for challenge", {resp:read})
     return read
+  }).catch(err => {
+    jsonLogger.error("caught error requesting consentInfo", {e:err})
+    res.status(400).render(`Failed to get consent info ${err}`)
   });
 
   const acceptResponse = await fetch(
-    `${HYDRA_CONFIG.basePath}/admin/oauth2/auth/requests/consent/accept`,
+    `${HYDRA_CONFIG.basePath}/admin/oauth2/auth/requests/consent/accept?challenge=${consent_challenge}`,
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -38,6 +41,9 @@ router.get("/", async (req, res) => {
     }
   ).then(r => {
     r.json()
+  }).catch(err => {
+    jsonLogger.error("caught error in PUT to consent accept", {e:err})
+    res.status(400).render(`Failed to get consent info ${err}`)
   });
   jsonLogger.info("acceptResponse with consentInfo", {resp:acceptResponse,state:consentInfo.state})
 
