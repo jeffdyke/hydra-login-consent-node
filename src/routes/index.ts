@@ -6,30 +6,26 @@ import crypto from "crypto"
 import jsonLogger from "../logging.js"
 import {generateCsrfToken, CLAUDE_CLIENT_ID, appConfig} from "../config.js"
 import url from "url"
-
-import axios from "../middleware/axios.js"
-import {CLIENT_ID, HYDRA_CONFIG, hydraAdmin} from "../setup/hydra.js"
-import { newClient, getClient } from "../authFlow.js"
+import {CLIENT_ID} from "../setup/hydra.js"
+import { getClient } from "../authFlow.js"
 import { googleAuthUrl } from "../google_auth.js"
-import { json } from "body-parser"
 import { Request, Response, NextFunction, RequestHandler } from 'express'
-const app = express()
 const router = express.Router()
-import {createProxyMiddleware} from "http-proxy-middleware"
-const proxyOptions = {
-  target: process.env.HYDRA_PUBLIC_URL,
-  changeOrigin: true,
-  prependPath: false,
-  logger: console,
-  onProxyReq: (proxyReq:Request, req:Request, res:Response) => {
+// import {createProxyMiddleware} from "http-proxy-middleware"
+// const proxyOptions = {
+//   target: process.env.HYDRA_PUBLIC_URL,
+//   changeOrigin: true,
+//   prependPath: false,
+//   logger: console,
+//   onProxyReq: (proxyReq:Request, req:Request, res:Response) => {
 
-    const parsed = new URL(req.protocol + '://' + req.get('host') + req.originalUrl)
-    req.session.state = parsed.searchParams.get("state") || "StateNotFound"
-    req.session.codeVerifier = parsed.searchParams.get("code_challenge") || "ChallengeNotFound"
-    console.log("proxy request", {state:proxyReq.session.state,challenge:proxyReq.session.codeVerifier})
-  }
-}
-router.get("/oauth2/auth", createProxyMiddleware(proxyOptions))
+//     const parsed = new URL(req.protocol + '://' + req.get('host') + req.originalUrl)
+//     req.session.state = parsed.searchParams.get("state") || "StateNotFound"
+//     req.session.codeVerifier = parsed.searchParams.get("code_challenge") || "ChallengeNotFound"
+//     console.log("proxy request", {state:proxyReq.session.state,challenge:proxyReq.session.codeVerifier})
+//   }
+// }
+//router.get("/oauth2/auth", createProxyMiddleware(proxyOptions))
 //app.use("/oauth2/auth", createProxyMiddleware(proxyOptions))
 interface ParseAuthRequest {
   codeChallenge:string,
