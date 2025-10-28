@@ -24,6 +24,7 @@
   },
   "prettier": "ory-prettier-styles",
   "dependencies": {
+    "@ory/client": "^1.22.7",
     "@ory/client-fetch": "^1.22.6",
     "@ory/hydra-client": "^2.4.0-alpha.1",
     "@tsed/di": "^8.18.0",

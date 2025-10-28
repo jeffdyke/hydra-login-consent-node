@@ -20,6 +20,10 @@ services:
     ports:
       - "4444:4444" # Public API
       - "4445:4445" # Admin API
+    logging:
+      driver: json-file
+      options:
+        tag: hydra
     command: serve all --dev --config /etc/bondlink/hydra/hydra.yml
     # env_file:
     #   - /etc/bondlink/hydra/.env

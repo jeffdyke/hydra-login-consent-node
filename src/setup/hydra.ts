@@ -20,4 +20,4 @@ if (!CLIENT_ID) {
 jsonLogger.info("Using client and configuration", {clientId:CLIENT_ID,config:configuration})
 const hydraAdmin = new OAuth2Api(configuration)
 
-export {hydraAdmin, CLIENT_ID}
+export {hydraAdmin, CLIENT_ID, configuration as HYDRA_CONFIG  }
