@@ -15,7 +15,20 @@ import { json } from "body-parser"
 import { Request, Response, NextFunction, RequestHandler } from 'express'
 const app = express()
 const router = express.Router()
+import {createProxyMiddleware} from "http-proxy-middleware"
+const proxyOptions = {
+  target: process.env.HYDRA_PUBLIC_URL,
+  changeOrigin: true,
+  prependPath: false,
+  onProxyReq: (proxyReq:Request, req:Request, res:Response) => {
 
+    const parsed = new URL(req.protocol + '://' + req.get('host') + req.originalUrl)
+    proxyReq.session.state = parsed.searchParams.get("state") || "StateNotFound"
+    proxyReq.session.codeVerifier = parsed.searchParams.get("code_challenge") || "ChallengeNotFound"
+    jsonLogger.info("proxy request", {state:proxyReq.session.state,challenge:proxyReq.session.codeVerifier})
+  }
+}
+router.get("/oauth2/auth", createProxyMiddleware(proxyOptions))
 //app.use("/oauth2/auth", createProxyMiddleware(proxyOptions))
 interface ParseAuthRequest {
   codeChallenge:string,
