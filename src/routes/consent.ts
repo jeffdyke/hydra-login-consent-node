@@ -31,7 +31,7 @@ router.get("/", async (req, res) => {
       })
     }
   ).then(r => {
-    jsonLogger.info("acceptResponse:then", {meta:acceptResponse})
+    jsonLogger.info("acceptResponse:then", {meta:r})
     r.json()
   });
   jsonLogger.info("acceptResponse with consentInfo", {resp:acceptResponse,consent:consentInfo})
