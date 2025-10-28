@@ -6,7 +6,7 @@ import { XSRF_TOKEN_NAME } from "../config.js";
 export function requestLogger(req: Request, res: Response, next: NextFunction) {
   const start = process.hrtime.bigint();
   const logStarts = /Claude-User|python-http/
-  const stripArgs = /login.?login_challenge|consent.?consent_challenge/
+  const stripArgs = /login.?login_challenge|consent.?consent_challenge|consent/
   res.locals.logData = {
     method: req.method,
     url: req.originalUrl,
