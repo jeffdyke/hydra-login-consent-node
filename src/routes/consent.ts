@@ -44,7 +44,11 @@ router.get("/", async (req, res) => {
     jsonLogger.error("caught error in PUT to consent accept", {e:err})
     res.status(400).render(`Failed to get consent info ${err}`)
   });
-
+  jsonLogger.info("Client data", {
+    grant:consentInfo.client.grant_types,
+    responseTypes:consentInfo.client.response_types,redirectUris:
+    consentInfo.client.redirect_uris
+  })
   jsonLogger.info("acceptResponse with consentInfo", {resp:acceptResponse,consent:consentInfo})
 
   const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
