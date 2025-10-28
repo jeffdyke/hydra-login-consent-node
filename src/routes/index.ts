@@ -27,8 +27,8 @@ const proxyOptions = {
     jsonLogger.info("proxy request", {state:proxyReq.session.state,challenge:proxyReq.session.codeVerifier})
   }
   }
-
-app.use("/oauth2/auth", createProxyMiddleware(proxyOptions))
+router.get("/oauth2/auth", createProxyMiddleware(proxyOptions))
+//app.use("/oauth2/auth", createProxyMiddleware(proxyOptions))
 interface ParseAuthRequest {
   codeChallenge:string,
   scope:string,
