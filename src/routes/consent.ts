@@ -1,12 +1,6 @@
 import express from "express"
-import url from "url"
-import urljoin from "url-join"
-import { generateCsrfToken, XSRF_TOKEN_NAME } from "../config.js"
-import { hydraAdmin, HYDRA_CONFIG } from "../setup/hydra.js"
-import { oidcConformityMaybeFakeSession } from "./stub/oidc-cert.js"
-import { AcceptOAuth2ConsentRequestSession } from "@ory/client-fetch"
+import { HYDRA_CONFIG } from "../setup/hydra.js"
 import jsonLogger  from "../logging.js"
-import { json } from "body-parser"
 
 const router = express.Router()
 router.get("/", async (req, res) => {
@@ -14,7 +8,7 @@ router.get("/", async (req, res) => {
   const consentInfo = await fetch(
     `${HYDRA_CONFIG.basePath}/admin/oauth2/auth/requests/consent?challenge=${consent_challenge}`
   ).then(r => {
-    jsonLogger.info("response for challenge", {resp:r})
+    // jsonLogger.info("response for challenge", {resp:r})
     return r.json()
   }).catch(err => {
     jsonLogger.error("caught error requesting consentInfo", {e:err})
@@ -38,14 +32,14 @@ router.get("/", async (req, res) => {
       })
     }
   ).then(r => {
-    jsonLogger.info("acceptResponse returned ", {resp:r})
+    // jsonLogger.info("acceptResponse returned ", {resp:r})
     return r
   }).catch(err => {
     jsonLogger.error("caught error in PUT to consent accept", {e:err})
     res.status(400).render(`Failed to get consent info ${err}`)
   });
 
-  jsonLogger.info("acceptResponse with consentInfo", {resp:acceptResponse,state:consentInfo.state})
+  jsonLogger.info("acceptResponse with consentInfo", {resp:acceptResponse,state:consentInfo})
 
   const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
   googleAuthUrl.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID || "");
