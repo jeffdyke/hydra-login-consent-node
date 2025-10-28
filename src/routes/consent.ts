@@ -15,7 +15,7 @@ router.get("/", async (req, res) => {
   ).then(r => r.json());
 
   const acceptResponse = await fetch(
-    `${HYDRA_CONFIG.basePath}/admin/oauth2/auth/requests/consent/accept}`,
+    `${HYDRA_CONFIG.basePath}/admin/oauth2/auth/requests/consent/accept`,
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
