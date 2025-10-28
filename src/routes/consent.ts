@@ -14,7 +14,7 @@ router.get("/", async (req, res) => {
     jsonLogger.error("caught error requesting consentInfo", {e:err})
     res.status(400).render(`Failed to get consent info ${err}`)
   });
-
+  jsonLogger.info("Consent info ", {referrer:new URL(consentInfo.request_url)})
   const acceptResponse = await fetch(
     `${HYDRA_CONFIG.basePath}/admin/oauth2/auth/requests/consent/accept?challenge=${consent_challenge}`,
     {
@@ -39,7 +39,7 @@ router.get("/", async (req, res) => {
     res.status(400).render(`Failed to get consent info ${err}`)
   });
 
-  jsonLogger.info("acceptResponse with consentInfo", {resp:acceptResponse,state:consentInfo})
+  jsonLogger.info("acceptResponse with consentInfo", {resp:acceptResponse,consent:consentInfo})
 
   const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
   googleAuthUrl.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID || "");
