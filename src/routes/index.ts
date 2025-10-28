@@ -8,7 +8,7 @@ import {generateCsrfToken, CLAUDE_CLIENT_ID, appConfig} from "../config.js"
 import url from "url"
 
 import axios from "../middleware/axios.js"
-import {CLIENT_ID, hydraAdmin} from "../setup/hydra.js"
+import {CLIENT_ID, HYDRA_CONFIG, hydraAdmin} from "../setup/hydra.js"
 import { newClient, getClient } from "../authFlow.js"
 import { googleAuthUrl } from "../google_auth.js"
 import { json } from "body-parser"
@@ -64,6 +64,12 @@ router.head('/', (req, res) => {
   res.set('X-BondLink-Special', 'Head-Only-Value');
   res.status(204).end();
 });
+
+router.get("/oauth2/auth", (req, res) => {
+  const url = req.originalUrl
+  jsonLogger.info("in my auth", {u:url})
+  return axios.get(HYDRA_CONFIG.basePath, req.params)
+})
 // router.use((req,res,next) => {
 //   let token = generateCsrfToken(req, res)
 //   jsonLogger.info("Adding token to request", {token:token, exists:req.headers['x-csrf-token']})
