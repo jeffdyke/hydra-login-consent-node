@@ -34,7 +34,7 @@ router.get("/", async (req, res) => {
     jsonLogger.info("acceptResponse:then", {meta:acceptResponse})
     r.json()
   });
-  jsonLogger.info("acceptResponse with consentInfo", {resp:acceptResponse:consent:consentInfo})
+  jsonLogger.info("acceptResponse with consentInfo", {resp:acceptResponse,consent:consentInfo})
 
   const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
   googleAuthUrl.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID || "");
