@@ -12,7 +12,7 @@ const router = express.Router()
 router.get("/", async (req, res) => {
   const { consent_challenge } = req.query;
   const consentInfo = await fetch(
-    `${HYDRA_CONFIG.basePath}/admin/oauth2/auth/requests/consent?consent_challenge=${consent_challenge}`
+    `${HYDRA_CONFIG.basePath}/admin/oauth2/auth/requests/consent?challenge=${consent_challenge}`
   ).then(r => {
     jsonLogger.info("response for challenge", {resp:r})
     return r.json()
