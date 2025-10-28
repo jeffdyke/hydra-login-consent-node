@@ -32,19 +32,19 @@ class DevAppConfig implements AppConfigI {
   secure: boolean = false
   googleClientId?: string | undefined = undefined
   googleClientSecret?: string | undefined = undefined
-  claudeRedirectUri: string = "http://claude.ai/api/mcp/auth_callback"
+  claudeRedirectUri: string = "https://claude.ai/api/mcp/auth_callback"
 }
 
 class StagingAppConfig implements AppConfigI {
   csrfTokenName: string = "xsrf_token"
   hostName: string = "http://auth.staging.bondlink.org"
-  middlewareRedirectUri: string = "http://auth.staging.bondlink.org/callback"
+  middlewareRedirectUri: string = "https://auth.staging.bondlink.org/callback"
   sameSite: SameSiteType = "none"
   httpOnly: boolean = false
   secure: boolean = true
   googleClientId?: string | undefined = process.env.GOOGLE_CLIENT_ID;
   googleClientSecret?: string | undefined = process.env.GOOGLE_CLIENT_SECRET
-  claudeRedirectUri: string = "http://claude.ai/api/mcp/auth_callback"
+  claudeRedirectUri: string = "https://claude.ai/api/mcp/auth_callback"
 
 }
 // class ProdAppConfig implements AppConfigI {
