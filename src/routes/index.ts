@@ -23,8 +23,8 @@ const proxyOptions = {
   onProxyReq: (proxyReq:Request, req:Request, res:Response) => {
 
     const parsed = new URL(req.protocol + '://' + req.get('host') + req.originalUrl)
-    proxyReq.session.state = parsed.searchParams.get("state") || "StateNotFound"
-    proxyReq.session.codeVerifier = parsed.searchParams.get("code_challenge") || "ChallengeNotFound"
+    req.session.state = parsed.searchParams.get("state") || "StateNotFound"
+    req.session.codeVerifier = parsed.searchParams.get("code_challenge") || "ChallengeNotFound"
     jsonLogger.info("proxy request", {state:proxyReq.session.state,challenge:proxyReq.session.codeVerifier})
   }
 }
