@@ -114,7 +114,7 @@ router.post("/", async (req, res) => {
   jsonLogger.info("parsed url ", {url:parsed, body:req.body})
   const internalPost: ParseAuthRequest = {
     codeChallenge: parsed.searchParams.get("code_challenge") || "",
-    scope: "openid profile email",
+    scope: "openid profile email offline_access",
     redirectUri: appConfig.middlewareRedirectUri,
     state:parsed.searchParams.get("state") || "",
     clientId:parsed.searchParams.get("client_id") || "",
