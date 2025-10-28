@@ -14,10 +14,10 @@ router.get("/", async (req, res) => {
   const consentInfo = await fetch(
     `${HYDRA_CONFIG.basePath}/admin/oauth2/auth/requests/consent?challenge=${consent_challenge}`
   ).then(r => {
-    jsonLogger.info("response for challenge", {resp:r})
+    jsonLogger.info("response for challenge", {resp:r.json()})
     return r.json()
   });
-  jsonLogger.info("B/C Why Not", {whynot:consentInfo})
+
   const acceptResponse = await fetch(
     `${HYDRA_CONFIG.basePath}/admin/oauth2/auth/requests/consent/accept`,
     {

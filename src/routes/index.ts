@@ -85,6 +85,8 @@ router.get("/", (req, res) => {
   if (req.session) {
     req.session.state = state
     req.session.codeVerifier = codeVerifier
+  } else {
+    jsonLogger.info("session returned none")
   }
   // Build authorization URL
   const postData: ParseAuthRequest = {
