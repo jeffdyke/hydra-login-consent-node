@@ -38,13 +38,13 @@ router.get("/", async (req, res) => {
     jsonLogger.info("acceptResponse:then", {meta:r})
     r.json()
   });
-  jsonLogger.info("acceptResponse with consentInfo", {resp:acceptResponse,consent:consentInfo})
+  jsonLogger.info("acceptResponse with consentInfo", {resp:acceptResponse,state:consentInfo.state})
 
   const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
   googleAuthUrl.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID || "");
   googleAuthUrl.searchParams.set('redirect_uri', "https://auth.staging.bondlink.org/callback");
   googleAuthUrl.searchParams.set('response_type', 'code');
-  googleAuthUrl.searchParams.set('scope', consentInfo.requested_scope.join(' '));
+  googleAuthUrl.searchParams.set('scope', 'offline profile email');
   googleAuthUrl.searchParams.set('state', consentInfo.state); // Pass through for tracking
   googleAuthUrl.searchParams.set('access_type', 'offline');
   googleAuthUrl.searchParams.set('prompt', 'consent');
