@@ -14,9 +14,8 @@ router.get("/", async (req, res) => {
   const consentInfo = await fetch(
     `${HYDRA_CONFIG.basePath}/admin/oauth2/auth/requests/consent?challenge=${consent_challenge}`
   ).then(r => {
-    const read = r.json()
     jsonLogger.info("response for challenge", {resp:r})
-    return read
+    return r.json()
   }).catch(err => {
     jsonLogger.error("caught error requesting consentInfo", {e:err})
     res.status(400).render(`Failed to get consent info ${err}`)
@@ -39,8 +38,8 @@ router.get("/", async (req, res) => {
       })
     }
   ).then(r => {
-    jsonLogger.info("acceptResponse returned ", r)
-    r
+    jsonLogger.info("acceptResponse returned ", {resp:r})
+    return r
   }).catch(err => {
     jsonLogger.error("caught error in PUT to consent accept", {e:err})
     res.status(400).render(`Failed to get consent info ${err}`)
