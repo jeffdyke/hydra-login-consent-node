@@ -41,6 +41,7 @@ router.get("/", (req, res) => {
           redirect_uri: appConfig.claudeRedirectUri,
           client_id: createClientId,
           code_verifier: codeVerifier ?? "",
+          state: req.session.state ?? "",
         })
     // Exchange code for tokens WITH code_verifier
     axios.post(`${process.env.HYDRA_URL}/oauth2/token`, body.toString(), {
