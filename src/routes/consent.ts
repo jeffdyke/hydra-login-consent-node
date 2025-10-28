@@ -52,11 +52,11 @@ router.get("/", async (req, res) => {
   googleAuthUrl.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID || "");
   googleAuthUrl.searchParams.set('redirect_uri', "https://auth.staging.bondlink.org/callback");
   googleAuthUrl.searchParams.set('response_type', 'code');
-  googleAuthUrl.searchParams.set('scope', 'openid    profile email');
+  googleAuthUrl.searchParams.set('scope', 'openid profile email');
   googleAuthUrl.searchParams.set('state', req.session.state || "NoState"); // Pass through for tracking
   googleAuthUrl.searchParams.set('access_type', 'offline');
   googleAuthUrl.searchParams.set('prompt', 'consent');
-  jsonLogger.info("googleAuthUrl", {u:googleAuthUrl})
+
 
   res.redirect(googleAuthUrl.toString());
 })
