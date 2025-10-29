@@ -8,7 +8,7 @@ import {CLIENT_ID} from "../setup/hydra.js"
 
 const router = express.Router()
 
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
   const code = req.query.code
   const returnedState = req.query.state
   const createClientId = CLIENT_ID
@@ -19,6 +19,7 @@ router.get("/", (req, res) => {
     state:req.session.state,
     codeChallenge:req.session.codeChallenge
   })
+
   if (code && req.session) {
     const storedState = req.session.state
     const codeChallenge = req.session.codeChallenge
