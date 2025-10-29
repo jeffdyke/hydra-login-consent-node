@@ -29,12 +29,6 @@ import proxyMiddleware from "./setup/proxy.js"
 
 app.set('trust proxy', 1)
 app.use(requestLogger)
-//This is required before body parser
-app.use("/oauth2", proxyMiddleware)
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: false }))
-
-// Session middleware with PostgreSQL store
 app.use(
   session({
     store: new PgStore({
@@ -48,6 +42,13 @@ app.use(
     proxy: true
   })
 )
+//This is required before body parser
+app.use("/oauth2", proxyMiddleware)
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: false }))
+
+// Session middleware with PostgreSQL store
+
 
 app.use(cookieParser(process.env.SECRETS_SYSTEM || "G6KaOf8aJsLagw566he8yxOTTO3tInKD"));
 
