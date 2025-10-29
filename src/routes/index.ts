@@ -4,7 +4,7 @@
 import express from "express"
 import crypto from "crypto"
 import jsonLogger from "../logging.js"
-import {generateCsrfToken, CLAUDE_CLIENT_ID, appConfig} from "../config.js"
+import {generateCsrfToken, HYDRA_URL, CLAUDE_CLIENT_ID, appConfig} from "../config.js"
 import {CLIENT_ID} from "../setup/hydra.js"
 import { getClient } from "../authFlow.js"
 import { googleAuthUrl } from "../google_auth.js"
@@ -18,7 +18,7 @@ interface ParseAuthRequest {
   state:string,
   responseType:string
 }
-const HYDRA_URL = process.env.HYDRA_URL || ""
+
 // Helper function to generate base64url encoded string
 function base64URLEncode(buffer: Buffer): string {
   return buffer

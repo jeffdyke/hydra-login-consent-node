@@ -4,7 +4,7 @@
 import session from "express-session"
 import connectPgSimple from "connect-pg-simple"
 import pool from "./pool.js"
-
+import { createClient } from "redis";
 import { doubleCsrf, SameSiteType } from "csrf-csrf";
 import jsonLogger from "./logging.js";
 const httpOnly = !process.env.BASE_URL?.startsWith("https")
@@ -47,6 +47,7 @@ class StagingAppConfig implements AppConfigI {
   claudeRedirectUri: string = "https://claude.ai/api/mcp/auth_callback"
 
 }
+
 // class ProdAppConfig implements AppConfigI {
 //   csrfTokenName: string = "xsrf_token"
 //   hostName: string = "http://auth.staging.bondlink.org"
@@ -92,7 +93,7 @@ jsonLogger.info("Cookie Options", lclCookieOptions)
 // });
 const STATIC_CSRF = "YOU-ARE-USING-THE-STATIC-CSRF"
 const generateCsrfToken = (req:any, res:any) => STATIC_CSRF
-
+const HYDRA_URL = process.env.HYDRA_URL
 const pgConfig = {
   user: process.env.POSTGRES_USER || "hydra",
   password: process.env.POSTGRES_PASSWORD || "shaken!stirred",
@@ -117,6 +118,9 @@ function dumpSessionData() {
     throw err;
   }
 }
+const redis = await createClient()
+  .on("error", (err) => jsonLogger.error("Redis Client Error", err))
+  .connect();
 
 export {
   pgConfig,
@@ -128,5 +132,7 @@ export {
   httpOnly,
   dumpSessionData,
   XSRF_TOKEN_NAME,
-  appConfig
+  appConfig,
+  redis,
+  HYDRA_URL
 }
