@@ -1,6 +1,7 @@
 import express from "express"
 import { HYDRA_CONFIG } from "../setup/hydra.js"
 import jsonLogger  from "../logging.js"
+import { CodeChallengeMethod } from "google-auth-library"
 
 const router = express.Router()
 router.get("/", async (req, res) => {
@@ -16,13 +17,13 @@ router.get("/", async (req, res) => {
   });
 
   if (req.session) {
-    jsonLogger.info("Session data in consent", {data:req.session})
+
+    jsonLogger.info("Session data in consent", {
+      challenge:req.session.codeChallenge,
+      method:req.session.codeChallengeMethod,
+      state:req.session.state
+    })
   }
-  // First request goes directly to hydra, need to fetch the session items
-  // const forState = new URL(consentInfo.request_url)
-  // req.session.state = forState.searchParams.get("state") || "State Not found In Parsed"
-  // req.session.codeChallenge = forState.searchParams.get("code_challenge") || "Challenge Not Found"
-  // req.session.codeChallengeMethod = forState.searchParams.get("code_challenge_method") || "Method not found"
 
   //jsonLogger.info("Consent info ", {referrer:forState.searchParams.get("state")})
   const acceptResponse = await fetch(
