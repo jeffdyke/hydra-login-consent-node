@@ -26,7 +26,6 @@ const app = express()
 import { requestLogger } from "./middleware/requestLogger.js";
 const __dirname = import.meta.dirname
 import proxyMiddleware from "./setup/proxy.js"
-
 app.set('trust proxy', 1)
 app.use(requestLogger)
 app.use(
@@ -42,8 +41,17 @@ app.use(
     proxy: true
   })
 )
-//This is required before body parser
+app.use((req,res,next) => {
+  if (req.session && req.session.pkceKey == undefined) {
+    req.session.pkceKey = crypto.randomUUID()
+  } else {
+    jsonLogger.warn("Didn't create key", {val:req.session.pkceKey})
+  }
+  next()
+})
 app.use("/oauth2", proxyMiddleware)
+//This is required before body parser
+
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 
@@ -59,15 +67,7 @@ app.use(favicon(path.join(__dirname, '..', 'public', 'favicon.ico')));
 
 app.use(express.static(path.join(dirname(import.meta.url), "public")))
 //ensure we have a stable pkce key for redis
-app.use((req,res,next) => {
-  if (req.session && req.session.pkceKey == undefined) {
-    req.session.pkceKey = crypto.randomUUID()
-  } else {
 
-    jsonLogger.warn("Didn't create key", {val:req.session.pkceKey})
-  }
-  next()
-})
 //import {v4} from 'uuid';
 // function addUniqueToken(req:Request, res:Response, next:Function) {
 //   req.headers["x-bondlink-id"] = v4(); // Generate a unique ID and attach it to the request object
