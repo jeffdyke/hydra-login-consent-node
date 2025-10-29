@@ -57,7 +57,7 @@ const proxyOptions = {
           timestamp: Date.now()
         }));
       }
-      const queryString = {...parsed.searchParams}
+      const queryString = new URLSearchParams(parsed.searchParams.toString());
       queryString.delete("code_challenge")
       queryString.delete("code_challenge_method")
 
