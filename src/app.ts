@@ -78,6 +78,7 @@ app.use("/logout", logout)
 app.use("/consent", consent)
 //app.use("/device", device)
 app.use("/callback", callback)
+app.use("/oauth2", claude)
 
 
 

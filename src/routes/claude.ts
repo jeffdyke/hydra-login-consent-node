@@ -9,7 +9,7 @@ import { CLAUDE_REDIRECT_URL } from "../authFlow.js"
 import jsonLogger from "../logging.js"
 const router = express.Router()
 const redis = new Redis()
-router.get('/oauth2/auth', async (req, res) => {
+router.get('/auth', async (req, res) => {
   const {
     client_id,
     redirect_uri,
