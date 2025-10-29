@@ -19,6 +19,7 @@ router.get("/", async (req, res) => {
 
   if (req.session) {
     const logRedis = await redis.get(`pkce_session:${req.session.id}`).then(resp => {
+      jsonLogger.info("base result from redis", {raw:resp,key:`pkce_session:${req.session.id}`})
       const asO: RedisPKCE = JSON.parse(resp || "")
       return asO
     }).catch(err => {
