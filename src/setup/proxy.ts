@@ -7,6 +7,7 @@ import { NextFunction, Response, Request } from "express"
 const proxyOptions = {
   target: process.env.HYDRA_PUBLIC_URL,
   changeOrigin: true,
+  prependPath: false,
   logger:jsonLogger,
   pathRewrite: (path: string, req: Request) => {
     const parsed = new URL(req.protocol + '://' + req.get('host') + req.originalUrl)
