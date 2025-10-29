@@ -23,12 +23,12 @@ router.get('/auth', async (req, res) => {
     code_challenge_method,
     scope
   } = req.query;
-
+  jsonLogger.info("code and method", {code:code_challenge,meth:code_challenge_method})
   // Validate PKCE parameters
   if (!code_challenge || code_challenge_method !== 'S256') {
     return res.status(400).json({
-      error: 'invalid_request',
-      error_description: 'PKCE required'
+      error: 'invalid_request ---',
+      error_description: 'PKCE required ---'
     });
   }
 
