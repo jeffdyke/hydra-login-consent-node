@@ -74,7 +74,7 @@ async function googleAuthUrl(scope: string, incomingState: string, redirectUrl: 
     response_type: "code",
     redirect_uri: redirectUrl
   })
-  jsonLogger.info("Auth URL", {authUrl:authUri})
+
   return authUri
 }
 async function googleOAuthTokens(code: string, redirectUrl:string = CLAUDE_REDIRECT_URL): Promise<TokenPayload> {

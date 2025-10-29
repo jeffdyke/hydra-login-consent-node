@@ -10,7 +10,6 @@ const proxyOptions = {
   changeOrigin: true,
   logger:jsonLogger,
   pathRewrite: (path: string, req: Request) => {
-    jsonLogger.info("in rewrite", {p:path})
     const parsed = new URL(req.protocol + '://' + req.get('host') + req.originalUrl)
     if (parsed.pathname == "/oauth2/auth") {
       const {
@@ -42,7 +41,6 @@ const proxyOptions = {
       queryString.delete("code_challenge")
       queryString.delete("code_challenge_method")
       const returnPath = [parsed.pathname,queryString].join("?")
-      jsonLogger.info("Return string", {full:returnPath})
       return returnPath
       }
     }
