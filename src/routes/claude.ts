@@ -28,9 +28,7 @@ router.get('/auth', async (req, res) => {
     });
   }
 
-  const sessionId = crypto.randomUUID();
-
-  await redis.set(`pkce_session:${sessionId}`, JSON.stringify({
+  await redis.set(`pkce_session:${req.session.id}`, JSON.stringify({
     code_challenge,
     code_challenge_method,
     client_id,
@@ -46,7 +44,7 @@ router.get('/auth', async (req, res) => {
   hydraAuthUrl.searchParams.set('response_type', 'code');
   hydraAuthUrl.searchParams.set('redirect_uri', CLAUDE_REDIRECT_URL);
   hydraAuthUrl.searchParams.set('scope', "openid profile email offline");
-  hydraAuthUrl.searchParams.set('state', sessionId); // Use your session ID
+  hydraAuthUrl.searchParams.set('state', req.session.id); // Use your session ID
   // hydraAuthUrl.searchParams.set('code_challenge', String(code_challenge) || "NoChallenge")
   // hydraAuthUrl.searchParams.set('code_challenge_method', String(code_challenge_method) || "NoChallengeMethod")
   jsonLogger.info("sending to hydra", {request:hydraAuthUrl})
