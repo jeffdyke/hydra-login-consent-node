@@ -26,7 +26,7 @@ const proxyOptions = {
           new Error("could not find a session to set pkceSession")
           return
         }
-        redis.set(sessionId, JSON.stringify({
+        redis.set(`pkce_session:${sessionId}`, JSON.stringify({
           code_challenge,
           code_challenge_method,
           client_id,
