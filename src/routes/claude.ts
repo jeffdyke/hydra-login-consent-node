@@ -28,7 +28,7 @@ router.get('/auth', async (req, res) => {
     });
   }
 
-  await redis.set(`pkce_session:${req.session.id}`, JSON.stringify({
+  await redis.set(`pkce_session:${req.session.pkceKey}`, JSON.stringify({
     code_challenge,
     code_challenge_method,
     client_id,
