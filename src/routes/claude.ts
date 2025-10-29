@@ -8,7 +8,12 @@ import {generateCsrfToken, HYDRA_URL, CLAUDE_CLIENT_ID, appConfig} from "../conf
 import { CLAUDE_REDIRECT_URL } from "../authFlow.js"
 import jsonLogger from "../logging.js"
 const router = express.Router()
-const redis = new Redis()
+const redis = new Redis({
+  host: appConfig.redisHost,
+  port: appConfig.redisPort,
+}
+
+)
 router.get('/auth', async (req, res) => {
   const {
     client_id,
@@ -40,7 +45,7 @@ router.get('/auth', async (req, res) => {
   }));
   jsonLogger.info("Session stored")
   // Now start Hydra flow WITHOUT PKCE (Hydra doesn't need to know about it)
-  const hydraAuthUrl = new URL(`${HYDRA_URL}/oauth2/auth`);
+  const hydraAuthUrl = new URL(`${appConfig.hydraInternalUrl}/oauth2/auth`);
   hydraAuthUrl.searchParams.set('client_id', CLIENT_ID);
   hydraAuthUrl.searchParams.set('response_type', 'code');
   hydraAuthUrl.searchParams.set('redirect_uri', CLAUDE_REDIRECT_URL);

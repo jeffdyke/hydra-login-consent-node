@@ -20,6 +20,9 @@ interface AppConfigI {
   googleClientId?: string
   googleClientSecret?: string
   claudeRedirectUri: string
+  hydraInternalUrl: string
+  redisHost: string
+  redisPort: number
 
 }
 
@@ -27,8 +30,11 @@ class DevAppConfig implements AppConfigI {
   csrfTokenName: string = "dev_xsrf_token"
   hostName: string = "http://dev.bondlin.org:3000"
   middlewareRedirectUri: string = "http://dev.bondlin.org:3000/callback"
+  hydraInternalUrl: string = "http://dev.bondlink.org:4445"
   sameSite: SameSiteType = "lax"
   httpOnly: boolean = true
+  redisHost: string = "dev.bondlink.org"
+  redisPort: number = 6379
   secure: boolean = false
   googleClientId?: string | undefined = undefined
   googleClientSecret?: string | undefined = undefined
@@ -39,6 +45,9 @@ class StagingAppConfig implements AppConfigI {
   csrfTokenName: string = "xsrf_token"
   hostName: string = "http://auth.staging.bondlink.org"
   middlewareRedirectUri: string = "https://auth.staging.bondlink.org/callback"
+  hydraInternalUrl: string = "http://10.1.1.230:4445"
+  redisHost: string = "10.1.1.230"
+  redisPort: number = 16379
   sameSite: SameSiteType = "none"
   httpOnly: boolean = false
   secure: boolean = true
