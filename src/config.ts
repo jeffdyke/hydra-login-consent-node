@@ -118,9 +118,6 @@ function dumpSessionData() {
     throw err;
   }
 }
-const redis = await createClient()
-  .on("error", (err) => jsonLogger.error("Redis Client Error", err))
-  .connect();
 
 export {
   pgConfig,
@@ -133,6 +130,5 @@ export {
   dumpSessionData,
   XSRF_TOKEN_NAME,
   appConfig,
-  redis,
   HYDRA_URL
 }

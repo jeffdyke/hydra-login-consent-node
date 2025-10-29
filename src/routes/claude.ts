@@ -2,13 +2,13 @@ import express from "express"
 import url from "url"
 import urljoin from "url-join"
 
-import { redis } from "../config.js"
+import { Redis } from "ioredis"
 import { CLIENT_ID, HYDRA_CONFIG } from "../setup/hydra.js"
 import {generateCsrfToken, HYDRA_URL, CLAUDE_CLIENT_ID, appConfig} from "../config.js"
 import { CLAUDE_REDIRECT_URL } from "../authFlow.js"
 import jsonLogger from "../logging.js"
 const router = express.Router()
-
+const redis = new Redis()
 router.get('/oauth2/auth', async (req, res) => {
   const {
     client_id,
