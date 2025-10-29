@@ -60,7 +60,7 @@ const proxyOptions = {
       const queryString = new URLSearchParams(parsed.searchParams.toString());
       queryString.delete("code_challenge")
       queryString.delete("code_challenge_method")
-      const returnPath = [parsed.pathname,queryString].join("/")
+      const returnPath = [parsed.pathname,queryString].join("?")
       jsonLogger.info("Return string", {full:returnPath})
       return returnPath
       }
