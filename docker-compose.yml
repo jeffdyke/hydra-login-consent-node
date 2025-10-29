@@ -59,7 +59,10 @@ services:
     ports:
       - "5432:5432"
     restart: unless-stopped
-
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
   consent-app:
     image: 668874212870.dkr.ecr.us-east-1.amazonaws.com/drone-hydra-consent-node
     env_file:

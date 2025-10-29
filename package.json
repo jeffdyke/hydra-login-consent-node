@@ -48,6 +48,7 @@
     "google-auth-library": "^10.4.0",
     "http-proxy-middleware": "^3.0.5",
     "pug": "^3.0.3",
+    "redis": "^5.9.0",
     "rotating-file-stream": "^3.2.7",
     "serve-favicon": "^2.5.1",
     "tslog": "^4.10.2",
