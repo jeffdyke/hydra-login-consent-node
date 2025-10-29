@@ -46,7 +46,6 @@ services:
       - hydra-migrate
     networks:
       - hydra-net
-
   postgres:
     image: postgres:18-alpine
     environment:

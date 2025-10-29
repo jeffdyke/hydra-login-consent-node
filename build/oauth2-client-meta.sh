@@ -34,7 +34,7 @@ fi
 
 declare -A CLIENT_CREDENTIALS_CONFIG
 CLIENT_CREDENTIALS_CONFIG[scope]="offline email openid offline_access"
-CLIENT_CREDENTIALS_CONFIG[grant]="client_credentials"
+CLIENT_CREDENTIALS_CONFIG[grant]="client_secret_post"
 
 declare -A AUTH_FLOW_CONFIG
 AUTH_FLOW_CONFIG[scope]="offline openid"
