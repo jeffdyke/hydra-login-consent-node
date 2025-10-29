@@ -43,6 +43,7 @@ const proxyOptions = {
       queryString.delete("code_challenge")
       queryString.delete("code_challenge_method")
       const returnPath = [parsed.pathname,queryString].join("?")
+      jsonLogger.info("sending to hydra", {path:returnPath})
       return returnPath
       }
     }
