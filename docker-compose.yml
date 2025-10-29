@@ -63,6 +63,8 @@ services:
     image: redis
     ports:
       - 16379:6379
+    networks:
+      - hydra-net
   consent-app:
     image: 668874212870.dkr.ecr.us-east-1.amazonaws.com/drone-hydra-consent-node
     env_file:
