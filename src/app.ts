@@ -60,8 +60,9 @@ const proxyOptions = {
       const queryString = new URLSearchParams(parsed.searchParams.toString());
       queryString.delete("code_challenge")
       queryString.delete("code_challenge_method")
-      jsonLogger.info("Return string", {full:parsed.pathname + queryString})
-      return parsed.pathname + queryString
+      const returnPath = [parsed.pathname,queryString].join("/")
+      jsonLogger.info("Return string", {full:returnPath})
+      return returnPath
       }
     }
     // proxyReq.session.state = parsed.searchParams.get("state") || "StateNotFound"
