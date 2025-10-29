@@ -1,19 +1,15 @@
 import express from "express"
 import url from "url"
 import urljoin from "url-join"
-
-import { Redis } from "ioredis"
+import {createProxyMiddleware} from "http-proxy-middleware"
+import redis from "../setup/redis.js"
 import { CLIENT_ID, HYDRA_CONFIG } from "../setup/hydra.js"
 import {generateCsrfToken, HYDRA_URL, CLAUDE_CLIENT_ID, appConfig} from "../config.js"
 import { CLAUDE_REDIRECT_URL } from "../authFlow.js"
 import jsonLogger from "../logging.js"
 const router = express.Router()
-const redis = new Redis({
-  host: appConfig.redisHost,
-  port: appConfig.redisPort,
-}
 
-)
+
 router.get('/auth', async (req, res) => {
   const {
     client_id,
@@ -51,8 +47,8 @@ router.get('/auth', async (req, res) => {
   hydraAuthUrl.searchParams.set('redirect_uri', CLAUDE_REDIRECT_URL);
   hydraAuthUrl.searchParams.set('scope', "openid profile email offline");
   hydraAuthUrl.searchParams.set('state', sessionId); // Use your session ID
-  hydraAuthUrl.searchParams.set('code_challenge', String(code_challenge) || "NoChallenge")
-  hydraAuthUrl.searchParams.set('code_challenge_method', String(code_challenge_method) || "NoChallengeMethod")
+  // hydraAuthUrl.searchParams.set('code_challenge', String(code_challenge) || "NoChallenge")
+  // hydraAuthUrl.searchParams.set('code_challenge_method', String(code_challenge_method) || "NoChallengeMethod")
   jsonLogger.info("sending to hydra", {request:hydraAuthUrl})
   res.redirect(hydraAuthUrl.toString());
 });
