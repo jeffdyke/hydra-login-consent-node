@@ -4,7 +4,6 @@ import jsonLogger from "../logging.js"
 import redis from "./redis.js"
 import { NextFunction, Response, Request } from "express"
 
-
 const proxyOptions = {
   target: process.env.HYDRA_PUBLIC_URL,
   changeOrigin: true,

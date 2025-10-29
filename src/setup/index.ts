@@ -21,7 +21,19 @@ const {
   },
 });
 
-export {generateCsrfToken}
+interface RedisPKCE {
+  code_challenge:string
+  code_challenge_method:string
+  scope: string
+  state: string
+  redirect_uri: string
+  client_id: string
+  timestamp:number
+}
+
+
+export {generateCsrfToken, RedisPKCE}
+
 // const configureCSRF = (app: express.Application) => {
 //   app.use(doubleCsrfProtection);
 //   app.use((req, res, next) => {

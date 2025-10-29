@@ -2,8 +2,9 @@ import express from "express"
 import { HYDRA_CONFIG } from "../setup/hydra.js"
 import jsonLogger  from "../logging.js"
 import { CodeChallengeMethod } from "google-auth-library"
-
+import redis from "../setup/redis.js"
 const router = express.Router()
+import { RedisPKCE } from "../setup/index.js"
 router.get("/", async (req, res) => {
   const { consent_challenge } = req.query;
   const consentInfo = await fetch(
@@ -17,11 +18,18 @@ router.get("/", async (req, res) => {
   });
 
   if (req.session) {
-
+    const logRedis = await redis.get(`pkce_session:${req.session.id}`).then(resp => {
+      const asO: RedisPKCE = JSON.parse(resp || "")
+      return asO
+    }).catch(err => {
+      jsonLogger.error("could not fetch data from redis", {error:err})
+      return {}
+    })
     jsonLogger.info("Session data in consent", {
       challenge:req.session.codeChallenge,
       method:req.session.codeChallengeMethod,
-      state:req.session.state
+      state:req.session.state,
+      redisData:logRedis
     })
   }
 
