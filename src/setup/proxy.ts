@@ -20,9 +20,12 @@ const proxyOptions = {
         scope
       } = req.query;
       if (code_challenge != undefined && state != undefined) {
-        const sessionId = crypto.randomUUID();
-
-        redis.set(`pkce_session:${req.session.id}`, JSON.stringify({
+        const sessionId = req.session.pkceKey;
+        if (sessionId == undefined) {
+          new Error("could not find a session to set pkceSession")
+          return
+        }
+        redis.set(sessionId, JSON.stringify({
           code_challenge,
           code_challenge_method,
           client_id,
@@ -31,9 +34,9 @@ const proxyOptions = {
           state,
           timestamp: Date.now()
         })).then(resp => {
-          jsonLogger.info("Set redis key", {key:`pkce_session:${req.session.id}`, resp:resp})
+          jsonLogger.info("Set redis key", {key:`pkce_session:${req.session.pkceKey}`, resp:resp})
         }).catch(err => {
-          jsonLogger.error("Failed to set redis key", {key:`pkce_session:${req.session.id}`, error:err})
+          jsonLogger.error("Failed to set redis key", {key:`pkce_session:${req.session.pkceKey}`, error:err})
         });
       }
       const queryString = new URLSearchParams(parsed.searchParams.toString());

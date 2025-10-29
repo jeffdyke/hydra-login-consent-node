@@ -6,5 +6,6 @@ declare module "express-session" {
     codeVerifier?: string | undefined
     codeChallenge?: string | undefined
     codeChallengeMethod: string | undefined
+    pkceKey: string | undefined
   }
 }
