@@ -14,13 +14,17 @@ router.get("/", async (req, res) => {
     jsonLogger.error("caught error requesting consentInfo", {e:err})
     res.status(400).render(`Failed to get consent info ${err}`)
   });
-  // First request goes directly to hydra, need to fetch the session items
-  const forState = new URL(consentInfo.request_url)
-  req.session.state = forState.searchParams.get("state") || "State Not found In Parsed"
-  req.session.codeChallenge = forState.searchParams.get("code_challenge") || "Challenge Not Found"
-  req.session.codeChallengeMethod = forState.searchParams.get("code_challenge_method") || "Method not found"
 
-  jsonLogger.info("Consent info ", {referrer:forState.searchParams.get("state")})
+  if (req.session) {
+    jsonLogger.info("Session data in consent", {data:req.session})
+  }
+  // First request goes directly to hydra, need to fetch the session items
+  // const forState = new URL(consentInfo.request_url)
+  // req.session.state = forState.searchParams.get("state") || "State Not found In Parsed"
+  // req.session.codeChallenge = forState.searchParams.get("code_challenge") || "Challenge Not Found"
+  // req.session.codeChallengeMethod = forState.searchParams.get("code_challenge_method") || "Method not found"
+
+  //jsonLogger.info("Consent info ", {referrer:forState.searchParams.get("state")})
   const acceptResponse = await fetch(
     `${HYDRA_CONFIG.basePath}/admin/oauth2/auth/requests/consent/accept?challenge=${consent_challenge}`,
     {
@@ -44,12 +48,12 @@ router.get("/", async (req, res) => {
     jsonLogger.error("caught error in PUT to consent accept", {e:err})
     res.status(400).render(`Failed to get consent info ${err}`)
   });
-  jsonLogger.info("Client data", {
-    grant:consentInfo.client.grant_types,
-    responseTypes:consentInfo.client.response_types,redirectUris:
-    consentInfo.client.redirect_uris
-  })
-  jsonLogger.info("acceptResponse with consentInfo", {resp:acceptResponse,consent:consentInfo})
+  // jsonLogger.info("Client data", {
+  //   grant:consentInfo.client.grant_types,
+  //   responseTypes:consentInfo.client.response_types,redirectUris:
+  //   consentInfo.client.redirect_uris
+  // })
+  // jsonLogger.info("acceptResponse with consentInfo", {resp:acceptResponse,consent:consentInfo})
 
   const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
   googleAuthUrl.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID || "");

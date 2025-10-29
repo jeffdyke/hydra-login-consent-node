@@ -108,10 +108,10 @@ router.post("/", async (req, res) => {
   const existing = await getClient(CLAUDE_CLIENT_ID).then(c => {
     jsonLogger.info("Client exists", {clientId:CLAUDE_CLIENT_ID})
     let auth = googleAuthUrl(internalPost.scope, req.session.state || "").then(authUrl => {
-      jsonLogger.info("redirecting to google", {url:authUrl,state:req.session.state})
+      //jsonLogger.info("redirecting to google", {url:authUrl,state:req.session.state})
       res.redirect(authUrl)
     }).catch(errA => {
-      jsonLogger.info("caught an error creating authUril", {e: errA})
+      jsonLogger.info("caught an error creating authUri", {e: errA})
     })
     return auth
   }).catch(err => {
