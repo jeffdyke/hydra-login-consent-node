@@ -56,7 +56,7 @@ class StagingAppConfig implements AppConfigI {
 //   secure: boolean = true
 //   googleClientId?: string | undefined = process.env.GOOGLE_CLIENT_ID;
 //   googleClientSecret?: string | undefined = process.env.GOOGLE_CLIENT_SECRET
-//   claudeRedirectUri: string = "http://claude.ai/api/mcp/auth_callback"
+//   claudeRedirectUri: string = "https://claude.ai/api/mcp/auth_callback"
 
 // }
 const appConfig = (httpOnly) ? new DevAppConfig() : new StagingAppConfig()

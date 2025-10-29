@@ -42,7 +42,18 @@ router.head('/', (req, res) => {
   res.set('X-BondLink-Special', 'Head-Only-Value');
   res.status(204).end();
 });
-
+function authPost(data:ParseAuthRequest): URL {
+  const authUrl = new URL(`${HYDRA_URL}/oauth2/auth`)
+  jsonLogger.info("authUrl", authUrl)
+  authUrl.searchParams.append("client_id", data.clientId)
+  authUrl.searchParams.append("redirect_uri", data.redirectUri)
+  authUrl.searchParams.append("response_type", data.responseType)
+  authUrl.searchParams.append("scope", data.scope)
+  authUrl.searchParams.append("state", data.state)
+  authUrl.searchParams.append("code_challenge", data.codeChallenge)
+  authUrl.searchParams.append("code_challenge_method", "S256")
+  return authUrl
+}
 // This endpoint is rather useless, needs to be updated after the claude flow is complete
 router.get("/", (req, res) => {
   jsonLogger.info("At root for local testing")
@@ -72,7 +83,7 @@ router.get("/", (req, res) => {
 
   jsonLogger.info("Auth request - Index", {request:postData})
   // Redirect to Hydra for authorization
-
+  res.redirect(authPost(postData).toString())
 })
 
 router.post("/", async (req, res) => {
