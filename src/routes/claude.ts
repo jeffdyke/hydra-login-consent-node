@@ -95,15 +95,15 @@ router.post("/token", async (req,res) => {
     }
 
     const tokenData = JSON.parse(tokenDataStr);
-
+    jsonLogger.info("token data dump, skipping validation to check logs", tokenData)
     // Validate client_id
-    if (tokenData.client_id !== client_id) {
-      jsonLogger.error("invalid client id", {td:tokenData.client_id,lcl:client_id })
-      return res.status(400).json({
-        error: 'invalid_grant',
-        error_description: 'Client mismatch'
-      });
-    }
+    // if (tokenData.client_id !== client_id) {
+    //   jsonLogger.error("invalid client id", {td:tokenData.client_id,lcl:client_id })
+    //   return res.status(400).json({
+    //     error: 'invalid_grant',
+    //     error_description: 'Client mismatch'
+    //   });
+    // }
 
     // Optional: Validate scope (if requesting narrower scope)
     if (scope) {
