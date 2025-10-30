@@ -79,13 +79,13 @@ router.post("/token", async (req,res) => {
       });
     }
     const tokenDataStr = await redis.get(`refresh_token:${refresh_token}`).then(resp => {
-      jsonLogger.info("found tokenDataStr ", {key:`refresh_token:${refresh_token}`})
+      jsonLogger.info("found tokenDataStr ", {key:`refresh_token:${refresh_token}`, resp:resp})
       return resp
     }).catch((err) => {
       jsonLogger.error("error fetching refresh_token", {query:`refresh_token:${refresh_token}`})
       return err.message.data
     })
-
+    jsonLogger.info("tokenDataStr is ", {r: tokenDataStr})
     if (tokenDataStr) {
       jsonLogger.error("Token data string")
       return res.status(400).json({
@@ -126,7 +126,7 @@ router.post("/token", async (req,res) => {
       jsonLogger.error("Failed to fetch a refresh token", {token:tokenData, error:err})
     })
 
-    const newGoogleTokens = payload.access_token || tokenData.google_refresh_toke
+    const newGoogleTokens = payload.access_token || tokenData.google_refresh_token
     if (newGoogleTokens.error) {
       // Google refresh token is invalid or expired
       await redis.del(`refresh_token:${refresh_token}`);
