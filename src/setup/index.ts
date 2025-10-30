@@ -50,9 +50,23 @@ interface RedisPKCE {
   client_id: string
   timestamp:number
 }
+interface RedisRefreshToken {
+  client_id: string,
+  google_refresh_token: string,
+  scope: string,
+  subject: string,
+  created_at:number
+}
+interface GoogleTokenResponse {
+  access_token: string;
+  expires_in: number;
+  scope: string;
+  token_type: string;
+  id_token?: string; // Optional, depending on the requested scopes and flow
+  refresh_token?: string; // Optional, if a refresh token is issued
+}
 
-
-export {generateCsrfToken, RedisPKCE, validatePKCE}
+export {generateCsrfToken, RedisPKCE, validatePKCE, RedisRefreshToken, GoogleTokenResponse}
 
 // const configureCSRF = (app: express.Application) => {
 //   app.use(doubleCsrfProtection);

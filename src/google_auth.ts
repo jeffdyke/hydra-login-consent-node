@@ -8,6 +8,7 @@ import {OAuth2Client, TokenPayload } from 'google-auth-library';
 import jsonLogger  from "./logging.js"
 import { CLAUDE_REDIRECT_URL } from './authFlow.js';
 import {appConfig, CLAUDE_CLIENT_ID} from "./config.js"
+import { RedisRefreshToken } from './setup/index.js';
 dotenv.config()
 
 Configuration({
@@ -100,6 +101,27 @@ async function googleOAuthTokens(code: string, redirectUrl:string = CLAUDE_REDIR
   return tokenResponse
 }
 
+async function googleRefreshResponse(refreshToken:string): Promise<any> {
+  const params = new URLSearchParams()
+  params.append("grant_type","refresh_token")
+  params.append("refresh_token", refreshToken)
+  params.append("client_id", appConfig.googleClientId || "")
+  params.append("client_secret", appConfig.googleClientSecret || "")
+
+  const resp = await axios.post('https://oauth2.googleapis.com/token', {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params
+      }).then((resp) => {
+        jsonLogger.info("got response", {r:resp})
+        return resp
+      }).catch((err) => {
+        jsonLogger.error("Failed to fetch refresh token", params)
+        return err.response.data
+      });
+
+  return resp.json();
+  }
+
 
 async function getGoogleUser(access_token: string, id_token: string): Promise<UserInfo> {
   const url = `https://www.googleapis.com/oauth2/v2/userinfo?alt=json&access_token=${access_token}`;
@@ -143,4 +165,4 @@ async function googleTokenResponse(code: string, redirectUrl: string = CLAUDE_RE
     return tokenResponse
   }
 
-export { googleOAuthTokens, getGoogleUser, googleTokenResponse, googleAuthUrl }
+export { googleOAuthTokens, getGoogleUser, googleTokenResponse, googleAuthUrl, googleRefreshResponse }
