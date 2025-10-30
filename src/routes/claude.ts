@@ -78,9 +78,16 @@ router.post("/token", async (req,res) => {
         error_description: 'client_id required'
       });
     }
-    const tokenDataStr = await redis.get(`refresh_token:${refresh_token}`);
+    const tokenDataStr = await redis.get(`refresh_token:${refresh_token}`).then(resp => {
+      jsonLogger.info("found tokenDataStr ", {key:`refresh_token:${refresh_token}`})
+      return resp
+    }).catch((err) => {
+      jsonLogger.error("error fetching refresh_token", {query:`refresh_token:${refresh_token}`})
+      return err.message.data
+    })
 
-    if (!tokenDataStr) {
+    if (tokenDataStr) {
+      jsonLogger.error("Token data string")
       return res.status(400).json({
         error: 'invalid_grant',
         error_description: 'Invalid or expired refresh token'
@@ -91,6 +98,7 @@ router.post("/token", async (req,res) => {
 
     // Validate client_id
     if (tokenData.client_id !== client_id) {
+      jsonLogger.error("invalid client id", {td:tokenData.client_id,lcl:client_id })
       return res.status(400).json({
         error: 'invalid_grant',
         error_description: 'Client mismatch'
@@ -104,6 +112,7 @@ router.post("/token", async (req,res) => {
 
       const hasAllScopes = requestedScopes.every((s:string) => grantedScopes.includes(s));
       if (!hasAllScopes) {
+        jsonLogger.error("invalid scope", {req:requestedScopes,granted:grantedScopes })
         return res.status(400).json({
           error: 'invalid_scope',
           error_description: 'Requested scope exceeds granted scope'

@@ -16,7 +16,6 @@ router.get("/", async (req, res) => {
     res.status(400).render(`Failed to get consent info ${err}`)
   });
 
-  //jsonLogger.info("Consent info ", {referrer:forState.searchParams.get("state")})
   const acceptResponse = await fetch(
     `${HYDRA_CONFIG.basePath}/admin/oauth2/auth/requests/consent/accept?challenge=${consent_challenge}`,
     {
@@ -34,18 +33,12 @@ router.get("/", async (req, res) => {
       })
     }
   ).then(r => {
-    // jsonLogger.info("acceptResponse returned ", {resp:r})
     return r
   }).catch(err => {
     jsonLogger.error("caught error in PUT to consent accept", {e:err})
     res.status(400).render(`Failed to get consent info ${err}`)
   });
-  // jsonLogger.info("Client data", {
-  //   grant:consentInfo.client.grant_types,
-  //   responseTypes:consentInfo.client.response_types,redirectUris:
-  //   consentInfo.client.redirect_uris
-  // })
-  jsonLogger.info("session at the end of consent", {sess:req.session})
+
   const clientOauth = await fetchPkce(req)
 
   jsonLogger.info("Client Oauth Creds", {creds: clientOauth})
