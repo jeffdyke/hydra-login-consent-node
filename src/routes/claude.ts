@@ -6,7 +6,7 @@ import redis from "../setup/redis.js"
 import { validatePKCE } from "../setup/index.js"
 import {generateCsrfToken, HYDRA_URL, CLAUDE_CLIENT_ID, appConfig} from "../config.js"
 import { CLAUDE_REDIRECT_URL } from "../authFlow.js"
-import { fetchPkce } from "../setup/pkce-redis.js"
+import { fetchPkce,pkceRedisKey } from "../setup/pkce-redis.js"
 import jsonLogger from "../logging.js"
 const router = express.Router()
 
@@ -67,7 +67,13 @@ router.post("/token", async (req,res) => {
   const authData = JSON.parse(authDataStr || "")
   const jsonPkce = await fetchPkce(req)
   jsonLogger.info("Json result ", {res:jsonPkce, request:req.session.pkceKey})
+  /**
+   * clean up one time, this is the end, fail or not
+   */
   await redis.del(`auth_code:${authCode}`);
+  await redis.del(pkceRedisKey(req))
+  delete req.session.pkceKey
+
   const isValidPKCE = validatePKCE(
     params.code_verifier,
     jsonPkce.code_challenge,

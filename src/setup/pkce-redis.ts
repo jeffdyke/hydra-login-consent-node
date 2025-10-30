@@ -24,5 +24,6 @@ async function rawPkce(req:Request): Promise<null | string> {
 export {
   fetchPkce,
   pkceSessionPrefix,
-  rawPkce
+  rawPkce,
+  pkceRedisKey
 }
