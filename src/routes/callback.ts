@@ -1,10 +1,9 @@
 import express from "express"
-import { googleTokenResponse,googleOAuthTokens } from "../google_auth.js"
+import { googleOAuthTokens } from "../google_auth.js"
 import jsonLogger  from "../logging.js"
 import {appConfig} from "../config.js"
-import axios from "../middleware/axios.js"
 import { fetchPkce } from "../setup/pkce-redis.js"
-import {CLIENT_ID, HYDRA_CONFIG} from "../setup/hydra.js"
+import {CLIENT_ID} from "../setup/hydra.js"
 import * as crypto from 'crypto';
 const router = express.Router()
 import redis from "../setup/redis.js"
@@ -57,14 +56,15 @@ router.get("/", async (req, res) => {
       created_at: Date.now()
     }), 'EX', 300);
 
-    jsonLogger.info("Calling claude with a new authCode and the original state", {auth:authCode,claudeState:pkceData.state})
+    jsonLogger.info("Calling claude with a new authCode and the original state", {auth:authCode,claudeState:pkceData.state,pkceKey:req.session.pkceKey})
     const claudeCallback = new URL(pkceData.redirect_uri);
     claudeCallback.searchParams.set('code', authCode);
     claudeCallback.searchParams.set('state', pkceData.state);
 
     res.redirect(claudeCallback.toString());
 
-    // Below needs to come into the flow, i think claude will request token, and i need to create middleware for it
+    // Below is no longer needed, commenting out to ensure its not firing
+
     // --------------------------------------------------------
     // TODO why doesn't this return a state
     // if (returnedState !== storedState) {
@@ -72,41 +72,41 @@ router.get("/", async (req, res) => {
     //   return
     // }
     // Not sure this should be auto generated
-    let body = new URLSearchParams({
-          grant_type: "authorization_code",
-          code: code as string,
-          redirect_uri: appConfig.claudeRedirectUri,
-          client_id: createClientId,
-          code_verifier: codeChallenge ?? "",
-          state: pkceData.state ?? "",
-        })
-    // Exchange code for tokens WITH code_verifier
-    axios.post(`${process.env.HYDRA_URL}/oauth2/token`, body.toString(), {
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    }).then(data => {
-        jsonLogger.info("Post Success", {response: data, state: pkceData.state, verifier: pkceData.code_challenge})
-        // Clear stored values from session
-        // TODO, should all off the redis key be deleted, perhaps exchange for an authenticated
-        if (req.session) {
-          delete req.session.codeChallenge
-          delete req.session.state
-        }
-        const resp = googleTokenResponse(code as string)
+    // let body = new URLSearchParams({
+    //       grant_type: "authorization_code",
+    //       code: code as string,
+    //       redirect_uri: appConfig.claudeRedirectUri,
+    //       client_id: createClientId,
+    //       code_verifier: codeChallenge ?? "",
+    //       state: pkceData.state ?? "",
+    //     })
+    // // Exchange code for tokens WITH code_verifier
+    // axios.post(`${process.env.HYDRA_URL}/oauth2/token`, body.toString(), {
+    //     headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    // }).then(data => {
+    //     jsonLogger.info("Post Success", {response: data, state: pkceData.state, verifier: pkceData.code_challenge})
+    //     // Clear stored values from session
+    //     // TODO, should all off the redis key be deleted, perhaps exchange for an authenticated
+    //     if (req.session) {
+    //       delete req.session.codeChallenge
+    //       delete req.session.state
+    //     }
+    //     const resp = googleTokenResponse(code as string)
 
-        let jsonOut = JSON.stringify(resp, null, 2)
-        res.render(
-          'callback', {
-            pageTitle: 'Callback Results',
-            pageData: jsonOut
-          }
+    //     let jsonOut = JSON.stringify(resp, null, 2)
+    //     res.render(
+    //       'callback', {
+    //         pageTitle: 'Callback Results',
+    //         pageData: jsonOut
+    //       }
 
-        )
-        // Send response to client
-        // res.send(JSON.stringify(data, null, 2))
-      })
-      .catch((err) => {
-        res.status(500).send(`Error Caught in callback: ${err.message} with body ${body}`)
-      })
+    //     )
+    //     // Send response to client
+    //     // res.send(JSON.stringify(data, null, 2))
+    //   })
+    //   .catch((err) => {
+    //     res.status(500).send(`Error Caught in callback: ${err.message} with body ${body}`)
+    //   })
   } else {
     jsonLogger.info("Missing code session ", {code:code, session:JSON.stringify(req.session)})
     res.status(400).send("Missing code or session ")
