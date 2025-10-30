@@ -53,7 +53,7 @@ const router = express.Router()
 // });
 
 // This can fail in at least 5 ways, handle them
-router.post("/oauth2/token", async (req,res) => {
+router.post("/token", async (req,res) => {
   const params = req.body
 
   if (params.grant_type !== 'authorization_code') {
