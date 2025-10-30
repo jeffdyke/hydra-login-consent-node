@@ -6,51 +6,9 @@ import redis from "../setup/redis.js"
 import { validatePKCE } from "../setup/index.js"
 import {generateCsrfToken, HYDRA_URL, CLAUDE_CLIENT_ID, appConfig} from "../config.js"
 import { CLAUDE_REDIRECT_URL } from "../authFlow.js"
-import { fetchPkce,pkceRedisKey } from "../setup/pkce-redis.js"
+import { pkceStateByKey } from "../setup/pkce-redis.js"
 import jsonLogger from "../logging.js"
 const router = express.Router()
-
-
-// router.get('/auth', async (req, res) => {
-//   const {
-//     client_id,
-//     redirect_uri,
-//     state,
-//     code_challenge,        // From Claude - YOU will validate this
-//     code_challenge_method,
-//     scope
-//   } = req.query;
-//   jsonLogger.info("code and method", {code:code_challenge,meth:code_challenge_method})
-//   // Validate PKCE parameters
-//   if (!code_challenge || code_challenge_method !== 'S256') {
-//     return res.status(400).json({
-//       error: 'invalid_request ---',
-//       error_description: 'PKCE required ---'
-//     });
-//   }
-
-//   await redis.set(`pkce_session:${req.session.pkceKey}`, JSON.stringify({
-//     code_challenge,
-//     code_challenge_method,
-//     client_id,
-//     redirect_uri,
-//     scope,
-//     state,
-//     timestamp: Date.now()
-//   }));
-//   jsonLogger.info("Session stored")
-//   // Now start Hydra flow WITHOUT PKCE (Hydra doesn't need to know about it)
-//   const hydraAuthUrl = new URL(`${appConfig.hydraInternalUrl}/oauth2/auth`);
-//   hydraAuthUrl.searchParams.set('client_id', CLIENT_ID);
-//   hydraAuthUrl.searchParams.set('response_type', 'code');
-//   hydraAuthUrl.searchParams.set('redirect_uri', CLAUDE_REDIRECT_URL);
-//   hydraAuthUrl.searchParams.set('scope', "openid profile email offline");
-//   hydraAuthUrl.searchParams.set('state', req.session.id); // Use your session ID
-//   // hydraAuthUrl.searchParams.set('code_challenge', String(code_challenge) || "NoChallenge")
-//   // hydraAuthUrl.searchParams.set('code_challenge_method', String(code_challenge_method) || "NoChallengeMethod")
-//   jsonLogger.info("sending to hydra", {request:hydraAuthUrl})
-//   res.redirect(hydraAuthUrl.toString());
-// });
 
 // This can fail in at least 5 ways, handle them
 router.post("/token", async (req,res) => {
@@ -63,22 +21,20 @@ router.post("/token", async (req,res) => {
   }
   const authCode = params.code
   const authDataStr = await redis.get(`auth_code:${authCode}`)
-  jsonLogger.info("lost session", {sess:req.session})
+
   jsonLogger.info("Json result ", {res:authDataStr, request:`auth_code:${authCode}`, pKey:req.session.pkceKey})
   const authData = JSON.parse(authDataStr || "")
-  const jsonPkce = await fetchPkce(req)
-  jsonLogger.info("Json result ", {res:jsonPkce, request:req.session.pkceKey})
+  const pkceState = await pkceStateByKey(`auth_code_state:${authCode}`)
+  jsonLogger.info("Json result ", {res:pkceState, req:`auth_code_state:${authCode}`})
   /**
    * clean up one time, this is the end, fail or not
    */
   await redis.del(`auth_code:${authCode}`);
-  await redis.del(pkceRedisKey(req))
-  delete req.session.pkceKey
-
+  await redis.del(`auth_code_state:${authCode}`)
   const isValidPKCE = validatePKCE(
     params.code_verifier,
-    jsonPkce.code_challenge,
-    jsonPkce.code_challenge_method
+    pkceState.code_challenge,
+    pkceState.code_challenge_method
   )
   if (!isValidPKCE) {
     return res.status(400).json({
