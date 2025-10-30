@@ -41,14 +41,7 @@ app.use(
     proxy: true
   })
 )
-// app.use((req,res,next) => {
-//   if (req.session && req.session.pkceKey == undefined) {
-//     req.session.pkceKey = crypto.randomUUID()
-//   } else {
-//     jsonLogger.warn("Didn't create key", {val:req.session.pkceKey})
-//   }
-//   next()
-// })
+
 app.use("/oauth2/auth", proxyMiddleware)
 //This is required before body parser
 
