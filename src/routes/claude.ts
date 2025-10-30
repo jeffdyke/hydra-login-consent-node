@@ -4,7 +4,7 @@ import { GoogleTokenResponse, RedisRefreshToken, validatePKCE } from "../setup/i
 import { TokenPayload } from 'google-auth-library';
 import { pkceStateByKey } from "../setup/pkce-redis.js"
 import jsonLogger from "../logging.js"
-import * as crypto from 'crypto';
+import hash from "stable-hash"
 import { googleRefreshResponse } from "../google_auth.js"
 const router = express.Router()
 
@@ -46,9 +46,9 @@ router.post("/token", async (req,res) => {
       subject: authData.subject || "user",
       created_at: Date.now()
     }
-
+    const refreshTokenHash = hash.stableHash(authData.google_tokens.refresh_token)
     //const claudeRefreshToken = crypto.randomBytes(32).toString('base64url');
-    await redis.set(`refresh_token:${authData.google_tokens.refresh_token}`,
+    await redis.set(`refresh_token:${refreshTokenHash}`,
       JSON.stringify(refreshToken),
       'EX',
       60 * 60 * 24 * 30
@@ -80,11 +80,13 @@ router.post("/token", async (req,res) => {
         error_description: 'client_id required'
       });
     }
-    const tokenDataStr = await redis.get(`refresh_token:${refresh_token}`).then(resp => {
-      jsonLogger.info("found tokenDataStr ", {key:`refresh_token:${refresh_token}`, resp:resp})
+    const fetchName = `refresh_token:${hash.stableHash(refresh_token)}`
+
+    const tokenDataStr = await redis.get(fetchName).then(resp => {
+      jsonLogger.info("found tokenDataStr ", {key:fetchName, resp:resp})
       return resp
     }).catch((err) => {
-      jsonLogger.error("error fetching refresh_token", {query:`refresh_token:${refresh_token}`})
+      jsonLogger.error("error fetching refresh_token", {query:fetchName})
       return err.message.data
     })
     jsonLogger.info("tokenDataStr is ", {r: tokenDataStr})
