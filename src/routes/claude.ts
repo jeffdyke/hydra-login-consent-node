@@ -95,7 +95,7 @@ router.post("/token", async (req,res) => {
     }
 
     const tokenData = JSON.parse(tokenDataStr);
-    jsonLogger.info("token data dump, skipping validation to check logs", tokenData)
+    jsonLogger.info("token data dump, skipping validation to check logs", {data:tokenData,s:tokenDataStr})
     // Validate client_id
     // if (tokenData.client_id !== client_id) {
     //   jsonLogger.error("invalid client id", {td:tokenData.client_id,lcl:client_id })
