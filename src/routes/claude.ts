@@ -42,7 +42,7 @@ router.post("/token", async (req,res) => {
     const refreshToken:RedisRefreshToken = {
       client_id: pkceState.client_id,
       google_refresh_token: authData.google_tokens.tokens.refresh_token,
-      scope: authData.google_tokens.scope,
+      scope: authData.google_tokens.tokens.scope,
       subject: authData.subject || "user",
       created_at: Date.now()
     }
@@ -63,7 +63,7 @@ router.post("/token", async (req,res) => {
       token_type: 'Bearer',
       expires_in: authData.google_tokens.tokens.expires_in,
       refresh_token: authData.google_tokens.tokens.refresh_token,
-      scope: authData.google_tokens.scope
+      scope: authData.google_tokens.tokens.scope
     });
   } else if (params.grant_type == "refresh_token") {
     const { refresh_token, client_id, scope } = req.body;
