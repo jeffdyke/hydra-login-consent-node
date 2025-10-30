@@ -1,12 +1,13 @@
 import express from "express"
-import { googleTokenResponse } from "../google_auth.js"
+import { googleTokenResponse,googleOAuthTokens } from "../google_auth.js"
 import jsonLogger  from "../logging.js"
 import {appConfig} from "../config.js"
 import axios from "../middleware/axios.js"
 import { fetchPkce } from "../setup/pkce-redis.js"
-import {CLIENT_ID} from "../setup/hydra.js"
-
+import {CLIENT_ID, HYDRA_CONFIG} from "../setup/hydra.js"
+import * as crypto from 'crypto';
 const router = express.Router()
+import redis from "../setup/redis.js"
 
 router.get("/", async (req, res) => {
   const code = req.query.code
@@ -35,6 +36,36 @@ router.get("/", async (req, res) => {
         codeChallenge: codeChallenge,
       }
     )
+
+    /**
+     * call to google, get tokens for this session
+     * create a new authCode, which will be for claude to validate
+     * along with its original state sent into /oauth2/auth
+     * store it in redis, to handle Claude's next call to confirm the token,
+     * which has to go through hydra
+     */
+    const googleTokens = await googleOAuthTokens(code as string, appConfig.middlewareRedirectUri).then(resp => {
+      jsonLogger.info("GoogleTokens", {resp:resp})
+      return resp
+    }).catch(err => {
+      res.status(400).send(`Google token request failed with ${err}`)
+    })
+    const authCode = crypto.randomBytes(32).toString('base64url')
+    await redis.set(`auth_code:${authCode}`, JSON.stringify({
+      google_tokens: googleTokens,
+      session_id: req.session.pkceKey,
+      created_at: Date.now()
+    }), 'EX', 300);
+
+    jsonLogger.info("Calling claude with a new authCode and the original state", {auth:authCode,claudeState:pkceData.state})
+    const claudeCallback = new URL(pkceData.redirect_uri);
+    claudeCallback.searchParams.set('code', authCode);
+    claudeCallback.searchParams.set('state', pkceData.state);
+
+    res.redirect(claudeCallback.toString());
+
+    // Below needs to come into the flow, i think claude will request token, and i need to create middleware for it
+    // --------------------------------------------------------
     // TODO why doesn't this return a state
     // if (returnedState !== storedState) {
     //   res.status(400).send("State mismatch - possible CSRF attack")
