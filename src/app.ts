@@ -49,7 +49,7 @@ app.use((req,res,next) => {
   }
   next()
 })
-app.use("/oauth2", proxyMiddleware)
+app.use("/oauth2/auth", proxyMiddleware)
 //This is required before body parser
 
 app.use(bodyParser.json())

@@ -46,11 +46,8 @@ const proxyOptions = {
       const returnPath = [parsed.pathname,queryString].join("?")
       jsonLogger.info("sending to hydra", {path:returnPath})
       return returnPath
-      }
     }
-    // proxyReq.session.state = parsed.searchParams.get("state") || "StateNotFound"
-    // proxyReq.session.codeVerifier = parsed.searchParams.get("code_challenge") || "ChallengeNotFound"
-    // jsonLogger.info("proxy request", {state:proxyReq.session.state,challenge:proxyReq.session.codeVerifier})
+  }
 }
 
 export default createProxyMiddleware(proxyOptions)
