@@ -23,7 +23,8 @@ router.get("/", async (req, res) => {
       sessionState:req.session.state,
       redisState:pkceData.state,
       sessionCodeChallenge:req.session.codeChallenge,
-      redisCodeChallenge:pkceData.code_challenge
+      redisCodeChallenge:pkceData.code_challenge,
+      pkceKey:req.session.pkceKey
 
   })
     const storedState = pkceData.state
