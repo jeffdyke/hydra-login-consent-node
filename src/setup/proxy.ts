@@ -14,7 +14,7 @@ const proxyOptions = {
     if (parsed.pathname == "/oauth2/auth") {
       const sessionId = crypto.randomUUID()
       jsonLogger.info("Current session data ", {id:req.session.id, pkce:req.session.pkceKey})
-      req.session.pkceKey = sessionId
+      req.session.pkceKey = req.session.pkceKey || sessionId
       const {
         client_id,
         redirect_uri,
@@ -25,7 +25,7 @@ const proxyOptions = {
       } = req.query;
       if (code_challenge != undefined && state != undefined) {
 
-        redis.set(`pkce_session:${sessionId}`, JSON.stringify({
+        redis.set(`pkce_session:${req.session.pkceKey}`, JSON.stringify({
           code_challenge,
           code_challenge_method,
           client_id,
@@ -34,7 +34,7 @@ const proxyOptions = {
           state,
           timestamp: Date.now()
         })).then(resp => {
-          jsonLogger.info("Set redis key", {key:`pkce_session:${req.session.pkceKey}`, staticKey:sessionId, resp:resp})
+          jsonLogger.info("Set redis key", {key:`pkce_session:${req.session.pkceKey}`, resp:resp})
         }).catch(err => {
           jsonLogger.error("Failed to set redis key", {key:`pkce_session:${req.session.pkceKey}`, error:err})
         });
