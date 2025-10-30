@@ -46,7 +46,7 @@ router.post("/token", async (req,res) => {
       subject: authData.subject || "user",
       created_at: Date.now()
     }
-    const refreshTokenHash = hash.stableHash(authData.google_tokens.refresh_token)
+    const refreshTokenHash = authData.google_tokens.refresh_token.toString('base64')
     //const claudeRefreshToken = crypto.randomBytes(32).toString('base64url');
     await redis.set(`refresh_token:${refreshTokenHash}`,
       JSON.stringify(refreshToken),
@@ -80,7 +80,7 @@ router.post("/token", async (req,res) => {
         error_description: 'client_id required'
       });
     }
-    const fetchName = `refresh_token:${hash.stableHash(refresh_token)}`
+    const fetchName = `refresh_token:${refresh_token.toString('base64')}`
 
     const tokenDataStr = await redis.get(fetchName).then(resp => {
       jsonLogger.info("found tokenDataStr ", {key:fetchName, resp:resp})
