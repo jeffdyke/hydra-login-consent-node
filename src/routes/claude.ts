@@ -1,10 +1,9 @@
 import express from "express"
 import redis from "../setup/redis.js"
-import { GoogleTokenResponse, RedisRefreshToken, validatePKCE } from "../setup/index.js"
+import { GoogleTokenResponse, RedisRefreshToken, validatePKCE, base64URLEncode } from "../setup/index.js"
 import { TokenPayload } from 'google-auth-library';
 import { pkceStateByKey } from "../setup/pkce-redis.js"
 import jsonLogger from "../logging.js"
-import hash from "stable-hash"
 import { googleRefreshResponse } from "../google_auth.js"
 const router = express.Router()
 
@@ -46,8 +45,8 @@ router.post("/token", async (req,res) => {
       subject: authData.subject || "user",
       created_at: Date.now()
     }
-    const refreshTokenHash = authData.google_tokens.refresh_token.toString('base64')
-    //const claudeRefreshToken = crypto.randomBytes(32).toString('base64url');
+    const refreshTokenHash = base64URLEncode(authData.google_tokens.refresh_token)
+
     await redis.set(`refresh_token:${refreshTokenHash}`,
       JSON.stringify(refreshToken),
       'EX',
@@ -80,7 +79,7 @@ router.post("/token", async (req,res) => {
         error_description: 'client_id required'
       });
     }
-    const fetchName = `refresh_token:${refresh_token.toString('base64')}`
+    const fetchName = `refresh_token:${base64URLEncode(refresh_token)}`
 
     const tokenDataStr = await redis.get(fetchName).then(resp => {
       jsonLogger.info("found tokenDataStr ", {key:fetchName, resp:resp})
