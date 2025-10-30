@@ -79,18 +79,35 @@ async function googleAuthUrl(scope: string, incomingState: string, redirectUrl: 
 }
 async function googleOAuthTokens(code: string, redirectUrl:string = CLAUDE_REDIRECT_URL): Promise<TokenPayload> {
 
-  const params = {code: code, client_id: CLAUDE_CLIENT_ID, redirect_url: redirectUrl, grant_type:"authorization_code"}
+  const params = {
+    code: code,
+    grant_type:"authorization_code"
+  }
   jsonLogger.info("Auth Token Request", {request: params});
+  const tokenResponse = await client.getToken(code)
+    .then((resp) => {
+      jsonLogger.info("Response is %s", resp)
+      return resp
+    })
+    .catch((err) => {
+      jsonLogger.error("Error fetching AuthCode", {
+        authCodeRequest:params,
+        error:err
+      }
+    )
+    return err.response.data
+  });
+  return tokenResponse
 
-  return await axios.post(
-      GOOGLE_TOKEN_URL,
-      params,
-      { headers: formHeader }
-    ).then((resp) => { jsonLogger.info("Response is %s", resp.data); return resp.data})
-    .catch((err) => { jsonLogger.error("Error fetching AuthCode", {
-      authCodeRequest:params,
-      error:err
-    }); return err.response.data });
+  // return await axios.post(
+  //     GOOGLE_TOKEN_URL,
+  //     params,
+  //     { headers: formHeader }
+  //   ).then((resp) => { jsonLogger.info("Response is %s", resp.data); return resp.data})
+  //   .catch((err) => { jsonLogger.error("Error fetching AuthCode", {
+  //     authCodeRequest:params,
+  //     error:err
+  //   }); return err.response.data });
 
 }
 
