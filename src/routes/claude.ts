@@ -47,12 +47,14 @@ router.post("/token", async (req,res) => {
       created_at: Date.now()
     }
 
-    const claudeRefreshToken = crypto.randomBytes(32).toString('base64url');
-    await redis.set(`refresh_token:${claudeRefreshToken}`,
+    //const claudeRefreshToken = crypto.randomBytes(32).toString('base64url');
+    await redis.set(`refresh_token:${authData.google_tokens.refresh_token}`,
       JSON.stringify(refreshToken),
       'EX',
       60 * 60 * 24 * 30
-    ); // 30 days
+    ).then((resp) => {
+      jsonLogger.info("Response for new refresh_token", resp)
+    }); // 30 days
 
 
     res.json({
