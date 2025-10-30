@@ -65,8 +65,14 @@ interface GoogleTokenResponse {
   id_token?: string; // Optional, depending on the requested scopes and flow
   refresh_token?: string; // Optional, if a refresh token is issued
 }
-
-export {generateCsrfToken, RedisPKCE, validatePKCE, RedisRefreshToken, GoogleTokenResponse}
+function base64URLEncode(buffer: Buffer): string {
+  return buffer
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "")
+}
+export {generateCsrfToken, RedisPKCE, validatePKCE, RedisRefreshToken, GoogleTokenResponse, base64URLEncode}
 
 // const configureCSRF = (app: express.Application) => {
 //   app.use(doubleCsrfProtection);
