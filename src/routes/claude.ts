@@ -46,9 +46,9 @@ router.post("/token", async (req,res) => {
       subject: authData.subject || "user",
       created_at: Date.now()
     }
-    jsonLogger.info("RefreshToken ", authData.google_tokens.tokens)
-    const refreshTokenHash = base64URLEncode(authData.google_tokens.tokens.refresh_token)
 
+    const refreshTokenHash = base64URLEncode(authData.google_tokens.tokens.refresh_token)
+    jsonLogger.info("RefreshToken ", {hash:refreshTokenHash, ...authData.google_tokens.tokens})
     await redis.set(`refresh_token:${refreshTokenHash}`,
       JSON.stringify(refreshToken),
       'EX',
@@ -61,8 +61,8 @@ router.post("/token", async (req,res) => {
     res.json({
       access_token: authData.google_tokens.access_token,
       token_type: 'Bearer',
-      expires_in: authData.google_tokens.expires_in,
-      refresh_token: authData.google_tokens.refresh_token,
+      expires_in: authData.google_tokens.tokens.expires_in,
+      refresh_token: authData.google_tokens.tokens.refresh_token,
       scope: authData.google_tokens.scope
     });
   } else if (params.grant_type == "refresh_token") {
