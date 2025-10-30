@@ -1,5 +1,6 @@
 import { doubleCsrf } from "csrf-csrf";
 import express from "express";
+import * as crypto from 'crypto';
 
 const XSRF_TOKEN_NAME = !process.env.BASE_URL?.startsWith("https") ? 'dev_xsrf_token' : 'xsrf_token'
 const httpOnly = !process.env.BASE_URL?.startsWith("https")
@@ -21,6 +22,25 @@ const {
   },
 });
 
+function validatePKCE(verifier:string, challenge:string, challengeMethod:string) {
+  if (challengeMethod !== 'S256') {
+    return false;
+  }
+
+  const hash = crypto
+    .createHash('sha256')
+    .update(verifier)
+    .digest();
+
+  const computedChallenge = hash
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+
+  return computedChallenge === challenge;
+}
+
 interface RedisPKCE {
   code_challenge:string
   code_challenge_method:string
@@ -32,7 +52,7 @@ interface RedisPKCE {
 }
 
 
-export {generateCsrfToken, RedisPKCE}
+export {generateCsrfToken, RedisPKCE, validatePKCE}
 
 // const configureCSRF = (app: express.Application) => {
 //   app.use(doubleCsrfProtection);

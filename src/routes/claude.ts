@@ -3,53 +3,89 @@ import url from "url"
 import urljoin from "url-join"
 import {createProxyMiddleware} from "http-proxy-middleware"
 import redis from "../setup/redis.js"
-import { CLIENT_ID, HYDRA_CONFIG } from "../setup/hydra.js"
+import { validatePKCE } from "../setup/index.js"
 import {generateCsrfToken, HYDRA_URL, CLAUDE_CLIENT_ID, appConfig} from "../config.js"
 import { CLAUDE_REDIRECT_URL } from "../authFlow.js"
+import { fetchPkce } from "../setup/pkce-redis.js"
 import jsonLogger from "../logging.js"
 const router = express.Router()
 
 
-router.get('/auth', async (req, res) => {
-  const {
-    client_id,
-    redirect_uri,
-    state,
-    code_challenge,        // From Claude - YOU will validate this
-    code_challenge_method,
-    scope
-  } = req.query;
-  jsonLogger.info("code and method", {code:code_challenge,meth:code_challenge_method})
-  // Validate PKCE parameters
-  if (!code_challenge || code_challenge_method !== 'S256') {
-    return res.status(400).json({
-      error: 'invalid_request ---',
-      error_description: 'PKCE required ---'
-    });
-  }
+// router.get('/auth', async (req, res) => {
+//   const {
+//     client_id,
+//     redirect_uri,
+//     state,
+//     code_challenge,        // From Claude - YOU will validate this
+//     code_challenge_method,
+//     scope
+//   } = req.query;
+//   jsonLogger.info("code and method", {code:code_challenge,meth:code_challenge_method})
+//   // Validate PKCE parameters
+//   if (!code_challenge || code_challenge_method !== 'S256') {
+//     return res.status(400).json({
+//       error: 'invalid_request ---',
+//       error_description: 'PKCE required ---'
+//     });
+//   }
 
-  await redis.set(`pkce_session:${req.session.pkceKey}`, JSON.stringify({
-    code_challenge,
-    code_challenge_method,
-    client_id,
-    redirect_uri,
-    scope,
-    state,
-    timestamp: Date.now()
-  }));
-  jsonLogger.info("Session stored")
-  // Now start Hydra flow WITHOUT PKCE (Hydra doesn't need to know about it)
-  const hydraAuthUrl = new URL(`${appConfig.hydraInternalUrl}/oauth2/auth`);
-  hydraAuthUrl.searchParams.set('client_id', CLIENT_ID);
-  hydraAuthUrl.searchParams.set('response_type', 'code');
-  hydraAuthUrl.searchParams.set('redirect_uri', CLAUDE_REDIRECT_URL);
-  hydraAuthUrl.searchParams.set('scope', "openid profile email offline");
-  hydraAuthUrl.searchParams.set('state', req.session.id); // Use your session ID
-  // hydraAuthUrl.searchParams.set('code_challenge', String(code_challenge) || "NoChallenge")
-  // hydraAuthUrl.searchParams.set('code_challenge_method', String(code_challenge_method) || "NoChallengeMethod")
-  jsonLogger.info("sending to hydra", {request:hydraAuthUrl})
-  res.redirect(hydraAuthUrl.toString());
-});
+//   await redis.set(`pkce_session:${req.session.pkceKey}`, JSON.stringify({
+//     code_challenge,
+//     code_challenge_method,
+//     client_id,
+//     redirect_uri,
+//     scope,
+//     state,
+//     timestamp: Date.now()
+//   }));
+//   jsonLogger.info("Session stored")
+//   // Now start Hydra flow WITHOUT PKCE (Hydra doesn't need to know about it)
+//   const hydraAuthUrl = new URL(`${appConfig.hydraInternalUrl}/oauth2/auth`);
+//   hydraAuthUrl.searchParams.set('client_id', CLIENT_ID);
+//   hydraAuthUrl.searchParams.set('response_type', 'code');
+//   hydraAuthUrl.searchParams.set('redirect_uri', CLAUDE_REDIRECT_URL);
+//   hydraAuthUrl.searchParams.set('scope', "openid profile email offline");
+//   hydraAuthUrl.searchParams.set('state', req.session.id); // Use your session ID
+//   // hydraAuthUrl.searchParams.set('code_challenge', String(code_challenge) || "NoChallenge")
+//   // hydraAuthUrl.searchParams.set('code_challenge_method', String(code_challenge_method) || "NoChallengeMethod")
+//   jsonLogger.info("sending to hydra", {request:hydraAuthUrl})
+//   res.redirect(hydraAuthUrl.toString());
+// });
+
+// This can fail in at least 5 ways, handle them
+router.post("/oauth2/token", async (req,res) => {
+  const params = req.body
+
+  if (params.grant_type !== 'authorization_code') {
+    return res.status(400).json({
+        error: 'unsupported_grant_type'
+    })
+  }
+  const authCode = params.code
+  const authDataStr = await redis.get(`auth_code:${authCode}`)
+  const authData = JSON.parse(authDataStr || "")
+  const jsonPkce = await fetchPkce(req)
+
+  await redis.del(`auth_code:${authCode}`);
+  const isValidPKCE = validatePKCE(
+    params.code_verifier,
+    jsonPkce.code_challenge,
+    jsonPkce.code_challenge_method
+  )
+  if (!isValidPKCE) {
+    return res.status(400).json({
+      error: 'invalid_grant',
+      error_description: 'PKCE validation failed'
+    })
+  }
+  res.json({
+    access_token: authData.google_tokens.access_token,
+    token_type: 'Bearer',
+    expires_in: authData.google_tokens.expires_in,
+    refresh_token: authData.google_tokens.refresh_token,
+    scope: authData.google_tokens.scope
+  });
+})
 
 export default router
 // Step 2: Handle Hydra login
@@ -250,21 +286,3 @@ export default router
 // });
 
 // // PKCE validation function
-// function validatePKCE(code_verifier, code_challenge, code_challenge_method) {
-//   if (code_challenge_method !== 'S256') {
-//     return false;
-//   }
-
-//   const hash = crypto
-//     .createHash('sha256')
-//     .update(code_verifier)
-//     .digest();
-
-//   const computed_challenge = hash
-//     .toString('base64')
-//     .replace(/\+/g, '-')
-//     .replace(/\//g, '_')
-//     .replace(/=/g, '');
-
-//   return computed_challenge === code_challenge;
-// }
