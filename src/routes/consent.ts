@@ -45,7 +45,7 @@ router.get("/", async (req, res) => {
   //   responseTypes:consentInfo.client.response_types,redirectUris:
   //   consentInfo.client.redirect_uris
   // })
-  // jsonLogger.info("acceptResponse with consentInfo", {resp:acceptResponse,consent:consentInfo})
+  jsonLogger.info("session at the end of consent", {sess:req.session})
   const clientOauth = await fetchPkce(req)
 
   jsonLogger.info("Client Oauth Creds", {creds: clientOauth})
