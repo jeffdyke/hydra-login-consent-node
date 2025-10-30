@@ -3,7 +3,7 @@ import { googleTokenResponse } from "../google_auth.js"
 import jsonLogger  from "../logging.js"
 import {appConfig} from "../config.js"
 import axios from "../middleware/axios.js"
-import {v4} from "uuid"
+import { fetchPkce } from "../setup/pkce-redis.js"
 import {CLIENT_ID} from "../setup/hydra.js"
 
 const router = express.Router()
@@ -12,17 +12,22 @@ router.get("/", async (req, res) => {
   const code = req.query.code
   const returnedState = req.query.state
   const createClientId = CLIENT_ID
-  jsonLogger.info("CALLBACK GET", {
-    code:code,
-    returnedState:returnedState,
-    createClientId:createClientId,
-    state:req.session.state,
-    codeChallenge:req.session.codeChallenge
-  })
+
 
   if (code && req.session) {
-    const storedState = req.session.state
-    const codeChallenge = req.session.codeChallenge
+    const pkceData = await fetchPkce(req)
+    jsonLogger.info("CALLBACK GET - don't need session data, using redis", {
+      code:code,
+      returnedState:returnedState,
+      createClientId:createClientId,
+      sessionState:req.session.state,
+      redisState:pkceData.state,
+      sessionCodeChallenge:req.session.codeChallenge,
+      redisCodeChallenge:pkceData.code_challenge
+
+  })
+    const storedState = pkceData.state
+    const codeChallenge = pkceData.code_challenge
     jsonLogger.info(
       "State vs ReturnedState",{
         storedState: storedState,
@@ -42,14 +47,15 @@ router.get("/", async (req, res) => {
           redirect_uri: appConfig.claudeRedirectUri,
           client_id: createClientId,
           code_verifier: codeChallenge ?? "",
-          state: req.session.state ?? "",
+          state: pkceData.state ?? "",
         })
     // Exchange code for tokens WITH code_verifier
     axios.post(`${process.env.HYDRA_URL}/oauth2/token`, body.toString(), {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
     }).then(data => {
-        jsonLogger.info("Post Success", {response: data, state: req.session.state, verifier: req.session.codeChallenge})
+        jsonLogger.info("Post Success", {response: data, state: pkceData.state, verifier: pkceData.code_challenge})
         // Clear stored values from session
+        // TODO, should all off the redis key be deleted, perhaps exchange for an authenticated
         if (req.session) {
           delete req.session.codeChallenge
           delete req.session.state

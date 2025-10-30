@@ -1,10 +1,9 @@
 import express from "express"
 import { HYDRA_CONFIG } from "../setup/hydra.js"
 import jsonLogger  from "../logging.js"
-import { CodeChallengeMethod } from "google-auth-library"
-import redis from "../setup/redis.js"
+import { fetchPkce } from "../setup/pkce-redis.js"
 const router = express.Router()
-import { RedisPKCE } from "../setup/index.js"
+
 router.get("/", async (req, res) => {
   const { consent_challenge } = req.query;
   const consentInfo = await fetch(
@@ -16,23 +15,6 @@ router.get("/", async (req, res) => {
     jsonLogger.error("caught error requesting consentInfo", {e:err})
     res.status(400).render(`Failed to get consent info ${err}`)
   });
-
-  if (req.session) {
-    const logRedis = await redis.get(`pkce_session:${req.session.pkceKey}`).then(resp => {
-      jsonLogger.info("base result from redis", {raw:resp,key:`pkce_session:${req.session.pkceKey}`})
-      const asO: RedisPKCE = JSON.parse(resp || "")
-      return asO
-    }).catch(err => {
-      jsonLogger.error("could not fetch data from redis", {error:err})
-      return {}
-    })
-    jsonLogger.info("Session data in consent", {
-      challenge:req.session.codeChallenge,
-      method:req.session.codeChallengeMethod,
-      state:req.session.state,
-      redisData:logRedis
-    })
-  }
 
   //jsonLogger.info("Consent info ", {referrer:forState.searchParams.get("state")})
   const acceptResponse = await fetch(
@@ -64,13 +46,15 @@ router.get("/", async (req, res) => {
   //   consentInfo.client.redirect_uris
   // })
   // jsonLogger.info("acceptResponse with consentInfo", {resp:acceptResponse,consent:consentInfo})
+  const clientOauth = await fetchPkce(req)
 
+  jsonLogger.info("Client Oauth Creds", {creds: clientOauth})
   const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
   googleAuthUrl.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID || "");
   googleAuthUrl.searchParams.set('redirect_uri', "https://auth.staging.bondlink.org/callback");
   googleAuthUrl.searchParams.set('response_type', 'code');
   googleAuthUrl.searchParams.set('scope', 'openid profile email');
-  googleAuthUrl.searchParams.set('state', req.session.state || "NoState"); // Pass through for tracking
+  googleAuthUrl.searchParams.set('state', clientOauth.state || ""); // Pass through for tracking
   googleAuthUrl.searchParams.set('access_type', 'offline');
   googleAuthUrl.searchParams.set('prompt', 'consent');
 
