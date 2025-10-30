@@ -51,7 +51,7 @@ router.get("/", async (req, res) => {
       res.status(400).send(`Google token request failed with ${err}`)
     })
     const authCode = crypto.randomBytes(32).toString('base64url')
-    await redis.set(`auth_code:${authCode}`, JSON.stringify({
+    await redis.set(`auth_code:${code}`, JSON.stringify({
       google_tokens: googleTokens,
       session_id: req.session.pkceKey,
       created_at: Date.now()
