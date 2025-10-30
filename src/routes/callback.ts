@@ -2,7 +2,7 @@ import express from "express"
 import { googleOAuthTokens } from "../google_auth.js"
 import jsonLogger  from "../logging.js"
 import {appConfig} from "../config.js"
-import { fetchPkce } from "../setup/pkce-redis.js"
+import { fetchPkce, pkceRedisKey } from "../setup/pkce-redis.js"
 import {CLIENT_ID} from "../setup/hydra.js"
 import * as crypto from 'crypto';
 const router = express.Router()
@@ -51,13 +51,21 @@ router.get("/", async (req, res) => {
       res.status(400).send(`Google token request failed with ${err}`)
     })
     const authCode = crypto.randomBytes(32).toString('base64url')
-    await redis.set(`auth_code:${code}`, JSON.stringify({
+    jsonLogger.info("Save a new hash by authCode, as Claude will be sending that back to the /oauth2/token endpoint")
+    await redis.set(`auth_code_state:${authCode}`, JSON.stringify(pkceData)).then((response) => {
+      jsonLogger.info("set new json data for validation", {data:response})
+    }).catch((err) => {
+      jsonLogger.error("Failed to write new data to redis")
+    })
+
+    await redis.set(`auth_code:${authCode}`, JSON.stringify({
       google_tokens: googleTokens,
       session_id: req.session.pkceKey,
       created_at: Date.now()
     }), 'EX', 300);
+    await redis.del(pkceRedisKey(req)).then(r => jsonLogger.info("Deleted redis state data on pkceKey", {key:pkceRedisKey(req)}))
 
-    jsonLogger.info("Calling claude with a new authCode and the original state", {auth:authCode,claudeState:pkceData.state,pkceKey:req.session.pkceKey})
+    jsonLogger.info("Calling claude with a new authCode and the original state", {auth:authCode,claudeState:pkceData.state})
     const claudeCallback = new URL(pkceData.redirect_uri);
     claudeCallback.searchParams.set('code', authCode);
     claudeCallback.searchParams.set('state', pkceData.state);
