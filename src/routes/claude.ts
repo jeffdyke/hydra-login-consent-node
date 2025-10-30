@@ -55,7 +55,7 @@ const router = express.Router()
 // This can fail in at least 5 ways, handle them
 router.post("/token", async (req,res) => {
   const params = req.body
-
+  jsonLogger.info("data passed into /token", req.body)
   if (params.grant_type !== 'authorization_code') {
     return res.status(400).json({
         error: 'unsupported_grant_type'
