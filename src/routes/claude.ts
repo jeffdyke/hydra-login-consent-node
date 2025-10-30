@@ -12,7 +12,7 @@ const router = express.Router()
 router.post("/token", async (req,res) => {
   const params = req.body
   jsonLogger.info("data passed into /token", req.body)
-  if (params.grant_type !== 'authorization_code') {
+  if (params.grant_type == 'authorization_code') {
     const authCode = params.code
     const authDataStr = await redis.get(`auth_code:${authCode}`)
 
