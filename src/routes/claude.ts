@@ -74,6 +74,9 @@ router.post("/token", async (req,res) => {
       scope: authData.google_tokens.tokens.scope
     });
   } else if (params.grant_type == "refresh_token") {
+    /**
+     * we can get bad data in here, need to make sure its all new
+     */
     const { refresh_token, client_id, scope } = req.body;
     jsonLogger.info("Data passed into refresh_token", req.body)
     if (!refresh_token) {
@@ -101,8 +104,9 @@ router.post("/token", async (req,res) => {
       jsonLogger.error("error fetching refresh_token", {query:fetchName})
       return err.message.data
     })
+
     jsonLogger.info("tokenDataStr is ", {r: tokenDataStr})
-    if (tokenDataStr) {
+    if (!tokenDataStr) {
       jsonLogger.error("Token data string")
       return res.status(400).json({
         error: 'invalid_grant',
