@@ -68,14 +68,15 @@ router.post("/token", async (req,res) => {
       jsonLogger.error("Failed to write refresh token data", {error:err, key:`refresh_token:${refreshToken}`})
     });
 
-
-    res.json({
+    const resp = {
       access_token: authData.google_tokens.access_token,
       token_type: 'Bearer',
       expires_in: authData.google_tokens.tokens.expires_in,
       refresh_token: authData.google_tokens.tokens.refresh_token,
       scope: authData.google_tokens.tokens.scope
-    });
+    }
+    jsonLogger.info("Returning json payload", resp)
+    res.json(resp);
   } else if (params.grant_type == "refresh_token") {
     /**
      * we can get bad data in here, need to make sure its all new
@@ -169,6 +170,7 @@ router.post("/token", async (req,res) => {
       'EX',
       60 * 60 * 24 * 30
     );
+
     return res.json({
       access_token: payload.access_token,
       token_type: 'Bearer',
@@ -176,6 +178,9 @@ router.post("/token", async (req,res) => {
       refresh_token: updatedGoogleRefreshToken, // Same refresh token for Claude
       scope: newGoogleTokens.scope || tokenData.scope
     });
+  } else {
+    jsonLogger.error("THIS SHOULD NEVER HIT")
+    res.status(400).render("In else of /token, should never get here")
   }
 
 })
