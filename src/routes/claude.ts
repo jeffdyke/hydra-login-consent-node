@@ -45,7 +45,7 @@ router.post("/token", async (req,res) => {
      * new refresh token for claude based on google's response
      */
     const tokenObj = authData.google_tokens.tokens
-    jsonLogger.info("tokenObject", tokenObj)
+    jsonLogger.silly("tokenObject", tokenObj)
     const refreshToken:RedisRefreshToken = {
       client_id: pkceState.client_id,
       google_refresh_token: authData.google_tokens.tokens.refresh_token,
@@ -55,7 +55,7 @@ router.post("/token", async (req,res) => {
     }
 
     const refreshTokenHash = authData.google_tokens.tokens.refresh_token
-    jsonLogger.info("RefreshToken ", {hash:refreshTokenHash, ...authData.google_tokens.tokens})
+    jsonLogger.silly("RefreshToken ", {hash:refreshTokenHash, ...authData.google_tokens.tokens})
     await redis.set(`refresh_token:${refreshTokenHash}`,
       JSON.stringify(refreshToken),
       'EX',
