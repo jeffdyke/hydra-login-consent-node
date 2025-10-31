@@ -5,13 +5,26 @@ import { RedisPKCE } from "./index.js"
 const pkceSessionPrefix = 'pkce_session'
 const authCodeStatePrefix = 'auth_code_state'
 
+// export class RedisError extends Error{
+//   constructor(message: string, options:any) {
+//     super(message)
+//   }
+
+// }
+
 const pkceRedisKey = function(req: Request) {
   return `${pkceSessionPrefix}:${req.session.pkceKey}`
 }
-const fetchPkce = async function(req: Request): Promise<RedisPKCE> {
+const fetchPkce = async function(req: Request, context:string): Promise<RedisPKCE> {
   const pkceResult = await redis.get(pkceRedisKey(req)).then(resp => {
-    const asO: RedisPKCE = JSON.parse(resp || "")
+    if (!resp) {
+      throw(`Redis returned empty response for key: ${pkceRedisKey(req)}. Context:${context}`)
+    }
+    const asO: RedisPKCE = JSON.parse(resp)
     return asO
+  }).catch((err) => {
+    jsonLogger.error(`failed to fetch pkceSession for key ${pkceRedisKey(req)}. Context: ${context}, error:${err}`)
+    throw(err.data.message)
   })
 
   return pkceResult

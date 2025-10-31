@@ -4,6 +4,7 @@ import jsonLogger  from "../logging.js"
 import {appConfig} from "../config.js"
 import { fetchPkce, pkceRedisKey } from "../setup/pkce-redis.js"
 import {CLIENT_ID} from "../setup/hydra.js"
+import { RedisPKCE } from "../setup/index.js"
 import * as crypto from 'crypto';
 const router = express.Router()
 import redis from "../setup/redis.js"
@@ -15,7 +16,8 @@ router.get("/", async (req, res) => {
 
 
   if (code && req.session) {
-    const pkceData = await fetchPkce(req)
+    const pkceData = await fetchPkce(req, "Callback get")
+
     jsonLogger.info("CALLBACK GET", {
       code:code,
       returnedState:returnedState,
