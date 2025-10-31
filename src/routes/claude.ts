@@ -130,7 +130,7 @@ router.post("/token", async (req,res) => {
     }).catch((err) => {
       jsonLogger.error("Failed to fetch a refresh token", {token:tokenData, error:err})
     })
-
+    jsonLogger.info("play load", {payload:payload})
     const newGoogleTokens = payload.access_token || tokenData.google_refresh_token
     if (newGoogleTokens.error) {
       // Google refresh token is invalid or expired
@@ -142,7 +142,7 @@ router.post("/token", async (req,res) => {
       });
     }
     const updatedGoogleRefreshToken = newGoogleTokens.refresh_token || tokenData.google_refresh_token;
-
+    jsonLogger.info("refresh_choice", updatedGoogleRefreshToken)
     await redis.set(`refresh_token:${refresh_token}`, JSON.stringify({
         ...tokenData,
         google_refresh_token: updatedGoogleRefreshToken,
