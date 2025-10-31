@@ -1,6 +1,6 @@
 import express from "express"
 import redis from "../setup/redis.js"
-import { GoogleTokenResponse, RedisRefreshToken, validatePKCE, base64URLEncode } from "../setup/index.js"
+import { GoogleTokenResponse, RedisRefreshToken, validatePKCE } from "../setup/index.js"
 import { TokenPayload } from 'google-auth-library';
 import { pkceStateByKey } from "../setup/pkce-redis.js"
 import jsonLogger from "../logging.js"
@@ -47,7 +47,7 @@ router.post("/token", async (req,res) => {
       created_at: Date.now()
     }
 
-    const refreshTokenHash = base64URLEncode(authData.google_tokens.tokens.refresh_token)
+    const refreshTokenHash = authData.google_tokens.tokens.refresh_token
     jsonLogger.info("RefreshToken ", {hash:refreshTokenHash, ...authData.google_tokens.tokens})
     await redis.set(`refresh_token:${refreshTokenHash}`,
       JSON.stringify(refreshToken),
@@ -81,7 +81,7 @@ router.post("/token", async (req,res) => {
         error_description: 'client_id required'
       });
     }
-    const fetchName = `refresh_token:${base64URLEncode(refresh_token)}`
+    const fetchName = `refresh_token:${refresh_token}`
 
     const tokenDataStr = await redis.get(fetchName).then(resp => {
       jsonLogger.info("found tokenDataStr ", {key:fetchName, resp:resp})
