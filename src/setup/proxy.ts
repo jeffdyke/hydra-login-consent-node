@@ -13,7 +13,7 @@ const proxyOptions = {
     const parsed = new URL(req.protocol + '://' + req.get('host') + req.originalUrl)
     if (parsed.pathname == "/oauth2/auth") {
       const sessionId = crypto.randomUUID()
-      jsonLogger.info("Current session data ", {id:req.session.id, pkce:req.session.pkceKey})
+      jsonLogger.info("Current session data ", {id:req.session.id, pkce:req.session.pkceKey, sessionId:sessionId})
       req.session.pkceKey = sessionId
       const {
         client_id,
