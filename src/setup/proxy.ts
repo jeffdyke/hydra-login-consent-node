@@ -14,7 +14,7 @@ const proxyOptions = {
     if (parsed.pathname == "/oauth2/auth") {
       const sessionId = crypto.randomUUID()
       jsonLogger.info("Current session data ", {id:req.session.id, pkce:req.session.pkceKey})
-      req.session.pkceKey = req.session.pkceKey || sessionId
+      req.session.pkceKey = sessionId
       const {
         client_id,
         redirect_uri,
