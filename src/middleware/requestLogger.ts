@@ -20,6 +20,7 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
   }
   if (req.originalUrl != "/favicon.ico" && logStarts.test(res.locals.logData.userAgent)) {
     logger.info("Started request for claude", res.locals.logData)
+    res.locals.logData.headers = req.headers
   }
   res.on("finish", () => {
     if (stripArgs.test(req.originalUrl)) {
