@@ -1,7 +1,7 @@
 import express from "express"
 import { HYDRA_CONFIG } from "../setup/hydra.js"
 import jsonLogger  from "../logging.js"
-import { fetchPkce } from "../setup/pkce-redis.js"
+import { fetchPkce, pkceRedisKey } from "../setup/pkce-redis.js"
 const router = express.Router()
 
 router.get("/", async (req, res) => {
@@ -39,20 +39,22 @@ router.get("/", async (req, res) => {
     res.status(400).render(`Failed to get consent info ${err}`)
   });
 
-  const clientOauth = await fetchPkce(req)
+  const clientOauth = await fetchPkce(req, "pkce request in consent").then((oauth) => {
+    jsonLogger.info("Client Oauth Creds", {creds: clientOauth})
+    const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+    googleAuthUrl.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID || "");
+    googleAuthUrl.searchParams.set('redirect_uri', "https://auth.staging.bondlink.org/callback");
+    googleAuthUrl.searchParams.set('response_type', 'code');
+    googleAuthUrl.searchParams.set('scope', 'openid profile email');
+    googleAuthUrl.searchParams.set('state', oauth.state || ""); // Pass through for tracking
+    googleAuthUrl.searchParams.set('access_type', 'offline');
+    googleAuthUrl.searchParams.set('prompt', 'consent');
+    res.redirect(googleAuthUrl.toString());
+  }).catch((err) => {
+    jsonLogger.error("Failed to get PKCE from Redis")
+    res.status(400).render(`Failed to get consent info ${err}`)
+  })
 
-  jsonLogger.info("Client Oauth Creds", {creds: clientOauth})
-  const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-  googleAuthUrl.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID || "");
-  googleAuthUrl.searchParams.set('redirect_uri', "https://auth.staging.bondlink.org/callback");
-  googleAuthUrl.searchParams.set('response_type', 'code');
-  googleAuthUrl.searchParams.set('scope', 'openid profile email');
-  googleAuthUrl.searchParams.set('state', clientOauth.state || ""); // Pass through for tracking
-  googleAuthUrl.searchParams.set('access_type', 'offline');
-  googleAuthUrl.searchParams.set('prompt', 'consent');
-
-
-  res.redirect(googleAuthUrl.toString());
 })
 
 export default router
