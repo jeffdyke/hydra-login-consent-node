@@ -14,7 +14,7 @@ const configuration = new Configuration({
 
 const CLIENT_ID = DCR_MASTER_CLIENT_ID
 if (!CLIENT_ID) {
-  throw new Error("CLIENT_ID environment is not legit `{process.env.AUTH_FLOW_CLIENT_ID}`")
+  new Error("CLIENT_ID environment is not legit `{process.env.AUTH_FLOW_CLIENT_ID}`")
 }
 const hydraAdmin = new OAuth2Api(configuration)
 
