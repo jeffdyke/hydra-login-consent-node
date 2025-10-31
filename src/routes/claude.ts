@@ -19,16 +19,16 @@ router.post("/token", async (req,res) => {
   if (params.grant_type == 'authorization_code') {
     jsonLogger.info("data passed into authorization_code", req.body)
     const authCode = params.code
-    const authDataStr = await redis.get(`auth_code:${req.session.id}`)
+    const authDataStr = await redis.get(`auth_code:${authCode}`)
 
-    jsonLogger.info("Json result ", {res:authDataStr, request:`auth_code:${req.session.id}`})
+    jsonLogger.info("Json result ", {res:authDataStr, request:`auth_code:${authCode}`})
     const authData = JSON.parse(authDataStr || "")
-    const pkceState = await pkceStateByKey(`auth_code_state:${req.session.id}`)
+    const pkceState = await pkceStateByKey(`auth_code_state:${authCode}`)
     /**
      * clean up one time, this is the end, fail or not
      */
-    await redis.del(`auth_code:${req.session.id}`);
-    await redis.del(`auth_code_state:${req.session.id}`)
+    await redis.del(`auth_code:${authCode}`);
+    await redis.del(`auth_code_state:${authCode}`)
     delete req.session.pkceKey
     const isValidPKCE = validatePKCE(
       params.code_verifier,
@@ -45,6 +45,7 @@ router.post("/token", async (req,res) => {
     /**
      * new refresh token for claude based on google's response
      */
+    // Consider a new key other than req.session.id or authCode
     const tokenObj = authData.google_tokens.tokens
     jsonLogger.silly("tokenObject", tokenObj)
     const refreshTokenO:RedisRefreshToken = {
@@ -57,15 +58,15 @@ router.post("/token", async (req,res) => {
 
     const refreshToken = authData.google_tokens.tokens.refresh_token
     jsonLogger.silly("RefreshToken ", {id:req.session.id, hash:refreshToken, ...authData.google_tokens.tokens})
-    await redis.set(`refresh_token:${req.session.id}`,
+    await redis.set(`refresh_token:${refreshToken}`,
       JSON.stringify(refreshTokenO),
       'EX',
       60 * 60 * 24 * 30
     ).then((resp) => {
       jsonLogger.info("Response for new refresh_token", resp)
     }).catch((err) => {
-      jsonLogger.error("Failed to write refresh token data", {error:err, key:`refresh_token:${req.session.id}`})
-    }); // 30 days
+      jsonLogger.error("Failed to write refresh token data", {error:err, key:`refresh_token:${refreshToken}`})
+    });
 
 
     res.json({
@@ -160,7 +161,7 @@ router.post("/token", async (req,res) => {
     }
     const updatedGoogleRefreshToken = newGoogleTokens.refresh_token || tokenData.google_refresh_token;
     jsonLogger.info("refresh_choice", updatedGoogleRefreshToken)
-    await redis.set(`refresh_token:${refresh_token}`, JSON.stringify({
+    await redis.set(`refresh_token:${updatedGoogleRefreshToken}`, JSON.stringify({
         ...tokenData,
         google_refresh_token: updatedGoogleRefreshToken,
         updated_at: Date.now()
@@ -172,7 +173,7 @@ router.post("/token", async (req,res) => {
       access_token: payload.access_token,
       token_type: 'Bearer',
       expires_in: newGoogleTokens.expires_in || 3600,
-      refresh_token: refresh_token, // Same refresh token for Claude
+      refresh_token: updatedGoogleRefreshToken, // Same refresh token for Claude
       scope: newGoogleTokens.scope || tokenData.scope
     });
   }
