@@ -1,13 +1,13 @@
-import { Configuration, CreateOAuth2ClientRequest } from "@ory/hydra-client-fetch";
+import { Configuration } from "@ory/hydra-client-fetch";
 import { OAuth2Api } from "@ory/hydra-client-fetch/dist/index.js"
-import { CLAUDE_CLIENT_ID } from "../config.js";
+import { CLAUDE_CLIENT_ID, appConfig } from "../config.js";
 
 const baseOptions: any = {}
 if (process.env.MOCK_TLS_TERMINATION) {
   baseOptions.headers = { "X-Forwarded-Proto": "https" }
 }
 const configuration = new Configuration({
-  basePath: process.env.HYDRA_ADMIN_URL,
+  basePath: appConfig.hydraInternalAdmin,
   accessToken: process.env.ORY_API_KEY || process.env.ORY_PAT,
   headers: baseOptions.headers,
 })
