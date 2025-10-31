@@ -2,7 +2,7 @@ import express from "express"
 import {createProxyMiddleware} from "http-proxy-middleware"
 import jsonLogger from "../logging.js"
 import redis from "./redis.js"
-import { NextFunction, Response, Request } from "express"
+import { Request } from "express"
 
 const proxyOptions = {
   target: process.env.HYDRA_PUBLIC_URL,
@@ -13,14 +13,12 @@ const proxyOptions = {
     const parsed = new URL(req.protocol + '://' + req.get('host') + req.originalUrl)
     if (parsed.pathname == "/oauth2/auth") {
       const sessionId = crypto.randomUUID()
-      jsonLogger.info("Before Current session data ", {id:req.session.id, pkce:req.session.pkceKey, sessionId:sessionId})
       req.session.pkceKey = req.session.pkceKey || sessionId
-      jsonLogger.info("After Current session data ", {id:req.session.id, pkce:req.session.pkceKey, sessionId:sessionId})
       const {
         client_id,
         redirect_uri,
         state,
-        code_challenge,        // From Claude - YOU will validate this
+        code_challenge,
         code_challenge_method,
         scope
       } = req.query;
@@ -34,9 +32,8 @@ const proxyOptions = {
           scope,
           state,
           timestamp: Date.now()
-        })).then(resp => {
-          jsonLogger.info("Set redis key", {key:`pkce_session:${req.session.pkceKey}`, resp:resp})
-        }).catch(err => {
+        }))
+        .catch(err => {
           jsonLogger.error("Failed to set redis key", {key:`pkce_session:${req.session.pkceKey}`, error:err})
         });
       }
@@ -45,7 +42,7 @@ const proxyOptions = {
       queryString.delete("code_challenge_method")
       queryString.set("state", req.session.id)
       const returnPath = [parsed.pathname,queryString].join("?")
-      jsonLogger.info("sending to hydra, session id is set to be state", {path:returnPath})
+      jsonLogger.info("Proxy complete: Sending to hydra, session id is set to be state")
       return returnPath
     }
   }

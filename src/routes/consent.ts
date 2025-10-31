@@ -38,7 +38,7 @@ router.get("/", async (req, res) => {
     jsonLogger.error("caught error in PUT to consent accept", {e:err})
     res.status(400).render(`Failed to get consent info ${err}`)
   });
-  jsonLogger.info("what is this key", {key:pkceRedisKey(req)})
+
   await fetchPkce(req, "pkce request in consent").then((oauth) => {
     jsonLogger.info("Client Oauth Creds", {creds: oauth})
     const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
