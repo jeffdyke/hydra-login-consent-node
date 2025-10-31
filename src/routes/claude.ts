@@ -19,16 +19,16 @@ router.post("/token", async (req,res) => {
   if (params.grant_type == 'authorization_code') {
     jsonLogger.info("data passed into authorization_code", req.body)
     const authCode = params.code
-    const authDataStr = await redis.get(`auth_code:${authCode}`)
+    const authDataStr = await redis.get(`auth_code:${req.session.id}`)
 
-    jsonLogger.info("Json result ", {res:authDataStr, request:`auth_code:${authCode}`})
+    jsonLogger.info("Json result ", {res:authDataStr, request:`auth_code:${req.session.id}`})
     const authData = JSON.parse(authDataStr || "")
-    const pkceState = await pkceStateByKey(`auth_code_state:${authCode}`)
+    const pkceState = await pkceStateByKey(`auth_code_state:${req.session.id}`)
     /**
      * clean up one time, this is the end, fail or not
      */
-    await redis.del(`auth_code:${authCode}`);
-    await redis.del(`auth_code_state:${authCode}`)
+    await redis.del(`auth_code:${req.session.id}`);
+    await redis.del(`auth_code_state:${req.session.id}`)
     const isValidPKCE = validatePKCE(
       params.code_verifier,
       pkceState.code_challenge,
