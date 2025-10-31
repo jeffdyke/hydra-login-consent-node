@@ -39,8 +39,8 @@ router.get("/", async (req, res) => {
     res.status(400).render(`Failed to get consent info ${err}`)
   });
   jsonLogger.info("what is this key", {key:pkceRedisKey(req)})
-  const clientOauth = await fetchPkce(req, "pkce request in consent").then((oauth) => {
-    jsonLogger.info("Client Oauth Creds", {creds: clientOauth})
+  await fetchPkce(req, "pkce request in consent").then((oauth) => {
+    jsonLogger.info("Client Oauth Creds", {creds: oauth})
     const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
     googleAuthUrl.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID || "");
     googleAuthUrl.searchParams.set('redirect_uri', "https://auth.staging.bondlink.org/callback");
