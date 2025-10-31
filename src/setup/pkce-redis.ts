@@ -5,13 +5,6 @@ import { RedisPKCE } from "./index.js"
 const pkceSessionPrefix = 'pkce_session'
 const authCodeStatePrefix = 'auth_code_state'
 
-// export class RedisError extends Error{
-//   constructor(message: string, options:any) {
-//     super(message)
-//   }
-
-// }
-
 const pkceRedisKey = function(req: Request) {
   return `${pkceSessionPrefix}:${req.session.pkceKey}`
 }
