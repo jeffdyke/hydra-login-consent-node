@@ -1,52 +1,15 @@
 # hydra-user-and-consent-provider-node
 
-This is a reference implementation for the User Login and Consent flow of Ory
-OAuth2 service (Hydra) in NodeJS. The application is bootstrapped using the
-`express` cli.
+This is based on the reference implementation of [hydra-consent-node](https://github.com/ory/hydra-login-consent-node)
 
----
+Hydra is used for the start of the OAuth handshake until `/callback`.
 
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+Also `/oauth2/auth` is proxied through the application, to avoid altering any portion of the OAuth2 flow.
+The login flow is headless, as is the consent. Both are registered in Hydra.
 
-- [Overview](#overview)
-- [Running](#running)
+When it hits the `/callback` endpoint, further PKCE validation as well as the `/oauth2/token`
+endpoint for both `grant_type == authorization_code` && `grant_type == refresh_token`
+are handled by the application.
 
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
----
-
-## Overview
-
-Apart from additions (`./routes/login.ts`, `./routes/consent.ts`) and their
-respective templates, only a [CSRF Middleware] has been added. Everything else
-is the standard express template.
-
-Also, a simple helper that makes HTTP requests has been added to
-`./services/hydra.js` which uses the `node-fetch` library.
-
-To set this example up with ORY Hydra, please refer to the
-[official documentation](https://www.ory.sh/docs).
-
-## Running
-
-Please head over to the
-[ORY Hydra 5 Minute Tutorial](https://www.ory.sh/docs/hydra/5min-tutorial) to
-see how this works.
-
-## FAQ
-
-### TLS Termination
-
-You can mock TLS Termination by setting environment variable
-`MOCK_TLS_TERMINATION` to any value, for example `MOCK_TLS_TERMINATION=y`. This
-will add `X-Forwarded-Proto: https` to each HTTP Request Header.
-
-### Integrating with Ory Network
-
-To integrate this example app with Ory Cloud Oauth2 Service set variable
-`ORY_API_KEY` with value of your
-[Ory API Key / Ory Personal Access Token](https://www.ory.sh/docs/concepts/personal-access-token)
-and set `HYDRA_ADMIN_URL` to the value of you Ory Cloud API URL which you can
-find in your
-[Ory Cloud Project](https://www.ory.sh/docs/concepts/terminology#ory-cloud-project)
+... this is a work in progress for all other documentation on the implementation project see https://github.com/ory/hydra-login-consent-node
+and thank you to the authors.
