@@ -51,21 +51,33 @@ router.get("/", async (req, res) => {
       res.status(400).send(`Google token request failed with ${err}`)
     })
     const authCode = crypto.randomBytes(32).toString('base64url')
-    jsonLogger.info("Save a new hash by authCode, as Claude will be sending that back to the /oauth2/token endpoint")
-    await redis.set(`auth_code_state:${authCode}`, JSON.stringify(pkceData)).then((response) => {
-      jsonLogger.info("set new json data for validation", {data:response})
+    const authCodeO = {
+      redisKey: `${req.session.id}`,
+      authHash: authCode,
+      authState: JSON.stringify(pkceData)
+
+    }
+    jsonLogger.info("Save a new hash by authCode, as Claude will be sending that back to the /oauth2/token endpoint",
+      authCodeO
+    )
+
+    await redis.set(`auth_code_state:${authCodeO.redisKey}`, JSON.stringify(pkceData)).then((response) => {
+      jsonLogger.info("set new json data for validation", {data:response, key:authCodeO.redisKey})
     }).catch((err) => {
-      jsonLogger.error("Failed to write new data to redis")
+      jsonLogger.error("Failed to write new data to redis", {error:err})
     })
 
-    await redis.set(`auth_code:${authCode}`, JSON.stringify({
+    await redis.set(`auth_code:${authCodeO.redisKey}`, JSON.stringify({
       google_tokens: googleTokens,
       session_id: req.session.pkceKey,
       created_at: Date.now()
-    }), 'EX', 300);
+    }), 'EX', 300).catch(rSet => {
+      jsonLogger.error("set error", {setError:rSet})
+    });
+
     await redis.del(pkceRedisKey(req)).then(r => jsonLogger.info("Deleted redis state data on pkceKey", {key:pkceRedisKey(req)}))
 
-    jsonLogger.info("Calling claude with a new authCode and the original state", {auth:authCode,claudeState:pkceData.state})
+    jsonLogger.info("Calling claude with a new authCode and the original state", {auth:authCodeO})
     const claudeCallback = new URL(pkceData.redirect_uri);
     claudeCallback.searchParams.set('code', authCode);
     claudeCallback.searchParams.set('state', pkceData.state);
