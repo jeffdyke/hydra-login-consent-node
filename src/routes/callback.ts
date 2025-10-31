@@ -22,23 +22,11 @@ router.get("/", async (req, res) => {
       code:code,
       returnedState:returnedState,
       createClientId:createClientId,
-      sessionState:req.session.state,
       redisState:pkceData.state,
-      sessionCodeChallenge:req.session.codeChallenge,
       redisCodeChallenge:pkceData.code_challenge,
       pkceKey:req.session.pkceKey
 
   })
-    const storedState = pkceData.state
-    const codeChallenge = pkceData.code_challenge
-    jsonLogger.info(
-      "State vs ReturnedState",{
-        storedState: storedState,
-        returnedState: returnedState,
-        codeChallenge: codeChallenge,
-      }
-    )
-
     /**
      * call to google, get tokens for this session
      * create a new authCode, which will be for claude to validate
@@ -47,7 +35,7 @@ router.get("/", async (req, res) => {
      * which has to go through hydra
      */
     const googleTokens = await googleOAuthTokens(code as string, appConfig.middlewareRedirectUri).then(resp => {
-      jsonLogger.info("GoogleTokens", {resp:resp})
+      // jsonLogger.info("GoogleTokens", {resp:resp})
       return resp
     }).catch(err => {
       res.status(400).send(`Google token request failed with ${err}`)

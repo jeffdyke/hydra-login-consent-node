@@ -53,9 +53,11 @@ interface RedisPKCE {
 interface RedisRefreshToken {
   client_id: string,
   google_refresh_token: string,
+  access_token: string,
   scope: string,
   subject: string,
-  created_at:number
+  created_at:number,
+  expires_in:number
 }
 interface GoogleTokenResponse {
   access_token: string;
