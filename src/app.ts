@@ -102,7 +102,7 @@ if (app.get("env") === "development") {
   app.use((err: Error, req: Request, res: Response) => {
     res.status(500)
     res.render("error", {
-      message: err.message,
+      message: err.message || "Empty Message",
       error: err,
     })
   })
@@ -113,7 +113,7 @@ if (app.get("env") === "development") {
 app.use((err: Error, req: Request, res: Response) => {
   res.status(500)
   res.render("error", {
-    message: err.message,
+    message: err.message || "Empty Message",
     error: {},
   })
 })

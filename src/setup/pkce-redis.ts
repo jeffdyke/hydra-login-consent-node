@@ -24,7 +24,7 @@ const fetchPkce = async function(req: Request, context:string): Promise<RedisPKC
     return asO
   }).catch((err) => {
     jsonLogger.error(`failed to fetch pkceSession for key ${pkceRedisKey(req)}. Context: ${context}, error:${err}`)
-    throw(err.data.message)
+    throw(err)
   })
 
   return pkceResult
