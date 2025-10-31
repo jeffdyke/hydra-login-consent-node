@@ -28,6 +28,7 @@ services:
     environment:
       # If this changes and the application is using it, the database will need to be rebuilt
       - SECRETS_SYSTEM=G6KaOf8aJsLagw566he8yxOTTO3tInKD
+      - DSN=postgres://hydra:shaken!stirred@postgres:5432/hydra?sslmode=disable
     build:
       context: .
       dockerfile: Dockerfile.hydra
