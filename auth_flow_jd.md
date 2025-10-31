@@ -128,3 +128,22 @@ Supporting code exists for both, especially `/oauth2/token` more forthcoming.
       - This is exchanged for a `GoogleToken`, for `authorization_code`, very short lived
       - Redirect is sent with both `access` and `refresh_tokens` back to Claude
     - Once they have this, they can start the `refresh_token` flow
+
+## State Management
+
+- Redis is used for all state updates/reads.
+  - Session is used during the code_challenge phase which covers
+    - /oauth2/auth
+    - /login
+    - /consent
+    - /callback
+  - During `/callback`
+    - /callback receives 1 query parameter `code`, which will need to be validated, but was generated with Claude's pkce secret
+    - State data is retrieved from redis using `req.session.pkceKey`
+    - `code` is sent to Google to exchange for a token
+    - A new `authCode` is created `crypto.randomBytes(32).toString('base64url')`
+    - The new `authCode` is the stable identifier for redis
+      - This code will be posted to Claude and it will return it to the application.
+      - There is also an `auth_code_state:${authCode}` which holds the original challenge from Claude
+    - Claude receives a new POST of `authCode` & `state` from the original request
+      - This code will be sent to `/oauth2/token` to request an `authorization_code`
