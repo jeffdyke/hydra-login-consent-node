@@ -47,7 +47,7 @@ router.post("/token", async (req,res) => {
      */
     // Consider a new key other than req.session.id or authCode
     const tokenObj = authData.google_tokens.tokens
-    jsonLogger.silly("tokenObject", tokenObj)
+    // jsonLogger.silly("tokenObject", tokenObj)
     const refreshTokenO:RedisRefreshToken = {
       client_id: pkceState.client_id,
       google_refresh_token: tokenObj.refresh_token,
@@ -55,11 +55,9 @@ router.post("/token", async (req,res) => {
       scope: tokenObj.scope,
       subject: authData.subject || "user",
       created_at: Date.now(),
-      expires_in: tokenObj.expires_in
+      expires_in: 3600
     }
 
-    //const refreshToken = authData.google_tokens.tokens.refresh_token
-    jsonLogger.silly("RefreshToken ", {hash:refreshTokenO.google_refresh_token, ...tokenObj})
     await redis.set(`refresh_token:${refreshTokenO.google_refresh_token}`,
       JSON.stringify(refreshTokenO),
       'EX',
