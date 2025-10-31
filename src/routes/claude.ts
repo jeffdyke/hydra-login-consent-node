@@ -21,7 +21,7 @@ router.post("/token", async (req,res) => {
     const authCode = params.code
     const authDataStr = await redis.get(`auth_code:${authCode}`)
 
-    // jsonLogger.info("Json result ", {res:authDataStr, request:`auth_code:${authCode}`})
+    jsonLogger.info("Json result ", {res:authDataStr, request:`auth_code:${authCode}`})
     const authData = JSON.parse(authDataStr || "")
     const pkceState = await pkceStateByKey(`auth_code_state:${authCode}`)
     /**
