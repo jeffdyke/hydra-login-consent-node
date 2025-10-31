@@ -70,7 +70,6 @@ services:
       context: .
       dockerfile: build/Dockerfile.consent-app
     environment:
-      - CLAUDE_CLIENT_ID=a8c11f42-a9d7-4437-9b0b-cd48e25a71a5
       - NODE_TLS_REJECT_UNAUTHORIZED=0
       - NODE_ENV=development
     depends_on:
