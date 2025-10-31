@@ -25,7 +25,7 @@ const fetchPkce = async function(req: Request, context:string): Promise<RedisPKC
 
 /**
  * Currently for parsing an arbitrary key into RedisPKCE
- *  being used for `auth_code_state` before a redirect to Claude
+ *  being used for `auth_code_state` before a redirect to passthrough
  * @param key string
  * @returns RedisPKCE
  */

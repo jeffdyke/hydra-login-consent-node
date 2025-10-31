@@ -28,9 +28,9 @@ router.get("/", async (req, res) => {
   })
     /**
      * call to google, get tokens for this session
-     * create a new authCode, which will be for claude to validate
+     * create a new authCode, which will be for passthrough to validate
      * along with its original state sent into /oauth2/auth
-     * store it in redis, to handle Claude's next call to confirm the token,
+     * store it in redis, to handle passthrough's next call to confirm the token,
      * which has to go through hydra
      */
     const googleTokens = await googleOAuthTokens(code as string, appConfig.middlewareRedirectUri)
@@ -54,11 +54,11 @@ router.get("/", async (req, res) => {
     });
     //pkce is short lived, delete it
     await redis.del(pkceRedisKey(req))
-    const claudeCallback = new URL(pkceData.redirect_uri);
-    claudeCallback.searchParams.set('code', authCode);
-    claudeCallback.searchParams.set('state', pkceData.state);
+    const ptCallback = new URL(pkceData.redirect_uri);
+    ptCallback.searchParams.set('code', authCode);
+    ptCallback.searchParams.set('state', pkceData.state);
 
-    res.redirect(claudeCallback.toString());
+    res.redirect(ptCallback.toString());
   } else {
     jsonLogger.error("Missing code session ", {code:code, session:JSON.stringify(req.session)})
     res.status(400).send("Missing code or session ")

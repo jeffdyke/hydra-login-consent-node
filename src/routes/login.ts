@@ -3,7 +3,7 @@ import url from "url"
 import { hydraAdmin } from "../setup/hydra.js"
 import { oidcConformityMaybeFakeAcr } from "./stub/oidc-cert.js"
 import jsonLogger from "../logging.js"
-
+const SUBJECT_PLACEHOLDER="claude@claude.ai"
 const router = express.Router()
 
 router.get("/", (req, res, next) => {
@@ -24,7 +24,7 @@ router.get("/", (req, res, next) => {
           .acceptOAuth2LoginRequest({
             loginChallenge: challenge,
             acceptOAuth2LoginRequest: {
-              subject: String("claude@claude.ai"),
+              subject: String(SUBJECT_PLACEHOLDER),
             },
           })
           .then(({ redirect_to }) => {
@@ -52,7 +52,7 @@ router.post("/", (req, res, next) => {
           //This deserves better defaults.
           acceptOAuth2LoginRequest: {
             // Subject is an alias for user ID. A subject can be a random string, a UUID, an email address, ....
-            subject: "claude@claude.ai",
+            subject: SUBJECT_PLACEHOLDER,
 
             // This tells hydra to remember the browser and automatically authenticate the user in future requests. This will
             // set the "skip" parameter in the other route to true on subsequent requests!
