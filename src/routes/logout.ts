@@ -1,9 +1,5 @@
-// Copyright © 2025 Ory Corp
-// SPDX-License-Identifier: Apache-2.0
-
 import express from "express"
 import url from "url"
-import urljoin from "url-join"
 import {appConfig, generateCsrfToken } from "../config.js"
 import { hydraAdmin } from "../setup/hydra.js"
 
