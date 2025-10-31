@@ -34,7 +34,7 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
         statusCode: res.statusCode,
         durationMs: duration.toFixed(2),
         csrfToken: req.headers["x-csrf-token"],
-        responseHdrs: res.headersSent,
+        responseHdrs: res.getHeaders,
         ...res.locals.logData,
       });
     }

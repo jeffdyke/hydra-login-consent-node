@@ -92,6 +92,9 @@ router.post("/token", async (req,res) => {
     const fetchName = `refresh_token:${refresh_token}`
 
     const tokenDataStr = await redis.get(fetchName).then(resp => {
+      if (!resp) {
+        new Error(`Response is empty for ${fetchName}`)
+      }
       jsonLogger.info("found tokenDataStr ", {key:fetchName, resp:resp})
       return resp
     }).catch((err) => {
