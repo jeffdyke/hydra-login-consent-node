@@ -1,6 +1,6 @@
 import { Configuration } from "@ory/hydra-client-fetch";
 import { OAuth2Api } from "@ory/hydra-client-fetch/dist/index.js"
-import { CLAUDE_CLIENT_ID, appConfig } from "../config.js";
+import { DCR_MASTER_CLIENT_ID, appConfig } from "../config.js";
 
 const baseOptions: any = {}
 if (process.env.MOCK_TLS_TERMINATION) {
@@ -12,7 +12,7 @@ const configuration = new Configuration({
   headers: baseOptions.headers,
 })
 
-const CLIENT_ID = CLAUDE_CLIENT_ID
+const CLIENT_ID = DCR_MASTER_CLIENT_ID
 if (!CLIENT_ID) {
   throw new Error("CLIENT_ID environment is not legit `{process.env.AUTH_FLOW_CLIENT_ID}`")
 }

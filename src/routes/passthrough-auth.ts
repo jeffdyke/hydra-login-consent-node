@@ -1,16 +1,10 @@
 import express from "express"
 import redis from "../setup/redis.js"
 import { GoogleTokenResponse, RedisRefreshToken, validatePKCE } from "../setup/index.js"
-import { TokenPayload } from 'google-auth-library';
 import { pkceStateByKey } from "../setup/pkce-redis.js"
 import jsonLogger from "../logging.js"
 import { googleRefreshResponse } from "../google_auth.js"
 const router = express.Router()
-
-interface SessionOAuthTokens {
-  hydra_refresh_token: string
-  google?: GoogleTokenResponse | {}
-}
 
 // This can fail in at least 5 ways, handle them
 router.post("/token", async (req,res) => {
@@ -41,11 +35,10 @@ router.post("/token", async (req,res) => {
       })
     }
     /**
-     * new refresh token for claude based on google's response
+     * new refresh token for passthrough client based on google's response
      */
-    // Consider a new key other than req.session.id or authCode
     const tokenObj = authData.google_tokens.tokens
-    // jsonLogger.silly("tokenObject", tokenObj)
+    jsonLogger.silly("tokenObject", tokenObj)
     const refreshTokenO:RedisRefreshToken = {
       client_id: pkceState.client_id,
       google_refresh_token: tokenObj.refresh_token,
@@ -168,7 +161,7 @@ router.post("/token", async (req,res) => {
       access_token: payload.access_token,
       token_type: 'Bearer',
       expires_in: newGoogleTokens.expires_in || 3600,
-      refresh_token: updatedGoogleRefreshToken, // Same refresh token for Claude
+      refresh_token: updatedGoogleRefreshToken,
       scope: newGoogleTokens.scope || tokenData.scope
     });
   } else {

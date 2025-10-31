@@ -11,8 +11,8 @@ import login from "./routes/login.js"
 import logout from "./routes/logout.js"
 import consent from "./routes/consent.js"
 import callback from "./routes/callback.js"
-// Consider renaming this, its not tied to claude
-import claude from "./routes/claude.js"
+// Consider renaming this, its not tied to a specific 3rd party
+import passthrough from "./routes/passthrough-auth.js"
 import pool from "./pool.js"
 import {PgStore} from "./config.js"
 import jsonLogger from "./logging.js"
@@ -71,7 +71,7 @@ app.use("/login", login)
 app.use("/logout", logout)
 app.use("/consent", consent)
 app.use("/callback", callback)
-app.use("/oauth2", claude)
+app.use("/oauth2", passthrough)
 
 
 // catch 404 and forward to error handler

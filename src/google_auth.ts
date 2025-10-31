@@ -61,7 +61,7 @@ const client = new OAuth2Client({
     redirectUri: appConfig.middlewareRedirectUri
   })
 
-async function googleAuthUrl(scope: string, incomingState: string, redirectUrl: string = appConfig.claudeRedirectUri): Promise<string> {
+async function googleAuthUrl(scope: string, incomingState: string, redirectUrl: string = appConfig.dcrOriginRedirectUri): Promise<string> {
   const authUri = await client.generateAuthUrl({
     access_type:'offline',
     scope: scope,
@@ -73,7 +73,7 @@ async function googleAuthUrl(scope: string, incomingState: string, redirectUrl: 
 
   return authUri
 }
-async function googleOAuthTokens(code: string, redirectUrl:string = appConfig.claudeRedirectUri): Promise<TokenPayload> {
+async function googleOAuthTokens(code: string, redirectUrl:string = appConfig.dcrOriginRedirectUri): Promise<TokenPayload> {
 
   const params = {
     code: code,
@@ -127,7 +127,7 @@ async function getGoogleUser(access_token: string, id_token: string): Promise<Us
   })  ;
 
 }
-async function googleTokenResponse(code: string, redirectUrl: string = appConfig.claudeRedirectUri): Promise<GoogleTokenResponse> {
+async function googleTokenResponse(code: string, redirectUrl: string = appConfig.dcrOriginRedirectUri): Promise<GoogleTokenResponse> {
     jsonLogger.debug("Calling googleTokenResponse with args", {code:code, redirectUrl:redirectUrl})
     const authClientConfig: OAuth2Client = new OAuth2Client(
       appConfig.googleClientId,

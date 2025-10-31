@@ -4,7 +4,7 @@ import pool from "./pool.js"
 import { SameSiteType } from "csrf-csrf";
 import jsonLogger from "./logging.js";
 const httpOnly = !process.env.BASE_URL?.startsWith("https")
-const CLAUDE_CLIENT_ID = process.env.CLAUDE_CLIENT_ID || ""
+const DCR_MASTER_CLIENT_ID = process.env.DCR_MASTER_CLIENT_ID || ""
 interface AppConfigI {
   csrfTokenName: string,
   hostName: string
@@ -14,7 +14,7 @@ interface AppConfigI {
   secure: boolean
   googleClientId?: string
   googleClientSecret?: string
-  claudeRedirectUri: string
+  dcrOriginRedirectUri: string
   hydraInternalAdmin: string
   hydraInternalUrl: string
   redisHost: string
@@ -39,7 +39,7 @@ class DevAppConfig implements AppConfigI {
   secure: boolean = false
   googleClientId?: string | undefined = undefined
   googleClientSecret?: string | undefined = undefined
-  claudeRedirectUri: string = "https://claude.ai/api/mcp/auth_callback"
+  dcrOriginRedirectUri: string = "https://claude.ai/api/mcp/auth_callback"
   xsrfHeaderName: string = "dev_xsrf_token"
 }
 
@@ -56,7 +56,7 @@ class StagingAppConfig implements AppConfigI {
   secure: boolean = true
   googleClientId?: string | undefined = process.env.GOOGLE_CLIENT_ID;
   googleClientSecret?: string | undefined = process.env.GOOGLE_CLIENT_SECRET
-  claudeRedirectUri: string = "https://claude.ai/api/mcp/auth_callback"
+  dcrOriginRedirectUri: string = "https://claude.ai/api/mcp/auth_callback"
   xsrfHeaderName: string = "xsrf_token"
 
 }
@@ -70,7 +70,7 @@ class StagingAppConfig implements AppConfigI {
 //   secure: boolean = true
 //   googleClientId?: string | undefined = process.env.GOOGLE_CLIENT_ID;
 //   googleClientSecret?: string | undefined = process.env.GOOGLE_CLIENT_SECRET
-//   claudeRedirectUri: string = "https://claude.ai/api/mcp/auth_callback"
+//   dcrOriginRedirectUri: string = "https://claude.ai/api/mcp/auth_callback"
 
 // }
 const appConfig = (httpOnly) ? new DevAppConfig() : new StagingAppConfig()
@@ -126,7 +126,7 @@ export {
   pgConfig,
   // doubleCsrfProtection,
   generateCsrfToken,
-  CLAUDE_CLIENT_ID,
+  DCR_MASTER_CLIENT_ID,
   STATIC_CSRF,
   PgStore,
   httpOnly,
