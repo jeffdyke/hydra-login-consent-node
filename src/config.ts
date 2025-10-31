@@ -4,8 +4,7 @@
 import session from "express-session"
 import connectPgSimple from "connect-pg-simple"
 import pool from "./pool.js"
-import { createClient } from "redis";
-import { doubleCsrf, SameSiteType } from "csrf-csrf";
+import { SameSiteType } from "csrf-csrf";
 import jsonLogger from "./logging.js";
 const httpOnly = !process.env.BASE_URL?.startsWith("https")
 const XSRF_TOKEN_NAME = !process.env.BASE_URL?.startsWith("https") ? 'dev_xsrf_token' : 'xsrf_token'
@@ -70,16 +69,6 @@ class StagingAppConfig implements AppConfigI {
 
 // }
 const appConfig = (httpOnly) ? new DevAppConfig() : new StagingAppConfig()
-
-// CookieOptions is an interface, this is currently unused
-const lclCookieOptions = {
-  httpOnly:httpOnly,
-  secure:!httpOnly,
-  // domain:"bondlink.org",
-  maxAge:30 * 24 * 60 * 60 * 1000,
-  sameSite:httpOnly ? "lax" : "none"
-}
-jsonLogger.info("Cookie Options", lclCookieOptions)
 
 // function csrfToken(req:Request, res:Response) {
 // }

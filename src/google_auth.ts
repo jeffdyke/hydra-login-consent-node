@@ -85,9 +85,9 @@ async function googleOAuthTokens(code: string, redirectUrl:string = CLAUDE_REDIR
     grant_type:"authorization_code"
   }
   jsonLogger.info("Auth Token Request", {request: params});
+  //update this
   const tokenResponse = await client.getToken(code)
     .then((resp) => {
-      jsonLogger.info("Response is %s", resp)
       return resp
     })
     .catch((err) => {

@@ -54,8 +54,6 @@ router.get("/", async (req, res) => {
     });
     //pkce is short lived, delete it
     await redis.del(pkceRedisKey(req))
-
-    jsonLogger.info("Calling claude with a new authCode and the original state", {hashString:authCode})
     const claudeCallback = new URL(pkceData.redirect_uri);
     claudeCallback.searchParams.set('code', authCode);
     claudeCallback.searchParams.set('state', pkceData.state);
