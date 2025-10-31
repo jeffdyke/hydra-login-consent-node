@@ -1,6 +1,3 @@
-// Copyright © 2025 Ory Corp
-// SPDX-License-Identifier: Apache-2.0
-
 import express from "express"
 import url from "url"
 import { generateCsrfToken, appConfig } from "../config.js"

@@ -1,6 +1,3 @@
-// Copyright © 2025 Ory Corp
-// SPDX-License-Identifier: Apache-2.0
-//import 'source-map-support/register'
 
 import express from "express"
 import {v4} from 'uuid';

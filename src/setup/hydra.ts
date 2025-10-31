@@ -1,6 +1,6 @@
 import { Configuration, CreateOAuth2ClientRequest } from "@ory/hydra-client-fetch";
 import { OAuth2Api } from "@ory/hydra-client-fetch/dist/index.js"
-import { CLAUDE_CLIENT_ID, appConfig } from "../config.js";
+import { CLAUDE_CLIENT_ID } from "../config.js";
 
 const baseOptions: any = {}
 if (process.env.MOCK_TLS_TERMINATION) {

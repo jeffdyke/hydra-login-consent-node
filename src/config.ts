@@ -1,6 +1,3 @@
-// Copyright © 2025 Ory Corp
-// SPDX-License-Identifier: Apache-2.0
-
 import session from "express-session"
 import connectPgSimple from "connect-pg-simple"
 import pool from "./pool.js"
