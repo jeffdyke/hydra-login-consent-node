@@ -3,7 +3,7 @@
 
 import express from "express"
 import url from "url"
-import { generateCsrfToken, XSRF_TOKEN_NAME } from "../config.js"
+import { generateCsrfToken, appConfig } from "../config.js"
 import { hydraAdmin } from "../setup/hydra.js"
 
 const router = express.Router()
@@ -21,7 +21,7 @@ router.get("/verify", (req, res, next) => {
 
   res.render("device/verify", {
     csrfToken: "",
-    envXsrfToken: XSRF_TOKEN_NAME,
+    envXsrfToken: appConfig.xsrfHeaderName,
     challenge,
     userCode: String(query.user_code),
   })
@@ -48,7 +48,7 @@ router.post("/verify", (req, res, next) => {
 router.get("/success", (req, res, next) => {
   res.render("device/success", {
     csrfToken: generateCsrfToken(req, res),
-    envXsrfToken: XSRF_TOKEN_NAME,
+    envXsrfToken: appConfig.xsrfHeaderName,
   })
 })
 

@@ -3,9 +3,10 @@ import {createProxyMiddleware} from "http-proxy-middleware"
 import jsonLogger from "../logging.js"
 import redis from "./redis.js"
 import { Request } from "express"
+import { appConfig } from "../config.js"
 
 const proxyOptions = {
-  target: process.env.HYDRA_PUBLIC_URL,
+  target: appConfig.hydraInternalUrl,
   changeOrigin: true,
   prependPath: false,
   logger:jsonLogger,

@@ -7,7 +7,6 @@ import pool from "./pool.js"
 import { SameSiteType } from "csrf-csrf";
 import jsonLogger from "./logging.js";
 const httpOnly = !process.env.BASE_URL?.startsWith("https")
-const XSRF_TOKEN_NAME = !process.env.BASE_URL?.startsWith("https") ? 'dev_xsrf_token' : 'xsrf_token'
 const CLAUDE_CLIENT_ID = process.env.CLAUDE_CLIENT_ID || ""
 interface AppConfigI {
   csrfTokenName: string,
@@ -19,17 +18,23 @@ interface AppConfigI {
   googleClientId?: string
   googleClientSecret?: string
   claudeRedirectUri: string
+  hydraInternalAdmin: string
   hydraInternalUrl: string
   redisHost: string
   redisPort: number
+  xsrfHeaderName: string
 
 }
 
+/**
+ * These should take into account the docker container and not send over the network
+ */
 class DevAppConfig implements AppConfigI {
   csrfTokenName: string = "dev_xsrf_token"
   hostName: string = "http://dev.bondlin.org:3000"
   middlewareRedirectUri: string = "http://dev.bondlin.org:3000/callback"
   hydraInternalUrl: string = "http://dev.bondlink.org:4444"
+  hydraInternalAdmin: string = "http://dev.bondlink.org:4445"
   sameSite: SameSiteType = "lax"
   httpOnly: boolean = true
   redisHost: string = "dev.bondlink.org"
@@ -38,6 +43,7 @@ class DevAppConfig implements AppConfigI {
   googleClientId?: string | undefined = undefined
   googleClientSecret?: string | undefined = undefined
   claudeRedirectUri: string = "https://claude.ai/api/mcp/auth_callback"
+  xsrfHeaderName: string = "dev_xsrf_token"
 }
 
 class StagingAppConfig implements AppConfigI {
@@ -45,6 +51,7 @@ class StagingAppConfig implements AppConfigI {
   hostName: string = "http://auth.staging.bondlink.org"
   middlewareRedirectUri: string = "https://auth.staging.bondlink.org/callback"
   hydraInternalUrl: string = "http://10.1.1.230:4444"
+  hydraInternalAdmin: string = "http://10.1.1.230:4445"
   redisHost: string = "10.1.1.230"
   redisPort: number = 16379
   sameSite: SameSiteType = "none"
@@ -53,6 +60,7 @@ class StagingAppConfig implements AppConfigI {
   googleClientId?: string | undefined = process.env.GOOGLE_CLIENT_ID;
   googleClientSecret?: string | undefined = process.env.GOOGLE_CLIENT_SECRET
   claudeRedirectUri: string = "https://claude.ai/api/mcp/auth_callback"
+  xsrfHeaderName: string = "xsrf_token"
 
 }
 
@@ -126,7 +134,6 @@ export {
   PgStore,
   httpOnly,
   dumpSessionData,
-  XSRF_TOKEN_NAME,
   appConfig,
   HYDRA_URL
 }

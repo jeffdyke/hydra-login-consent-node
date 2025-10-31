@@ -1,8 +1,9 @@
 import express from "express"
 import { HYDRA_CONFIG } from "../setup/hydra.js"
 import jsonLogger  from "../logging.js"
-import { fetchPkce, pkceRedisKey } from "../setup/pkce-redis.js"
+import { fetchPkce } from "../setup/pkce-redis.js"
 const router = express.Router()
+import { appConfig } from "../config.js"
 
 router.get("/", async (req, res) => {
   const { consent_challenge } = req.query;
@@ -42,8 +43,8 @@ router.get("/", async (req, res) => {
   await fetchPkce(req, "pkce request in consent").then((oauth) => {
     jsonLogger.info("Client Oauth Creds", {creds: oauth})
     const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-    googleAuthUrl.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID || "");
-    googleAuthUrl.searchParams.set('redirect_uri', "https://auth.staging.bondlink.org/callback");
+    googleAuthUrl.searchParams.set('client_id', appConfig.googleClientId || "");
+    googleAuthUrl.searchParams.set('redirect_uri', appConfig.middlewareRedirectUri);
     googleAuthUrl.searchParams.set('response_type', 'code');
     googleAuthUrl.searchParams.set('scope', 'openid profile email');
     googleAuthUrl.searchParams.set('state', oauth.state || ""); // Pass through for tracking
