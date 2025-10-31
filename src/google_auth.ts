@@ -1,15 +1,11 @@
 
-import dotenv from 'dotenv';
 import axios from "./middleware/axios.js"
 
 import { Property } from "@tsed/schema";
 import {Configuration} from "@tsed/di";
 import {OAuth2Client, TokenPayload } from 'google-auth-library';
 import jsonLogger  from "./logging.js"
-import { CLAUDE_REDIRECT_URL } from './authFlow.js';
-import {appConfig, CLAUDE_CLIENT_ID} from "./config.js"
-import { RedisRefreshToken } from './setup/index.js';
-dotenv.config()
+import {appConfig} from "./config.js"
 
 Configuration({
   jsonMapper: {
@@ -62,11 +58,10 @@ const formHeader = {
 const client = new OAuth2Client({
     clientId: appConfig.googleClientId,
     clientSecret: appConfig.googleClientSecret,
-    // this is for a middleware callback
     redirectUri: appConfig.middlewareRedirectUri
   })
 
-async function googleAuthUrl(scope: string, incomingState: string, redirectUrl: string = CLAUDE_REDIRECT_URL): Promise<string> {
+async function googleAuthUrl(scope: string, incomingState: string, redirectUrl: string = appConfig.claudeRedirectUri): Promise<string> {
   const authUri = await client.generateAuthUrl({
     access_type:'offline',
     scope: scope,
@@ -78,7 +73,7 @@ async function googleAuthUrl(scope: string, incomingState: string, redirectUrl: 
 
   return authUri
 }
-async function googleOAuthTokens(code: string, redirectUrl:string = CLAUDE_REDIRECT_URL): Promise<TokenPayload> {
+async function googleOAuthTokens(code: string, redirectUrl:string = appConfig.claudeRedirectUri): Promise<TokenPayload> {
 
   const params = {
     code: code,
@@ -111,9 +106,6 @@ async function googleRefreshResponse(refreshToken:string): Promise<any> {
   const resp = await axios.post('https://oauth2.googleapis.com/token', {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: params
-      }).then((resp) => {
-        jsonLogger.info("got response", {r:resp})
-        return resp
       }).catch((err) => {
         jsonLogger.error("Failed to fetch refresh token", params)
         return err.response.data
@@ -125,7 +117,7 @@ async function googleRefreshResponse(refreshToken:string): Promise<any> {
 
 async function getGoogleUser(access_token: string, id_token: string): Promise<UserInfo> {
   const url = `https://www.googleapis.com/oauth2/v2/userinfo?alt=json&access_token=${access_token}`;
-  jsonLogger.info("Calling google at url: %s", url)
+  jsonLogger.debug("Calling google at url", {url:url})
   return await axios.get(url, { headers: { Authorization: `Bearer ${id_token}` } })
     .then((resp) => { return resp.data })
     .catch((err) => { jsonLogger.error("Access token failed for user", {
@@ -135,16 +127,16 @@ async function getGoogleUser(access_token: string, id_token: string): Promise<Us
   })  ;
 
 }
-async function googleTokenResponse(code: string, redirectUrl: string = CLAUDE_REDIRECT_URL): Promise<GoogleTokenResponse> {
-    jsonLogger.info("Calling googleTokenResponse with args", {code:code, redirectUrl:redirectUrl})
+async function googleTokenResponse(code: string, redirectUrl: string = appConfig.claudeRedirectUri): Promise<GoogleTokenResponse> {
+    jsonLogger.debug("Calling googleTokenResponse with args", {code:code, redirectUrl:redirectUrl})
     const authClientConfig: OAuth2Client = new OAuth2Client(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET,
+      appConfig.googleClientId,
+      appConfig.googleClientSecret,
       redirectUrl
     )
 
     const params = {code: code, grant_type: 'authorization_code'}
-    jsonLogger.info("Requesting TokenResponse",  {auth:authClientConfig, params:params})
+    jsonLogger.debug("Requesting TokenResponse",  {auth:authClientConfig, params:params})
     const tokenResponse = await axios.post(
       GOOGLE_TOKEN_URL,
       params,
@@ -153,7 +145,7 @@ async function googleTokenResponse(code: string, redirectUrl: string = CLAUDE_RE
         return resp.data
       })
       .catch((err) => {
-        jsonLogger.info("GoogleTokenResponse Error",  {
+        jsonLogger.error("GoogleTokenResponse Error",  {
           error:err,
           code:code,
           authClientConfig:authClientConfig,
@@ -161,7 +153,7 @@ async function googleTokenResponse(code: string, redirectUrl: string = CLAUDE_RE
         });
         return err.response.data
       })
-    jsonLogger.info("result from token request", {resp:tokenResponse})
+    jsonLogger.debug("result from token request", {resp:tokenResponse})
     return tokenResponse
   }
 

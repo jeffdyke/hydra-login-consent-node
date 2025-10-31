@@ -17,7 +17,7 @@ router.post("/token", async (req,res) => {
   const params = req.body
 
   if (params.grant_type == 'authorization_code') {
-    jsonLogger.info("data passed into authorization_code", req.body)
+    jsonLogger.debug("data passed into authorization_code", req.body)
     const authCode = params.code
     //Clean this up
     const authDataStr = await redis.get(`auth_code:${authCode}`)
@@ -40,7 +40,6 @@ router.post("/token", async (req,res) => {
         error_description: 'PKCE validation failed'
       })
     }
-    // jsonLogger.info("authData", authData)
     /**
      * new refresh token for claude based on google's response
      */
@@ -61,9 +60,7 @@ router.post("/token", async (req,res) => {
       JSON.stringify(refreshTokenO),
       'EX',
       60 * 60 * 24 * 30
-    ).then((resp) => {
-      jsonLogger.info("Response for new refresh_token", resp)
-    }).catch((err) => {
+    ).catch((err) => {
       jsonLogger.error("Failed to write refresh token data", {error:err, key:`refresh_token:${refreshTokenO.google_refresh_token}`})
     });
 
@@ -101,7 +98,6 @@ router.post("/token", async (req,res) => {
       if (!resp) {
         new Error(`Response is empty for ${fetchName}`)
       }
-      jsonLogger.info("found tokenDataStr ", {key:fetchName, resp:resp})
       return resp
     }).catch((err) => {
       jsonLogger.error("error fetching refresh_token", {query:fetchName})
@@ -118,7 +114,6 @@ router.post("/token", async (req,res) => {
     }
 
     const tokenData = JSON.parse(tokenDataStr);
-    jsonLogger.info("token data dump, skipping validation to check logs", {data:tokenData,s:tokenDataStr})
     // Validate client_id
     // if (tokenData.client_id !== client_id) {
     //   jsonLogger.error("invalid client id", {td:tokenData.client_id,lcl:client_id })
@@ -148,7 +143,7 @@ router.post("/token", async (req,res) => {
     }).catch((err) => {
       jsonLogger.error("Failed to fetch a refresh token", {token:tokenData, error:err})
     })
-    jsonLogger.info("play load", {payload:payload})
+
     const newGoogleTokens = payload.access_token || tokenData.google_refresh_token
     if (newGoogleTokens.error) {
       // Google refresh token is invalid or expired
@@ -160,7 +155,6 @@ router.post("/token", async (req,res) => {
       });
     }
     const updatedGoogleRefreshToken = newGoogleTokens.refresh_token || tokenData.google_refresh_token;
-    jsonLogger.info("refresh_choice", updatedGoogleRefreshToken)
     await redis.set(`refresh_token:${updatedGoogleRefreshToken}`, JSON.stringify({
         ...tokenData,
         google_refresh_token: updatedGoogleRefreshToken,

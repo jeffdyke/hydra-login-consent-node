@@ -17,7 +17,7 @@ router.get("/", async (req, res) => {
   if (code && req.session) {
     const pkceData = await fetchPkce(req, "Callback get")
 
-    jsonLogger.info("CALLBACK GET", {
+    jsonLogger.debug("CALLBACK GET", {
       code:code,
       returnedState:returnedState,
       createClientId:createClientId,
@@ -60,7 +60,7 @@ router.get("/", async (req, res) => {
 
     res.redirect(claudeCallback.toString());
   } else {
-    jsonLogger.info("Missing code session ", {code:code, session:JSON.stringify(req.session)})
+    jsonLogger.error("Missing code session ", {code:code, session:JSON.stringify(req.session)})
     res.status(400).send("Missing code or session ")
   }
 })
