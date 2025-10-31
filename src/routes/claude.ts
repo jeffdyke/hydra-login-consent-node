@@ -29,6 +29,7 @@ router.post("/token", async (req,res) => {
      */
     await redis.del(`auth_code:${req.session.id}`);
     await redis.del(`auth_code_state:${req.session.id}`)
+    delete req.session.pkceKey
     const isValidPKCE = validatePKCE(
       params.code_verifier,
       pkceState.code_challenge,
@@ -46,7 +47,7 @@ router.post("/token", async (req,res) => {
      */
     const tokenObj = authData.google_tokens.tokens
     jsonLogger.silly("tokenObject", tokenObj)
-    const refreshToken:RedisRefreshToken = {
+    const refreshTokenO:RedisRefreshToken = {
       client_id: pkceState.client_id,
       google_refresh_token: authData.google_tokens.tokens.refresh_token,
       scope: authData.google_tokens.tokens.scope,
@@ -54,14 +55,16 @@ router.post("/token", async (req,res) => {
       created_at: Date.now()
     }
 
-    const refreshTokenHash = authData.google_tokens.tokens.refresh_token
-    jsonLogger.silly("RefreshToken ", {hash:refreshTokenHash, ...authData.google_tokens.tokens})
-    await redis.set(`refresh_token:${refreshTokenHash}`,
-      JSON.stringify(refreshToken),
+    const refreshToken = authData.google_tokens.tokens.refresh_token
+    jsonLogger.silly("RefreshToken ", {id:req.session.id, hash:refreshToken, ...authData.google_tokens.tokens})
+    await redis.set(`refresh_token:${req.session.id}`,
+      JSON.stringify(refreshTokenO),
       'EX',
       60 * 60 * 24 * 30
     ).then((resp) => {
       jsonLogger.info("Response for new refresh_token", resp)
+    }).catch((err) => {
+      jsonLogger.error("Failed to write refresh token data", {error:err, key:`refresh_token:${req.session.id}`})
     }); // 30 days
 
 

@@ -16,7 +16,7 @@ router.get("/", async (req, res) => {
 
   if (code && req.session) {
     const pkceData = await fetchPkce(req)
-    jsonLogger.info("CALLBACK GET - don't need session data, using redis", {
+    jsonLogger.info("CALLBACK GET", {
       code:code,
       returnedState:returnedState,
       createClientId:createClientId,
@@ -64,7 +64,7 @@ router.get("/", async (req, res) => {
     await redis.set(`auth_code_state:${authCodeO.redisKey}`, JSON.stringify(pkceData)).then((response) => {
       jsonLogger.info("set new json data for validation", {data:response, key:authCodeO.redisKey})
     }).catch((err) => {
-      jsonLogger.error("Failed to write new data to redis", {error:err})
+      jsonLogger.error("Failed to write new data to redis", {error:err, key:`auth_code_state:${authCodeO.redisKey}`})
     })
 
     await redis.set(`auth_code:${authCodeO.redisKey}`, JSON.stringify({
@@ -72,9 +72,9 @@ router.get("/", async (req, res) => {
       session_id: req.session.pkceKey,
       created_at: Date.now()
     }), 'EX', 300).catch(rSet => {
-      jsonLogger.error("set error", {setError:rSet})
+      jsonLogger.error("error creating auth_code.", {setError:rSet, key:`auth_code:${authCodeO.redisKey}`})
     });
-
+    //pkce is short lived, delete it
     await redis.del(pkceRedisKey(req)).then(r => jsonLogger.info("Deleted redis state data on pkceKey", {key:pkceRedisKey(req)}))
 
     jsonLogger.info("Calling claude with a new authCode and the original state", {auth:authCodeO, hashString:authCode})
@@ -83,51 +83,6 @@ router.get("/", async (req, res) => {
     claudeCallback.searchParams.set('state', pkceData.state);
 
     res.redirect(claudeCallback.toString());
-
-    // Below is no longer needed, commenting out to ensure its not firing
-
-    // --------------------------------------------------------
-    // TODO why doesn't this return a state
-    // if (returnedState !== storedState) {
-    //   res.status(400).send("State mismatch - possible CSRF attack")
-    //   return
-    // }
-    // Not sure this should be auto generated
-    // let body = new URLSearchParams({
-    //       grant_type: "authorization_code",
-    //       code: code as string,
-    //       redirect_uri: appConfig.claudeRedirectUri,
-    //       client_id: createClientId,
-    //       code_verifier: codeChallenge ?? "",
-    //       state: pkceData.state ?? "",
-    //     })
-    // // Exchange code for tokens WITH code_verifier
-    // axios.post(`${process.env.HYDRA_URL}/oauth2/token`, body.toString(), {
-    //     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    // }).then(data => {
-    //     jsonLogger.info("Post Success", {response: data, state: pkceData.state, verifier: pkceData.code_challenge})
-    //     // Clear stored values from session
-    //     // TODO, should all off the redis key be deleted, perhaps exchange for an authenticated
-    //     if (req.session) {
-    //       delete req.session.codeChallenge
-    //       delete req.session.state
-    //     }
-    //     const resp = googleTokenResponse(code as string)
-
-    //     let jsonOut = JSON.stringify(resp, null, 2)
-    //     res.render(
-    //       'callback', {
-    //         pageTitle: 'Callback Results',
-    //         pageData: jsonOut
-    //       }
-
-    //     )
-    //     // Send response to client
-    //     // res.send(JSON.stringify(data, null, 2))
-    //   })
-    //   .catch((err) => {
-    //     res.status(500).send(`Error Caught in callback: ${err.message} with body ${body}`)
-    //   })
   } else {
     jsonLogger.info("Missing code session ", {code:code, session:JSON.stringify(req.session)})
     res.status(400).send("Missing code or session ")
