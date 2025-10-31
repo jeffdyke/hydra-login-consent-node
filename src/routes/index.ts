@@ -1,7 +1,7 @@
 import express from "express"
 import crypto from "crypto"
 import jsonLogger from "../logging.js"
-import {generateCsrfToken, HYDRA_URL, CLAUDE_CLIENT_ID, appConfig} from "../config.js"
+import {generateCsrfToken, HYDRA_URL, DCR_MASTER_CLIENT_ID, appConfig} from "../config.js"
 import {CLIENT_ID} from "../setup/hydra.js"
 import { getClient } from "../authFlow.js"
 import { googleAuthUrl } from "../google_auth.js"
@@ -50,7 +50,7 @@ function authPost(data:ParseAuthRequest): URL {
   authUrl.searchParams.append("code_challenge_method", "S256")
   return authUrl
 }
-// This endpoint is rather useless, needs to be updated after the claude flow is complete
+// This endpoint is rather useless, needs to be updated, as the passthrough client is complete
 router.get("/", (req, res) => {
   jsonLogger.info("At root for local testing")
   // Generate state for CSRF protection
@@ -92,8 +92,8 @@ router.post("/", async (req, res) => {
   }
 
 
-  const existing = await getClient(CLAUDE_CLIENT_ID).then(c => {
-    jsonLogger.info("Client exists", {clientId:CLAUDE_CLIENT_ID})
+  const existing = await getClient(DCR_MASTER_CLIENT_ID).then(c => {
+    jsonLogger.info("Client exists", {clientId:DCR_MASTER_CLIENT_ID})
     let auth = googleAuthUrl(internalPost.scope, req.session.state || "").then(authUrl => {
       res.redirect(authUrl)
     }).catch(errA => {
