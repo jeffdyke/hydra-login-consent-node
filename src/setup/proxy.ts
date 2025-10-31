@@ -42,8 +42,9 @@ const proxyOptions = {
       const queryString = new URLSearchParams(parsed.searchParams.toString());
       queryString.delete("code_challenge")
       queryString.delete("code_challenge_method")
+      queryString.set("state", req.session.id)
       const returnPath = [parsed.pathname,queryString].join("?")
-      jsonLogger.info("sending to hydra", {path:returnPath})
+      jsonLogger.info("sending to hydra, session id is set to be state", {path:returnPath})
       return returnPath
     }
   }
