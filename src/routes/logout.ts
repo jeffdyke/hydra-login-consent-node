@@ -4,7 +4,7 @@
 import express from "express"
 import url from "url"
 import urljoin from "url-join"
-import {generateCsrfToken, XSRF_TOKEN_NAME } from "../config.js"
+import {appConfig, generateCsrfToken } from "../config.js"
 import { hydraAdmin } from "../setup/hydra.js"
 
 const router = express.Router()
@@ -29,9 +29,9 @@ router.get("/", (req, res, next) => {
       // The most secure way to perform a logout request is by asking the user if he/she really want to log out.
       res.render("logout", {
         csrfToken: generateCsrfToken(req, res),
-        envXsrfToken: XSRF_TOKEN_NAME,
+        envXsrfToken: appConfig.xsrfHeaderName,
         challenge: challenge,
-        action: urljoin(process.env.BASE_URL || "", "/logout"),
+        action: `${appConfig.hostName}/logout`,
       })
     })
     // This will handle any error that happens when making HTTP calls to hydra

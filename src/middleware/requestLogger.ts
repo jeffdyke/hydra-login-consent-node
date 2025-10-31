@@ -1,7 +1,7 @@
 
 import { Request, Response, NextFunction } from "express";
 import logger  from "../logging.js";
-import { XSRF_TOKEN_NAME } from "../config.js";
+import { appConfig } from "../config.js";
 
 export function requestLogger(req: Request, res: Response, next: NextFunction) {
   const start = process.hrtime.bigint();
@@ -10,13 +10,10 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
   res.locals.logData = {
     method: req.method,
     url: req.originalUrl,
-    envXsrfToken: XSRF_TOKEN_NAME,
-    // cookies: req.cookies,
-    // sessionId: req.session,
+    envXsrfToken: appConfig.xsrfHeaderName,
     ip: req.ip,
     body: req.body,
     userAgent: req.headers["user-agent"] || "Empty UA",
-    // headers: req.headers
   }
   if (req.originalUrl != "/favicon.ico" && logStarts.test(res.locals.logData.userAgent)) {
     logger.info("Started request for claude", res.locals.logData)

@@ -1,20 +1,20 @@
 import { doubleCsrf } from "csrf-csrf";
 import express from "express";
 import * as crypto from 'crypto';
+import { appConfig } from "../config.js";
 
-const XSRF_TOKEN_NAME = !process.env.BASE_URL?.startsWith("https") ? 'dev_xsrf_token' : 'xsrf_token'
-const httpOnly = !process.env.BASE_URL?.startsWith("https")
+
 
 const {
   doubleCsrfProtection, // The middleware to protect routes
   generateCsrfToken,        // Helper function to generate a CSRF token
 } = doubleCsrf({
   getSecret: () => "G6KaOf8aJsLagw566he8yxOTTO3tInKD",
-  cookieName: XSRF_TOKEN_NAME,
+  cookieName: appConfig.xsrfHeaderName,
   cookieOptions: {
     sameSite: 'none', // Secure cookie settings
-    httpOnly: httpOnly,
-    secure: !httpOnly,
+    httpOnly: appConfig.httpOnly,
+    secure: appConfig.secure,
     maxAge: 30 * 24 * 60 * 60 * 1000,
   },
   getSessionIdentifier: (req) => {
