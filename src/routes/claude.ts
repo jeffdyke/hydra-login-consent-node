@@ -7,11 +7,17 @@ import jsonLogger from "../logging.js"
 import { googleRefreshResponse } from "../google_auth.js"
 const router = express.Router()
 
+interface SessionOAuthTokens {
+  hydra_refresh_token: string
+  google?: GoogleTokenResponse | {}
+}
+
 // This can fail in at least 5 ways, handle them
 router.post("/token", async (req,res) => {
   const params = req.body
-  jsonLogger.info("data passed into /token", req.body)
+
   if (params.grant_type == 'authorization_code') {
+    jsonLogger.info("data passed into authorization_code", req.body)
     const authCode = params.code
     const authDataStr = await redis.get(`auth_code:${authCode}`)
 
@@ -69,7 +75,7 @@ router.post("/token", async (req,res) => {
     });
   } else if (params.grant_type == "refresh_token") {
     const { refresh_token, client_id, scope } = req.body;
-
+    jsonLogger.info("Data passed into refresh_token", req.body)
     if (!refresh_token) {
       return res.status(400).json({
         error: 'invalid_request',
