@@ -44,7 +44,6 @@ router.head('/', (req, res) => {
 });
 function authPost(data:ParseAuthRequest): URL {
   const authUrl = new URL(`${HYDRA_URL}/oauth2/auth`)
-  jsonLogger.info("authUrl", authUrl)
   authUrl.searchParams.append("client_id", data.clientId)
   authUrl.searchParams.append("redirect_uri", data.redirectUri)
   authUrl.searchParams.append("response_type", data.responseType)
@@ -64,13 +63,6 @@ router.get("/", (req, res) => {
   const codeVerifier = generateCodeVerifier()
   const codeChallenge = generateCodeChallenge(codeVerifier)
 
-  // Store in session for later verification
-  if (req.session) {
-    req.session.state = state
-    req.session.codeVerifier = codeVerifier
-  } else {
-    jsonLogger.info("session returned none")
-  }
   // Build authorization URL
   const postData: ParseAuthRequest = {
     clientId:CLIENT_ID,
@@ -80,8 +72,6 @@ router.get("/", (req, res) => {
     codeChallenge:codeChallenge,
     responseType: "code"
   }
-
-  jsonLogger.info("Auth request - Index", {request:postData})
   // Redirect to Hydra for authorization
   res.redirect(authPost(postData).toString())
 })
@@ -108,14 +98,13 @@ router.post("/", async (req, res) => {
   const existing = await getClient(CLAUDE_CLIENT_ID).then(c => {
     jsonLogger.info("Client exists", {clientId:CLAUDE_CLIENT_ID})
     let auth = googleAuthUrl(internalPost.scope, req.session.state || "").then(authUrl => {
-      //jsonLogger.info("redirecting to google", {url:authUrl,state:req.session.state})
       res.redirect(authUrl)
     }).catch(errA => {
-      jsonLogger.info("caught an error creating authUri", {e: errA})
+      jsonLogger.error("caught an error creating authUri", {e: errA})
     })
     return auth
   }).catch(err => {
-    jsonLogger.info("caught an error fetching client", {e: err})
+    jsonLogger.error("caught an error fetching client", {e: err})
 
   })
 

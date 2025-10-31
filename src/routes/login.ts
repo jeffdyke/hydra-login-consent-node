@@ -1,36 +1,13 @@
-// Copyright © 2025 Ory Corp
-// SPDX-License-Identifier: Apache-2.0
-
 import express from "express"
 import url from "url"
-import urljoin from "url-join"
 import { hydraAdmin } from "../setup/hydra.js"
 import { oidcConformityMaybeFakeAcr } from "./stub/oidc-cert.js"
 import jsonLogger from "../logging.js"
 
-// Sets up csrf protection
-// const csrfProtection = csrf({
-//   cookie: {
-//     sameSite: "lax",
-//   },
-// })
-
 const router = express.Router()
-// router.use((req,res,next) => {
-//   if (req.method.toLowerCase() == "post") {
-//     let token = generateCsrfToken(req, res)
-//     jsonLogger.info("Adding token to request", {token:token})
-//     req.headers['x-csrf-token'] = token
-//   }
-
-//   next()
-// })
 
 router.get("/", (req, res, next) => {
-  // Parses the URL query
   const query = url.parse(req.url, true).query
-
-  // The challenge is used to fetch information about the login request from ORY Hydra.
   const challenge = String(query.login_challenge)
   if (!challenge) {
     next(new Error("Expected a login challenge to be set but received none."))
@@ -42,7 +19,7 @@ router.get("/", (req, res, next) => {
       loginChallenge: challenge,
     })
     .then(loginRequest => {
-      jsonLogger.info("passed login challenge, now requesting login", {lr: loginRequest.client.client_id})
+      jsonLogger.debug("passed login challenge, now requesting login", {lr: loginRequest.client.client_id})
       return hydraAdmin
           .acceptOAuth2LoginRequest({
             loginChallenge: challenge,
@@ -53,47 +30,26 @@ router.get("/", (req, res, next) => {
           .then(({ redirect_to }) => {
             res.redirect(String(redirect_to))
           })
-      // This will handle any error that happens when making HTTP calls to hydra
       }).catch(err => {
-        jsonLogger.info("caught an error after loginRequest", {error:err})
+        jsonLogger.error("caught an error after loginRequest", {error:err})
         next
       })
     })
 
 
-
+/**
+ * This is an auto accept for now, forms have been removed
+ * This conforms to the overall OAuth flow
+ */
 router.post("/", (req, res, next) => {
-  // The challenge is now a hidden input field, so let's take it from the request body instead
   const challenge = req.body.challenge
-  // Let's see if the user decided to accept or reject the consent request..
-  if (req.body.submit === "Deny access") {
-    // Looks like the consent request was denied by the user
-    return (
-      hydraAdmin
-        .rejectOAuth2LoginRequest({
-          loginChallenge: challenge,
-          rejectOAuth2Request: {
-            error: "access_denied",
-            error_description: "The resource owner denied the request",
-          },
-        })
-        .then(({ redirect_to }) => {
-          // All we need to do now is to redirect the browser back to hydra!
-          res.redirect(String(redirect_to))
-        })
-        // This will handle any error that happens when making HTTP calls to hydra
-        .catch(next)
-    )
-  }
-
-  // Seems like the user authenticated! Let's tell hydra...
-  jsonLogger.info("Contacting admin")
   hydraAdmin
     .getOAuth2LoginRequest({ loginChallenge: challenge })
     .then((loginRequest) =>
       hydraAdmin
         .acceptOAuth2LoginRequest({
           loginChallenge: challenge,
+          //This deserves better defaults.
           acceptOAuth2LoginRequest: {
             // Subject is an alias for user ID. A subject can be a random string, a UUID, an email address, ....
             subject: "claude@claude.ai",
@@ -118,33 +74,18 @@ router.post("/", (req, res, next) => {
           },
         })
         .then(({ redirect_to }) => {
-          jsonLogger.info("redirecting to ", {redirect_to:redirect_to})
+          jsonLogger.debug("redirecting to ", {redirect_to:redirect_to})
           // All we need to do now is to redirect the user back to hydra!
           res.redirect(String(redirect_to))
         }).catch(err => {
-          jsonLogger.info("caught error accepting login request", {error:err})
+          jsonLogger.error("caught error accepting login request", {error:err})
         })
     )
     // This will handle any error that happens when making HTTP calls to hydra
     .catch((e) => {
-      jsonLogger.info("cauth error sending call to hydra", {error:e})
+      jsonLogger.error("cauth error sending call to hydra", {error:e})
       next()
     })
-
-  // You could also deny the login request which tells hydra that no one authenticated!
-  //   hydraAdmin.rejectOAuth2LoginRequest({
-  //     loginChallenge: challenge,
-  //     rejectOAuth2Request: {
-  //       error: "invalid_request",
-  //       error_description: "The user did something stupid...",
-  //     },
-  //   })
-  //   .then(({body}) => {
-  //     // All we need to do now is to redirect the browser back to hydra!
-  //     res.redirect(String(body.redirectTo));
-  //   })
-  //   // This will handle any error that happens when making HTTP calls to hydra
-  //   .catch(next);
 })
 
 export default router

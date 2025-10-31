@@ -3,28 +3,28 @@
 //import 'source-map-support/register'
 
 import express from "express"
+import {v4} from 'uuid';
 import { NextFunction, Response, Request } from "express"
 import path from "path"
 import cookieParser from "cookie-parser"
 import bodyParser, { json } from "body-parser"
 import session from "express-session"
-import redis from "./setup/redis.js"
 import routes from "./routes/index.js"
 import login from "./routes/login.js"
 import logout from "./routes/logout.js"
 import consent from "./routes/consent.js"
-import device from "./routes/device.js"
 import callback from "./routes/callback.js"
-import testClient from "./routes/test-client.js"
+// Consider renaming this, its not tied to claude
 import claude from "./routes/claude.js"
 import pool from "./pool.js"
-import {PgStore, STATIC_CSRF} from "./config.js"
+import {PgStore} from "./config.js"
 import jsonLogger from "./logging.js"
 import { dirname } from 'path';
 import favicon from "serve-favicon";
 const app = express()
 import { requestLogger } from "./middleware/requestLogger.js";
 const __dirname = import.meta.dirname
+//This is required before body parser
 import proxyMiddleware from "./setup/proxy.js"
 app.set('trust proxy', 1)
 app.use(requestLogger)
@@ -43,30 +43,22 @@ app.use(
 )
 
 app.use("/oauth2/auth", proxyMiddleware)
-//This is required before body parser
-
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
-
-// Session middleware with PostgreSQL store
 
 
 app.use(cookieParser(process.env.SECRETS_SYSTEM || "G6KaOf8aJsLagw566he8yxOTTO3tInKD"));
 
-// view engine setup
 app.set("views", path.join(__dirname, "views"))
 app.set("view engine", "pug")
 app.use(favicon(path.join(__dirname, '..', 'public', 'favicon.ico')));
 
 app.use(express.static(path.join(dirname(import.meta.url), "public")))
-//ensure we have a stable pkce key for redis
-
-//import {v4} from 'uuid';
-// function addUniqueToken(req:Request, res:Response, next:Function) {
-//   req.headers["x-bondlink-id"] = v4(); // Generate a unique ID and attach it to the request object
-//   next(); // Pass control to the next middleware or route handler
-// }
-// app.use(addUniqueToken)
+function addUniqueToken(req:Request, res:Response, next:Function) {
+  req.headers["x-bondlink-id"] = v4();
+  next();
+}
+app.use(addUniqueToken)
 // const csrfHeader = (req:Request, res:Response, next:Function) => {
 //     const token = generateCsrfToken(req, res)
 //     jsonLogger.info("Setting csrf-token", {token: token})
@@ -75,26 +67,22 @@ app.use(express.static(path.join(dirname(import.meta.url), "public")))
 //   next()
 // };
 app.use("/", routes)
-app.use("/test-client", testClient)
 
 // app.use(doubleCsrfProtection)
 
 app.use("/login", login)
 app.use("/logout", logout)
 app.use("/consent", consent)
-//app.use("/device", device)
 app.use("/callback", callback)
 app.use("/oauth2", claude)
-
 
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
   jsonLogger.warn("404 in app.ts", {url: req.originalUrl})
-  next(new Error("Generic Not Found `{req.originalUrl}`" ))
+  next(new Error(`Generic Not Found ${req.originalUrl}` ))
 })
 
-// error handlers
 
 // development error handler
 // will print stacktrace
