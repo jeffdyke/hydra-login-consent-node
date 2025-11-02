@@ -16,10 +16,10 @@ import { createOAuthRedisOps } from './redis.js'
 interface GoogleOAuthTokens {
   tokens: {
     access_token: string
-    refresh_token?: string
+    refresh_token: string | undefined
     scope: string
     expires_in: number
-    id_token?: string
+    id_token: string | undefined
     token_type: string
   }
 }
@@ -122,6 +122,7 @@ export const processCallback = (
         RTE.chainFirstW(({ pkceData }) =>
           pipe(
             RTE.fromTaskEither(redisOps.deletePKCEState(pkceKey)),
+            RTE.map(() => undefined),
             RTE.orElse((err) => {
               env.logger.warn('Failed to delete PKCE session', { err, pkceKey })
               return RTE.right(undefined) // Continue even if deletion fails

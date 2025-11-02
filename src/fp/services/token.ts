@@ -76,12 +76,13 @@ export const processAuthCodeGrant = (
           const tokenObj = authData.google_tokens.tokens
           const refreshTokenData: RefreshTokenData = {
             client_id: pkceState.client_id,
-            google_refresh_token: tokenObj.refresh_token || '',
+            refresh_token: tokenObj.refresh_token || '',
             access_token: tokenObj.access_token,
             scope: tokenObj.scope,
             subject: authData.subject || 'user',
             created_at: Date.now(),
             expires_in: tokenObj.expires_in,
+            updated_at: Date.now()
           }
 
           env.logger.silly('Created refresh token data', refreshTokenData)
@@ -90,7 +91,7 @@ export const processAuthCodeGrant = (
           return pipe(
             RTE.fromTaskEither(
               redisOps.setRefreshToken(
-                refreshTokenData.google_refresh_token,
+                refreshTokenData.refresh_token,
                 refreshTokenData
               )
             ),
@@ -104,7 +105,7 @@ export const processAuthCodeGrant = (
             access_token: refreshTokenData.access_token,
             token_type: 'Bearer',
             expires_in: refreshTokenData.expires_in,
-            refresh_token: refreshTokenData.google_refresh_token,
+            refresh_token: refreshTokenData.refresh_token,
             scope: refreshTokenData.scope,
           }
 
@@ -199,11 +200,11 @@ export const processRefreshTokenGrant = (
         // Step 6: Update stored refresh token
         RTE.chainW(({ refreshToken, tokenData, googleResponse }) => {
           const updatedRefreshToken =
-            googleResponse.refresh_token || tokenData.google_refresh_token
+            googleResponse.refresh_token || tokenData.refresh_token
 
           const updatedData: RefreshTokenData = {
             ...tokenData,
-            google_refresh_token: updatedRefreshToken,
+            refresh_token: updatedRefreshToken,
             access_token: googleResponse.access_token,
             updated_at: Date.now(),
           }

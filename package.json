@@ -12,6 +12,7 @@
   ],
   "scripts": {
     "_tsc": "tsc -p .",
+    "tswatch": "tsc --watch -p .",
     "_bundle": "rollup -c",
     "build": "npm-run-all clean _tsc _bundle",
     "clean": "rm -rf lib dist",

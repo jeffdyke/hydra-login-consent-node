@@ -96,7 +96,7 @@ export type GoogleErrorResponse = t.TypeOf<typeof GoogleErrorResponseCodec>
  */
 export const RefreshTokenDataCodec = t.type({
   client_id: t.string,
-  google_refresh_token: t.string,
+  refresh_token: t.string,
   access_token: t.string,
   scope: t.string,
   subject: t.string,

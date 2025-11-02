@@ -46,10 +46,10 @@ export class GoogleTokenResponse {
   token_type: string | undefined;
 
   @Property()
-  id_token?: string; // Optional: Present if OpenID Connect scopes are requested
+  id_token: string | undefined; // Present if OpenID Connect scopes are requested
 
   @Property()
-  refresh_token?: string; // Optional: Present if offline access is requested
+  refresh_token: string | undefined; // Present if offline access is requested
 }
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const formHeader = {

@@ -130,7 +130,7 @@ export const processAuthCodeGrant = (
           const refreshTokenData: RefreshTokenData = { ... }
           return pipe(
             RTE.fromTaskEither(
-              redisOps.setRefreshToken(refreshTokenData.google_refresh_token, refreshTokenData)
+              redisOps.setRefreshToken(refreshTokenData.refresh_token, refreshTokenData)
             ),
             RTE.map(() => refreshTokenData)
           )
@@ -141,7 +141,7 @@ export const processAuthCodeGrant = (
           access_token: refreshTokenData.access_token,
           token_type: 'Bearer',
           expires_in: refreshTokenData.expires_in,
-          refresh_token: refreshTokenData.google_refresh_token,
+          refresh_token: refreshTokenData.refresh_token,
           scope: refreshTokenData.scope,
         }))
       )

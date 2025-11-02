@@ -88,7 +88,7 @@ router.post("/token", async (req,res) => {
     const refreshTokenO = { ... }
 
     // Side effect with swallowed error
-    await redis.set(`refresh_token:${refreshTokenO.google_refresh_token}`,
+    await redis.set(`refresh_token:${refreshTokenO.refresh_token}`,
       JSON.stringify(refreshTokenO),
       'EX',
       60 * 60 * 24 * 30
@@ -168,7 +168,7 @@ export const processAuthCodeGrant = (
           return pipe(
             RTE.fromTaskEither(
               redisOps.setRefreshToken(
-                refreshTokenData.google_refresh_token,
+                refreshTokenData.refresh_token,
                 refreshTokenData
               )
             ),
@@ -181,7 +181,7 @@ export const processAuthCodeGrant = (
           access_token: refreshTokenData.access_token,
           token_type: 'Bearer',
           expires_in: refreshTokenData.expires_in,
-          refresh_token: refreshTokenData.google_refresh_token,
+          refresh_token: refreshTokenData.refresh_token,
           scope: refreshTokenData.scope,
         }))
       )

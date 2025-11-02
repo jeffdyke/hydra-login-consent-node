@@ -11,10 +11,12 @@ import {
   TokenRequestCodec,
   AuthCodeGrantCodec,
   RefreshTokenGrantCodec,
+  AuthCodeGrant,
   createOAuth2Error,
+  RefreshTokenGrant,
 } from '../fp/domain.js'
 import { AppEnvironment } from '../fp/environment.js'
-import { AppError, OAuthError, RedisError, GoogleOAuthError } from '../fp/errors.js'
+import { AppError, OAuthError, RedisError, GoogleOAuthError, ValidationError } from '../fp/errors.js'
 import { validateCodec } from '../fp/validation.js'
 import {
   processAuthCodeGrant,
@@ -113,7 +115,8 @@ export const createTokenHandler = (env: AppEnvironment) => {
       validateCodec(TokenRequestCodec, req.body),
 
       // Step 2: Process based on grant type (discriminated union)
-      E.chainW((tokenRequest) => {
+      E.chainW((tokenRequest):
+      E.Either<AppError, {type: 'auth_code', grant:AuthCodeGrant} | { type: 'refresh_token', grant: RefreshTokenGrant}> => {
         if (tokenRequest.grant_type === 'authorization_code') {
           // Validate as auth code grant
           return pipe(

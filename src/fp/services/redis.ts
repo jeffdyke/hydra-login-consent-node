@@ -33,8 +33,7 @@ export interface RedisService {
   set: (
     key: string,
     value: string,
-    expiryMode?: 'EX' | 'PX',
-    time?: number
+    expireSeconds?: number
   ) => TE.TaskEither<RedisError, 'OK'>
 
   /**
@@ -43,8 +42,7 @@ export interface RedisService {
   setJSON: (
     key: string,
     value: unknown,
-    expiryMode?: 'EX' | 'PX',
-    time?: number
+    expireSeconds?: number
   ) => TE.TaskEither<RedisError, 'OK'>
 
   /**
@@ -101,18 +99,18 @@ export const createRedisService = (client: Redis): RedisService => {
         })
       ),
 
-    set: (key: string, value: string, expiryMode?: 'EX' | 'PX', time?: number) =>
+    set: (key: string, value: string, time?: number,) =>
       wrapRedisOp(
         () => {
-          if (expiryMode && time) {
-            return client.set(key, value, expiryMode, time)
+          if (time) {
+            return client.set(key, value, 'EX', time)
           }
           return client.set(key, value)
         },
         (error) => RedisError.writeError(key, error)
       ),
 
-    setJSON: (key: string, value: unknown, expiryMode?: 'EX' | 'PX', time?: number) =>
+    setJSON: (key: string, value: unknown, time?: number) =>
       pipe(
         TE.tryCatch(
           () => Promise.resolve(JSON.stringify(value)),
@@ -121,8 +119,8 @@ export const createRedisService = (client: Redis): RedisService => {
         TE.chainW((jsonString) =>
           wrapRedisOp(
             () => {
-              if (expiryMode && time) {
-                return client.set(key, jsonString, expiryMode, time)
+              if (time) {
+                return client.set(key, jsonString, 'EX', time)
               }
               return client.set(key, jsonString)
             },
@@ -165,7 +163,7 @@ export const createOAuthRedisOps = (service: RedisService) => {
      * Store PKCE state
      */
     setPKCEState: (sessionId: string, state: unknown, ttlSeconds?: number) =>
-      service.setJSON(`${PKCE_PREFIX}${sessionId}`, state, 'EX', ttlSeconds),
+      service.setJSON(`${PKCE_PREFIX}${sessionId}`, state, ttlSeconds),
 
     /**
      * Delete PKCE state
@@ -183,7 +181,7 @@ export const createOAuthRedisOps = (service: RedisService) => {
      * Store auth code data
      */
     setAuthCode: (code: string, data: unknown, ttlSeconds: number = 300) =>
-      service.setJSON(`${AUTH_CODE_PREFIX}${code}`, data, 'EX', ttlSeconds),
+      service.setJSON(`${AUTH_CODE_PREFIX}${code}`, data, ttlSeconds),
 
     /**
      * Delete auth code (one-time use)
@@ -201,7 +199,7 @@ export const createOAuthRedisOps = (service: RedisService) => {
      * Store auth code state
      */
     setAuthCodeState: (code: string, state: unknown, ttlSeconds: number = 300) =>
-      service.setJSON(`${AUTH_CODE_STATE_PREFIX}${code}`, state, 'EX', ttlSeconds),
+      service.setJSON(`${AUTH_CODE_STATE_PREFIX}${code}`, state, ttlSeconds),
 
     /**
      * Delete auth code state
@@ -219,7 +217,7 @@ export const createOAuthRedisOps = (service: RedisService) => {
      * Store refresh token data (30 day TTL)
      */
     setRefreshToken: (refreshToken: string, data: unknown, ttlSeconds: number = 60 * 60 * 24 * 30) =>
-      service.setJSON(`${REFRESH_TOKEN_PREFIX}${refreshToken}`, data, 'EX', ttlSeconds),
+      service.setJSON(`${REFRESH_TOKEN_PREFIX}${refreshToken}`, data, ttlSeconds),
 
     /**
      * Delete refresh token

@@ -87,7 +87,7 @@ export const createGoogleOAuthService = (
               new URLSearchParams({
                 client_id: config.clientId,
                 client_secret: config.clientSecret,
-                refresh_token: tokenData.google_refresh_token,
+                refresh_token: tokenData.refresh_token,
                 grant_type: 'refresh_token',
               }).toString(),
               {

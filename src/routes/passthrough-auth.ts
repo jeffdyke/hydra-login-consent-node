@@ -41,7 +41,7 @@ router.post("/token", async (req,res) => {
     jsonLogger.silly("tokenObject", tokenObj)
     const refreshTokenO:RedisRefreshToken = {
       client_id: pkceState.client_id,
-      google_refresh_token: tokenObj.refresh_token,
+      refresh_token: tokenObj.refresh_token,
       access_token: tokenObj.access_token,
       scope: tokenObj.scope,
       subject: authData.subject || "user",
@@ -49,19 +49,19 @@ router.post("/token", async (req,res) => {
       expires_in: 3600
     }
 
-    await redis.set(`refresh_token:${refreshTokenO.google_refresh_token}`,
+    await redis.set(`refresh_token:${refreshTokenO.refresh_token}`,
       JSON.stringify(refreshTokenO),
       'EX',
       60 * 60 * 24 * 30
     ).catch((err) => {
-      jsonLogger.error("Failed to write refresh token data", {error:err, key:`refresh_token:${refreshTokenO.google_refresh_token}`})
+      jsonLogger.error("Failed to write refresh token data", {error:err, key:`refresh_token:${refreshTokenO.refresh_token}`})
     });
 
     const resp = {
       access_token: refreshTokenO.access_token,
       token_type: 'Bearer',
       expires_in: refreshTokenO.expires_in,
-      refresh_token: refreshTokenO.google_refresh_token,
+      refresh_token: refreshTokenO.refresh_token,
       scope: refreshTokenO.scope
     }
     jsonLogger.info("Returning json payload", resp)
@@ -129,7 +129,7 @@ router.post("/token", async (req,res) => {
       jsonLogger.error("Failed to fetch a refresh token", {token:tokenData, error:err})
     })
 
-    const newGoogleTokens = payload.access_token || tokenData.google_refresh_token
+    const newGoogleTokens = payload.access_token || tokenData.refresh_token
     if (newGoogleTokens.error) {
       // Google refresh token is invalid or expired
       await redis.del(`refresh_token:${refresh_token}`);
@@ -139,10 +139,10 @@ router.post("/token", async (req,res) => {
         error_description: newGoogleTokens.error_description || 'Refresh token expired or revoked'
       });
     }
-    const updatedGoogleRefreshToken = newGoogleTokens.refresh_token || tokenData.google_refresh_token;
+    const updatedGoogleRefreshToken = newGoogleTokens.refresh_token || tokenData.refresh_token;
     await redis.set(`refresh_token:${updatedGoogleRefreshToken}`, JSON.stringify({
         ...tokenData,
-        google_refresh_token: updatedGoogleRefreshToken,
+        refresh_token: updatedGoogleRefreshToken,
         updated_at: Date.now()
       }),
       'EX',
