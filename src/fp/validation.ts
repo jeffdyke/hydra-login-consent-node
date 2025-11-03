@@ -1,73 +1,74 @@
 /**
- * Pure validation functions using fp-ts Either for error handling
+ * Pure validation functions using Effect for error handling
  */
-import * as E from 'fp-ts/Either'
-import * as A from 'fp-ts/Array'
-import { pipe } from 'fp-ts/function'
-import * as t from 'io-ts'
-import { PathReporter } from 'io-ts/PathReporter'
-import { OAuthError, ValidationError } from './errors.js'
+import { Effect, Schema, ParseResult } from 'effect'
+import { pipe } from 'effect'
+import {
+  InvalidPKCE,
+  InvalidScope,
+  RequiredFieldMissing,
+  InvalidFormat,
+  SchemaValidationError,
+} from './errors.js'
 import { PKCEMethod } from './domain.js'
 import crypto from 'crypto'
 
 /**
- * Validate io-ts codec and return Either
+ * Validate schema and return Effect
  */
-export const validateCodec = <C extends t.Mixed>(
-  codec: C,
+export const validateSchema = <A, I>(
+  schema: Schema.Schema<A, I, never>,
   value: unknown
-): E.Either<ValidationError, t.TypeOf<C>> => {
-  const result = codec.decode(value)
-  return pipe(
-    result,
-    E.mapLeft((errors) =>
-      ValidationError.codecError(PathReporter.report(result), value)
+): Effect.Effect<A, SchemaValidationError> =>
+  pipe(
+    Schema.decodeUnknown(schema)(value),
+    Effect.mapError((error) =>
+      new SchemaValidationError({
+        errors: ParseResult.ArrayFormatter.formatErrorSync(error).map((e) => e.message),
+        value,
+      })
     )
   )
-}
 
 /**
  * Pure PKCE validation function
- * Takes a code_verifier, challenge, and method and returns Either
+ * Takes a code_verifier, challenge, and method and returns Effect
  */
 export const validatePKCE = (
   verifier: string,
   challenge: string,
   method: PKCEMethod
-): E.Either<OAuthError, true> => {
-  try {
-    let computedChallenge: string
+): Effect.Effect<true, InvalidPKCE> =>
+  Effect.try({
+    try: () => {
+      let computedChallenge: string
 
-    if (method === 'S256') {
-      computedChallenge = crypto
-        .createHash('sha256')
-        .update(verifier)
-        .digest('base64url')
-    } else if (method === 'plain') {
-      computedChallenge = verifier
-    } else {
-      return E.left(
-        OAuthError.invalidPKCE(challenge, verifier, `Unknown method: ${method}`)
-      )
-    }
+      if (method === 'S256') {
+        computedChallenge = crypto
+          .createHash('sha256')
+          .update(verifier)
+          .digest('base64url')
+      } else if (method === 'plain') {
+        computedChallenge = verifier
+      } else {
+        throw new Error(`Unknown method: ${method}`)
+      }
 
-    if (computedChallenge === challenge) {
-      return E.right(true)
-    } else {
-      return E.left(
-        OAuthError.invalidPKCE(
-          challenge,
-          verifier,
+      if (computedChallenge === challenge) {
+        return true as const
+      } else {
+        throw new Error(
           `Challenge mismatch: expected ${challenge}, got ${computedChallenge}`
         )
-      )
-    }
-  } catch (error) {
-    return E.left(
-      OAuthError.invalidPKCE(challenge, verifier, `Validation error: ${error}`)
-    )
-  }
-}
+      }
+    },
+    catch: (error) =>
+      new InvalidPKCE({
+        challenge,
+        verifier,
+        method: String(error),
+      }),
+  })
 
 /**
  * Validate OAuth2 scopes
@@ -76,12 +77,12 @@ export const validatePKCE = (
 export const validateScopes = (
   requestedScopes: string[],
   grantedScopes: string[]
-): E.Either<OAuthError, true> => {
+): Effect.Effect<true, InvalidScope> => {
   const hasAllScopes = requestedScopes.every((s) => grantedScopes.includes(s))
 
   return hasAllScopes
-    ? E.right(true)
-    : E.left(OAuthError.invalidScope(requestedScopes, grantedScopes))
+    ? Effect.succeed(true as const)
+    : Effect.fail(new InvalidScope({ requested: requestedScopes, granted: grantedScopes }))
 }
 
 /**
@@ -97,10 +98,10 @@ export const parseScopeString = (scope: string): string[] => {
 export const validateRequired = <T>(
   field: string,
   value: T | null | undefined
-): E.Either<ValidationError, T> => {
+): Effect.Effect<T, RequiredFieldMissing> => {
   return value != null
-    ? E.right(value)
-    : E.left(ValidationError.requiredField(field))
+    ? Effect.succeed(value)
+    : Effect.fail(new RequiredFieldMissing({ field }))
 }
 
 /**
@@ -109,25 +110,23 @@ export const validateRequired = <T>(
 export const validateNonEmpty = (
   field: string,
   value: string
-): E.Either<ValidationError, string> => {
+): Effect.Effect<string, InvalidFormat> => {
   return value.trim().length > 0
-    ? E.right(value)
-    : E.left(ValidationError.invalidFormat(field, 'non-empty string', value))
+    ? Effect.succeed(value)
+    : Effect.fail(
+        new InvalidFormat({
+          field,
+          expected: 'non-empty string',
+          received: value,
+        })
+      )
 }
 
 /**
- * Sequence array of Eithers into Either of array
- * Collects all errors if any exist
+ * Collect all validations
+ * Runs all validations in parallel
  */
-export const sequenceValidations = <E, A>(
-  validations: E.Either<E, A>[]
-): E.Either<E[], A[]> => {
-  const lefts = validations.filter(E.isLeft)
-  const rights = validations.filter(E.isRight)
-
-  if (lefts.length > 0) {
-    return E.left(lefts.map((l) => l.left))
-  } else {
-    return E.right(rights.map((r) => r.right))
-  }
-}
+export const validateAll = <E, A>(
+  validations: Effect.Effect<A, E>[]
+): Effect.Effect<A[], E> =>
+  Effect.all(validations, { concurrency: 'unbounded' })

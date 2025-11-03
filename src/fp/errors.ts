@@ -1,61 +1,163 @@
 /**
- * Application error types using Algebraic Data Types (ADTs)
+ * Application error types using Effect's Data module for tagged errors
  * Each error is a discriminated union for exhaustive pattern matching
  */
+import { Data } from 'effect'
 
 /**
  * Redis operation errors
  */
+export class RedisConnectionError extends Data.TaggedError('RedisConnectionError')<{
+  message: string
+}> {}
+
+export class RedisKeyNotFound extends Data.TaggedError('RedisKeyNotFound')<{
+  key: string
+}> {}
+
+export class RedisParseError extends Data.TaggedError('RedisParseError')<{
+  key: string
+  raw: string
+  error: unknown
+}> {}
+
+export class RedisWriteError extends Data.TaggedError('RedisWriteError')<{
+  key: string
+  error: unknown
+}> {}
+
+export class RedisDeleteError extends Data.TaggedError('RedisDeleteError')<{
+  key: string
+  error: unknown
+}> {}
+
 export type RedisError =
-  | { _tag: 'RedisConnectionError'; message: string }
-  | { _tag: 'RedisKeyNotFound'; key: string }
-  | { _tag: 'RedisParseError'; key: string; raw: string; error: unknown }
-  | { _tag: 'RedisWriteError'; key: string; error: unknown }
-  | { _tag: 'RedisDeleteError'; key: string; error: unknown }
+  | RedisConnectionError
+  | RedisKeyNotFound
+  | RedisParseError
+  | RedisWriteError
+  | RedisDeleteError
 
 /**
  * HTTP client errors
  */
-export type HttpError =
-  | { _tag: 'NetworkError'; message: string; cause?: unknown }
-  | { _tag: 'HttpStatusError'; status: number; statusText: string; body?: unknown }
-  | { _tag: 'TimeoutError'; timeoutMs: number }
-  | { _tag: 'ParseError'; message: string; raw?: string }
+export class NetworkError extends Data.TaggedError('NetworkError')<{
+  message: string
+  cause?: unknown
+}> {}
+
+export class HttpStatusError extends Data.TaggedError('HttpStatusError')<{
+  status: number
+  statusText: string
+  body?: unknown
+}> {}
+
+export class TimeoutError extends Data.TaggedError('TimeoutError')<{
+  timeoutMs: number
+}> {}
+
+export class ParseError extends Data.TaggedError('ParseError')<{
+  message: string
+  raw?: string
+}> {}
+
+export type HttpError = NetworkError | HttpStatusError | TimeoutError | ParseError
 
 /**
  * OAuth2/PKCE validation errors
  */
+export class InvalidPKCE extends Data.TaggedError('InvalidPKCE')<{
+  challenge: string
+  verifier: string
+  method: string
+}> {}
+
+export class InvalidGrant extends Data.TaggedError('InvalidGrant')<{
+  reason: string
+}> {}
+
+export class InvalidScope extends Data.TaggedError('InvalidScope')<{
+  requested: string[]
+  granted: string[]
+}> {}
+
+export class InvalidClient extends Data.TaggedError('InvalidClient')<{
+  clientId: string
+}> {}
+
+export class MissingParameter extends Data.TaggedError('MissingParameter')<{
+  parameter: string
+}> {}
+
+export class ExpiredToken extends Data.TaggedError('ExpiredToken')<{
+  tokenType: 'auth_code' | 'refresh_token'
+}> {}
+
 export type OAuthError =
-  | { _tag: 'InvalidPKCE'; challenge: string; verifier: string; method: string }
-  | { _tag: 'InvalidGrant'; reason: string }
-  | { _tag: 'InvalidScope'; requested: string[]; granted: string[] }
-  | { _tag: 'InvalidClient'; clientId: string }
-  | { _tag: 'MissingParameter'; parameter: string }
-  | { _tag: 'ExpiredToken'; tokenType: 'auth_code' | 'refresh_token' }
+  | InvalidPKCE
+  | InvalidGrant
+  | InvalidScope
+  | InvalidClient
+  | MissingParameter
+  | ExpiredToken
 
 /**
  * Google OAuth errors
  */
-export type GoogleOAuthError =
-  | { _tag: 'GoogleAuthError'; error: string; errorDescription?: string }
-  | { _tag: 'GoogleTokenExpired'; refreshToken: string }
-  | { _tag: 'GoogleTokenRevoked'; refreshToken: string }
+export class GoogleAuthError extends Data.TaggedError('GoogleAuthError')<{
+  error: string
+  errorDescription?: string
+}> {}
+
+export class GoogleTokenExpired extends Data.TaggedError('GoogleTokenExpired')<{
+  refreshToken: string
+}> {}
+
+export class GoogleTokenRevoked extends Data.TaggedError('GoogleTokenRevoked')<{
+  refreshToken: string
+}> {}
+
+export type GoogleOAuthError = GoogleAuthError | GoogleTokenExpired | GoogleTokenRevoked
 
 /**
  * Session errors
  */
-export type SessionError =
-  | { _tag: 'SessionNotFound'; sessionId: string }
-  | { _tag: 'SessionExpired'; sessionId: string }
-  | { _tag: 'SessionStorageError'; error: unknown }
+export class SessionNotFound extends Data.TaggedError('SessionNotFound')<{
+  sessionId: string
+}> {}
+
+export class SessionExpired extends Data.TaggedError('SessionExpired')<{
+  sessionId: string
+}> {}
+
+export class SessionStorageError extends Data.TaggedError('SessionStorageError')<{
+  error: unknown
+}> {}
+
+export type SessionError = SessionNotFound | SessionExpired | SessionStorageError
 
 /**
  * Validation errors
  */
+export class SchemaValidationError extends Data.TaggedError('SchemaValidationError')<{
+  errors: string[]
+  value: unknown
+}> {}
+
+export class RequiredFieldMissing extends Data.TaggedError('RequiredFieldMissing')<{
+  field: string
+}> {}
+
+export class InvalidFormat extends Data.TaggedError('InvalidFormat')<{
+  field: string
+  expected: string
+  received: unknown
+}> {}
+
 export type ValidationError =
-  | { _tag: 'CodecValidationError'; errors: string[]; value: unknown }
-  | { _tag: 'RequiredFieldMissing'; field: string }
-  | { _tag: 'InvalidFormat'; field: string; expected: string; received: unknown }
+  | SchemaValidationError
+  | RequiredFieldMissing
+  | InvalidFormat
 
 /**
  * Application-level errors (union of all domain errors)
@@ -67,120 +169,3 @@ export type AppError =
   | GoogleOAuthError
   | SessionError
   | ValidationError
-
-/**
- * Error constructors for cleaner error creation
- */
-export const RedisError = {
-  connectionError: (message: string): RedisError => ({
-    _tag: 'RedisConnectionError',
-    message,
-  }),
-  keyNotFound: (key: string): RedisError => ({
-    _tag: 'RedisKeyNotFound',
-    key,
-  }),
-  parseError: (key: string, raw: string, error: unknown): RedisError => ({
-    _tag: 'RedisParseError',
-    key,
-    raw,
-    error,
-  }),
-  writeError: (key: string, error: unknown): RedisError => ({
-    _tag: 'RedisWriteError',
-    key,
-    error,
-  }),
-  deleteError: (key: string, error: unknown): RedisError => ({
-    _tag: 'RedisDeleteError',
-    key,
-    error,
-  }),
-}
-
-export const HttpError = {
-  network: (message: string, cause?: unknown): HttpError => ({
-    _tag: 'NetworkError',
-    message,
-    cause,
-  }),
-  status: (status: number, statusText: string, body?: unknown): HttpError => ({
-    _tag: 'HttpStatusError',
-    status,
-    statusText,
-    body,
-  }),
-  timeout: (timeoutMs: number): HttpError => ({
-    _tag: 'TimeoutError',
-    timeoutMs,
-  }),
-  parse: (message: string, raw?: string): HttpError => ({
-    _tag: 'ParseError',
-    message,
-    raw,
-  }),
-}
-
-export const OAuthError = {
-  invalidPKCE: (challenge: string, verifier: string, method: string): OAuthError => ({
-    _tag: 'InvalidPKCE',
-    challenge,
-    verifier,
-    method,
-  }),
-  invalidGrant: (reason: string): OAuthError => ({
-    _tag: 'InvalidGrant',
-    reason,
-  }),
-  invalidScope: (requested: string[], granted: string[]): OAuthError => ({
-    _tag: 'InvalidScope',
-    requested,
-    granted,
-  }),
-  invalidClient: (clientId: string): OAuthError => ({
-    _tag: 'InvalidClient',
-    clientId,
-  }),
-  missingParameter: (parameter: string): OAuthError => ({
-    _tag: 'MissingParameter',
-    parameter,
-  }),
-  expiredToken: (tokenType: 'auth_code' | 'refresh_token'): OAuthError => ({
-    _tag: 'ExpiredToken',
-    tokenType,
-  }),
-}
-
-export const GoogleOAuthError = {
-  authError: (error: string, errorDescription?: string): GoogleOAuthError => ({
-    _tag: 'GoogleAuthError',
-    error,
-    errorDescription,
-  }),
-  tokenExpired: (refreshToken: string): GoogleOAuthError => ({
-    _tag: 'GoogleTokenExpired',
-    refreshToken,
-  }),
-  tokenRevoked: (refreshToken: string): GoogleOAuthError => ({
-    _tag: 'GoogleTokenRevoked',
-    refreshToken,
-  }),
-}
-
-export const ValidationError = {
-  codecError: (errors: string[], value: unknown): ValidationError => ({
-    _tag: 'CodecValidationError',
-    errors,
-    value,
-  }),
-  requiredField: (field: string): ValidationError => ({
-    _tag: 'RequiredFieldMissing',
-    field,
-  }),
-  invalidFormat: (field: string, expected: string, received: unknown): ValidationError => ({
-    _tag: 'InvalidFormat',
-    field,
-    expected,
-    received,
-  }),
-}

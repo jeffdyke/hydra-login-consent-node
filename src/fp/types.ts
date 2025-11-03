@@ -1,40 +1,37 @@
 /**
- * Core fp-ts type aliases and utilities for the application
+ * Core Effect type aliases and utilities for the application
+ * Using Effect instead of fp-ts for better ergonomics and features
  */
-import * as TE from 'fp-ts/TaskEither'
-import * as RTE from 'fp-ts/ReaderTaskEither'
-import * as E from 'fp-ts/Either'
-import * as O from 'fp-ts/Option'
-import { pipe } from 'fp-ts/function'
+import { Effect, pipe } from 'effect'
 
 /**
- * Type alias for asynchronous operations that can fail
- * TaskEither<E, A> represents an async computation that:
- * - Returns Left<E> on failure
- * - Returns Right<A> on success
+ * Type alias for effects that can fail
+ * Effect<Success, Error, Requirements>
  */
-export type AsyncResult<E, A> = TE.TaskEither<E, A>
+export type AsyncResult<E, A> = Effect.Effect<A, E>
 
 /**
- * Type alias for dependency-injected async operations
- * ReaderTaskEither<R, E, A> represents a computation that:
- * - Requires environment R (dependencies)
- * - Returns Left<E> on failure
- * - Returns Right<A> on success
+ * Type alias for effects with dependencies (service requirements)
+ * Effect<Success, Error, Requirements>
  */
-export type IOWithDeps<R, E, A> = RTE.ReaderTaskEither<R, E, A>
+export type EffectWithDeps<R, E, A> = Effect.Effect<A, E, R>
 
 /**
- * Re-export commonly used fp-ts modules
+ * Re-export commonly used Effect utilities
  */
-export { TE, RTE, E, O, pipe }
+export { Effect, pipe }
 
 /**
- * Utility type for extracting the success type from TaskEither
+ * Utility type for extracting the success type from Effect
  */
-export type Unwrap<T> = T extends TE.TaskEither<any, infer A> ? A : never
+export type Unwrap<T> = T extends Effect.Effect<infer A, any, any> ? A : never
 
 /**
- * Utility type for extracting the error type from TaskEither
+ * Utility type for extracting the error type from Effect
  */
-export type UnwrapError<T> = T extends TE.TaskEither<infer E, any> ? E : never
+export type UnwrapError<T> = T extends Effect.Effect<any, infer E, any> ? E : never
+
+/**
+ * Utility type for extracting the requirements type from Effect
+ */
+export type UnwrapRequirements<T> = T extends Effect.Effect<any, any, infer R> ? R : never

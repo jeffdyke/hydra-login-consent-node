@@ -1,142 +1,135 @@
 /**
- * Domain types with io-ts codecs for runtime validation
- * Using io-ts provides both compile-time types and runtime validation
+ * Domain types with Effect Schema for runtime validation
+ * Using Effect Schema provides both compile-time types and runtime validation
  */
-import * as t from 'io-ts'
-import { DateFromISOString } from 'io-ts-types'
+import { Schema } from 'effect'
 
 /**
  * PKCE Challenge Method
  */
-export const PKCEMethodCodec = t.union([
-  t.literal('S256'),
-  t.literal('plain'),
-])
-export type PKCEMethod = t.TypeOf<typeof PKCEMethodCodec>
+export const PKCEMethodSchema = Schema.Literal('S256', 'plain')
+export type PKCEMethod = typeof PKCEMethodSchema.Type
 
 /**
  * PKCE State stored in Redis
  */
-export const PKCEStateCodec = t.type({
-  code_challenge: t.string,
-  code_challenge_method: PKCEMethodCodec,
-  scope: t.string,
-  state: t.string,
-  redirect_uri: t.string,
-  client_id: t.string,
-  timestamp: t.number,
+export const PKCEStateSchema = Schema.Struct({
+  code_challenge: Schema.String,
+  code_challenge_method: PKCEMethodSchema,
+  scope: Schema.String,
+  state: Schema.String,
+  redirect_uri: Schema.String,
+  client_id: Schema.String,
+  timestamp: Schema.Number,
 })
-export type PKCEState = t.TypeOf<typeof PKCEStateCodec>
+export type PKCEState = typeof PKCEStateSchema.Type
 
 /**
  * OAuth2 Grant Types
  */
-export const GrantTypeCodec = t.union([
-  t.literal('authorization_code'),
-  t.literal('refresh_token'),
-])
-export type GrantType = t.TypeOf<typeof GrantTypeCodec>
+export const GrantTypeSchema = Schema.Literal('authorization_code', 'refresh_token')
+export type GrantType = typeof GrantTypeSchema.Type
 
 /**
  * Authorization Code Grant Request
  */
-export const AuthCodeGrantCodec = t.type({
-  grant_type: t.literal('authorization_code'),
-  code: t.string,
-  code_verifier: t.string,
-  redirect_uri: t.string,
-  client_id: t.string,
+export const AuthCodeGrantSchema = Schema.Struct({
+  grant_type: Schema.Literal('authorization_code'),
+  code: Schema.String,
+  code_verifier: Schema.String,
+  redirect_uri: Schema.String,
+  client_id: Schema.String,
 })
-export type AuthCodeGrant = t.TypeOf<typeof AuthCodeGrantCodec>
+export type AuthCodeGrant = typeof AuthCodeGrantSchema.Type
 
 /**
  * Refresh Token Grant Request
  */
-export const RefreshTokenGrantCodec = t.type({
-  grant_type: t.literal('refresh_token'),
-  refresh_token: t.string,
-  client_id: t.string,
-  scope: t.union([t.string, t.undefined]),
+export const RefreshTokenGrantSchema = Schema.Struct({
+  grant_type: Schema.Literal('refresh_token'),
+  refresh_token: Schema.String,
+  client_id: Schema.String,
+  scope: Schema.optional(Schema.String),
 })
-export type RefreshTokenGrant = t.TypeOf<typeof RefreshTokenGrantCodec>
+export type RefreshTokenGrant = typeof RefreshTokenGrantSchema.Type
 
 /**
  * Token Request (discriminated union)
  */
-export const TokenRequestCodec = t.union([
-  AuthCodeGrantCodec,
-  RefreshTokenGrantCodec,
-])
-export type TokenRequest = t.TypeOf<typeof TokenRequestCodec>
+export const TokenRequestSchema = Schema.Union(
+  AuthCodeGrantSchema,
+  RefreshTokenGrantSchema
+)
+export type TokenRequest = typeof TokenRequestSchema.Type
 
 /**
  * Google Token Response
  */
-export const GoogleTokenResponseCodec = t.type({
-  access_token: t.string,
-  expires_in: t.number,
-  scope: t.string,
-  token_type: t.string,
-  id_token: t.union([t.string, t.undefined]),
-  refresh_token: t.union([t.string, t.undefined]),
+export const GoogleTokenResponseSchema = Schema.Struct({
+  access_token: Schema.String,
+  expires_in: Schema.Number,
+  scope: Schema.String,
+  token_type: Schema.String,
+  id_token: Schema.optional(Schema.String),
+  refresh_token: Schema.optional(Schema.String),
 })
-export type GoogleTokenResponse = t.TypeOf<typeof GoogleTokenResponseCodec>
+export type GoogleTokenResponse = typeof GoogleTokenResponseSchema.Type
 
 /**
  * Google Error Response
  */
-export const GoogleErrorResponseCodec = t.type({
-  error: t.string,
-  error_description: t.union([t.string, t.undefined]),
+export const GoogleErrorResponseSchema = Schema.Struct({
+  error: Schema.String,
+  error_description: Schema.optional(Schema.String),
 })
-export type GoogleErrorResponse = t.TypeOf<typeof GoogleErrorResponseCodec>
+export type GoogleErrorResponse = typeof GoogleErrorResponseSchema.Type
 
 /**
  * Refresh Token Data stored in Redis
  */
-export const RefreshTokenDataCodec = t.type({
-  client_id: t.string,
-  refresh_token: t.string,
-  access_token: t.string,
-  scope: t.string,
-  subject: t.string,
-  created_at: t.number,
-  expires_in: t.number,
-  updated_at: t.union([t.number, t.undefined]),
+export const RefreshTokenDataSchema = Schema.Struct({
+  client_id: Schema.String,
+  google_refresh_token: Schema.String,
+  access_token: Schema.String,
+  scope: Schema.String,
+  subject: Schema.String,
+  created_at: Schema.Number,
+  expires_in: Schema.Number,
+  updated_at: Schema.optional(Schema.Number),
 })
-export type RefreshTokenData = t.TypeOf<typeof RefreshTokenDataCodec>
+export type RefreshTokenData = typeof RefreshTokenDataSchema.Type
 
 /**
  * Auth Code Data stored in Redis
  */
-export const AuthCodeDataCodec = t.type({
-  google_tokens: t.type({
-    tokens: GoogleTokenResponseCodec,
+export const AuthCodeDataSchema = Schema.Struct({
+  google_tokens: Schema.Struct({
+    tokens: GoogleTokenResponseSchema,
   }),
-  subject: t.union([t.string, t.undefined]),
+  subject: Schema.optional(Schema.String),
 })
-export type AuthCodeData = t.TypeOf<typeof AuthCodeDataCodec>
+export type AuthCodeData = typeof AuthCodeDataSchema.Type
 
 /**
  * OAuth2 Token Response (what we return to clients)
  */
-export const OAuth2TokenResponseCodec = t.type({
-  access_token: t.string,
-  token_type: t.literal('Bearer'),
-  expires_in: t.number,
-  refresh_token: t.string,
-  scope: t.string,
+export const OAuth2TokenResponseSchema = Schema.Struct({
+  access_token: Schema.String,
+  token_type: Schema.Literal('Bearer'),
+  expires_in: Schema.Number,
+  refresh_token: Schema.String,
+  scope: Schema.String,
 })
-export type OAuth2TokenResponse = t.TypeOf<typeof OAuth2TokenResponseCodec>
+export type OAuth2TokenResponse = typeof OAuth2TokenResponseSchema.Type
 
 /**
  * OAuth2 Error Response
  */
-export const OAuth2ErrorResponseCodec = t.type({
-  error: t.string,
-  error_description: t.union([t.string, t.undefined]),
+export const OAuth2ErrorResponseSchema = Schema.Struct({
+  error: Schema.String,
+  error_description: Schema.optional(Schema.String),
 })
-export type OAuth2ErrorResponse = t.TypeOf<typeof OAuth2ErrorResponseCodec>
+export type OAuth2ErrorResponse = typeof OAuth2ErrorResponseSchema.Type
 
 /**
  * Helper to create OAuth2 error responses
