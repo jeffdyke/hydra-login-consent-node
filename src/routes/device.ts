@@ -1,7 +1,7 @@
 import express from "express"
 import url from "url"
 import { generateCsrfToken, appConfig } from "../config.js"
-import { hydraAdmin } from "../setup/hydra.js"
+import hydraAdmin from "../setup/hydra.js"
 
 const router = express.Router()
 

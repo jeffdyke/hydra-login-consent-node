@@ -16,7 +16,7 @@ import { dirname } from 'path'
 // Existing infrastructure
 import pool from './pool.js'
 import redis from './setup/redis.js'
-import { hydraAdmin } from './setup/hydra.js'
+import hydraAdmin from './setup/hydra.js'
 import { PgStore, appConfig } from './config.js'
 import jsonLogger from './logging.js'
 import { requestLogger } from './middleware/requestLogger.js'

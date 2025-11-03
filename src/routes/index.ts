@@ -1,8 +1,7 @@
 import express from "express"
 import crypto from "crypto"
 import jsonLogger from "../logging.js"
-import {generateCsrfToken, HYDRA_URL, DCR_MASTER_CLIENT_ID, appConfig} from "../config.js"
-import {CLIENT_ID} from "../setup/hydra.js"
+import {generateCsrfToken, DCR_MASTER_CLIENT_ID, appConfig} from "../config.js"
 import { getClient } from "../authFlow.js"
 import { googleAuthUrl } from "../google_auth.js"
 const router = express.Router()
@@ -40,7 +39,7 @@ router.head('/', (req, res) => {
   res.status(204).end();
 });
 function authPost(data:ParseAuthRequest): URL {
-  const authUrl = new URL(`${HYDRA_URL}/oauth2/auth`)
+  const authUrl = new URL(`${appConfig.hydraPublicUrl}/oauth2/auth`)
   authUrl.searchParams.append("client_id", data.clientId)
   authUrl.searchParams.append("redirect_uri", data.redirectUri)
   authUrl.searchParams.append("response_type", data.responseType)

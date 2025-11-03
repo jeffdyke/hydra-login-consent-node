@@ -1,7 +1,7 @@
 
 import axios from "axios"
 import { DCR_MASTER_CLIENT_ID } from "./config.js";
-import { hydraAdmin } from "./setup/hydra.js"
+import hydraAdmin from "./setup/hydra.js"
 import { OAuth2Client, OAuth2ClientOptions } from 'google-auth-library';
 import jsonLogger from "./logging.js";
 import { URLSearchParams } from "url";
