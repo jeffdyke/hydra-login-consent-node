@@ -50,7 +50,7 @@ class StagingAppConfig implements AppConfigI {
   hydraInternalUrl: string = "http://10.1.1.230:4444"
   hydraInternalAdmin: string = "http://10.1.1.230:4445"
   redisHost: string = "10.1.1.230"
-  redisPort: number = 16379
+  redisPort: number = 6379
   sameSite: SameSiteType = "none"
   httpOnly: boolean = false
   secure: boolean = true
