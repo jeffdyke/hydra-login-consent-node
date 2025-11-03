@@ -1,21 +1,26 @@
 /**
- * Consent flow business logic using ReaderTaskEither
+ * Consent flow business logic using Effect
  */
-import * as RTE from 'fp-ts/ReaderTaskEither'
-import * as TE from 'fp-ts/TaskEither'
-import * as E from 'fp-ts/Either'
-import { pipe } from 'fp-ts/function'
-import { AppEnvironment } from '../environment.js'
-import { AppError, ValidationError } from '../errors.js'
+import { Effect } from 'effect'
+import { HydraService } from './hydra.js'
+import { RedisService, createOAuthRedisOps } from './redis.js'
+import { PKCEStateSchema } from '../domain.js'
+import { type AppError } from '../errors.js'
+import { Logger } from './token.js'
+
+/**
+ * Configuration for Google OAuth
+ */
+export interface ConsentConfig {
+  readonly googleClientId: string
+  readonly middlewareRedirectUri: string
+}
 
 /**
  * Build Google OAuth URL
  */
 const buildGoogleAuthUrl = (
-  config: {
-    googleClientId: string
-    middlewareRedirectUri: string
-  },
+  config: ConsentConfig,
   state: string
 ): string => {
   const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth')
@@ -33,62 +38,53 @@ const buildGoogleAuthUrl = (
  * Process consent request
  * 1. Get consent info from Hydra
  * 2. Accept consent
- * 3. Get PKCE state from Redis
- * 4. Build and return Google OAuth URL
+ * 3. Build and return Google OAuth URL
  */
 export const processConsent = (
   challenge: string,
+  config: ConsentConfig,
   requestedScope?: string
-): RTE.ReaderTaskEither<AppEnvironment, AppError, string> =>
-  pipe(
-    RTE.ask<AppEnvironment>(),
-    RTE.chainW((env) => {
-      env.logger.debug('Processing consent challenge', { challenge })
+): Effect.Effect<string, AppError, HydraService | Logger> =>
+  Effect.gen(function* () {
+    // Access services
+    const hydra = yield* HydraService
+    const logger = yield* Effect.serviceOption(Logger)
 
-      return pipe(
-        // Step 1: Get consent info
-        RTE.fromTaskEither(env.hydra.getConsentRequest(challenge)),
+    if (logger._tag === 'Some') {
+      yield* logger.value.info('Processing consent challenge', { challenge })
+    }
 
-        // Step 2: Accept consent with requested scopes
-        RTE.chainW((consentInfo) => {
-          env.logger.info('Consent info received', {
-            subject: consentInfo.subject,
-            requestedScopes: consentInfo.requested_scope,
-          })
+    // Step 1: Get consent info
+    const consentInfo = yield* hydra.getConsentRequest(challenge)
 
-          return RTE.fromTaskEither(
-            env.hydra.acceptConsentRequest(challenge, {
-              grant_scope: requestedScope ? [requestedScope] : consentInfo.requested_scope,
-              grant_access_token_audience: consentInfo.requested_access_token_audience,
-              session: {
-                id_token: {},
-                access_token: {},
-              },
-              remember: true,
-              remember_for: 3600,
-            })
-          )
-        }),
+    if (logger._tag === 'Some') {
+      yield* logger.value.info('Consent info received', {
+        subject: consentInfo.subject,
+        requestedScopes: consentInfo.requested_scope,
+      })
+    }
 
-        // Step 3: Build Google OAuth URL
-        RTE.map(() => {
-          // Note: In the original code, state comes from PKCE in Redis via session
-          // For now, we'll use a simplified approach. In production, you'd fetch
-          // from Redis using session ID
-          const googleUrl = buildGoogleAuthUrl(
-            {
-              googleClientId: env.config.googleClientId,
-              middlewareRedirectUri: env.config.middlewareRedirectUri,
-            },
-            challenge // Using challenge as state for now
-          )
-
-          env.logger.info('Redirecting to Google OAuth', { url: googleUrl })
-          return googleUrl
-        })
-      )
+    // Step 2: Accept consent with requested scopes
+    yield* hydra.acceptConsentRequest(challenge, {
+      grant_scope: requestedScope ? [requestedScope] : consentInfo.requested_scope,
+      grant_access_token_audience: consentInfo.requested_access_token_audience,
+      session: {
+        id_token: {},
+        access_token: {},
+      },
+      remember: true,
+      remember_for: 3600,
     })
-  )
+
+    // Step 3: Build Google OAuth URL
+    const googleUrl = buildGoogleAuthUrl(config, challenge)
+
+    if (logger._tag === 'Some') {
+      yield* logger.value.info('Redirecting to Google OAuth', { url: googleUrl })
+    }
+
+    return googleUrl
+  })
 
 /**
  * Process consent with PKCE from session
@@ -97,31 +93,29 @@ export const processConsent = (
 export const processConsentWithPKCE = (
   challenge: string,
   sessionId: string,
+  config: ConsentConfig,
   requestedScope?: string
-): RTE.ReaderTaskEither<AppEnvironment, AppError, string> =>
-  pipe(
-    RTE.ask<AppEnvironment>(),
-    RTE.chainW((env) => {
-      const redisOps = { getPKCEState: env.redis.getJSON }
+): Effect.Effect<string, AppError, HydraService | RedisService | Logger> =>
+  Effect.gen(function* () {
+    // Access services
+    const redis = yield* RedisService
+    const logger = yield* Effect.serviceOption(Logger)
 
-      return pipe(
-        // Fetch PKCE from Redis
-        RTE.fromTaskEither(
-          redisOps.getPKCEState(`pkce_session:${sessionId}`, E.right as any)
-        ),
+    const redisOps = createOAuthRedisOps(redis)
 
-        // Continue with consent flow
-        RTE.chainW((pkceData: any) =>
-          pipe(
-            processConsent(challenge, requestedScope),
-            RTE.map((baseUrl) => {
-              // Use actual state from PKCE
-              const url = new URL(baseUrl)
-              url.searchParams.set('state', pkceData.state || challenge)
-              return url.toString()
-            })
-          )
-        )
-      )
-    })
-  )
+    // Fetch PKCE from Redis
+    const pkceData = yield* redisOps.getPKCEState(sessionId, PKCEStateSchema)
+
+    // Continue with consent flow
+    const baseUrl = yield* processConsent(challenge, config, requestedScope)
+
+    // Use actual state from PKCE
+    const url = new URL(baseUrl)
+    url.searchParams.set('state', pkceData.state || challenge)
+
+    if (logger._tag === 'Some') {
+      yield* logger.value.info('Using PKCE state from session', { sessionId, state: pkceData.state })
+    }
+
+    return url.toString()
+  })

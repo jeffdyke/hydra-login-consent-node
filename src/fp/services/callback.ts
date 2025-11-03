@@ -1,27 +1,39 @@
 /**
- * Google OAuth callback business logic using ReaderTaskEither
+ * Google OAuth callback business logic using Effect
  */
-import * as RTE from 'fp-ts/ReaderTaskEither'
-import * as TE from 'fp-ts/TaskEither'
-import { pipe } from 'fp-ts/function'
+import { Effect } from 'effect'
 import * as crypto from 'crypto'
-import { AppEnvironment } from '../environment.js'
-import { AppError } from '../errors.js'
-import { PKCEStateCodec, AuthCodeData } from '../domain.js'
-import { createOAuthRedisOps } from './redis.js'
+import { RedisService, createOAuthRedisOps } from './redis.js'
+import { PKCEStateSchema, AuthCodeData } from '../domain.js'
+import { type AppError, GoogleAuthError } from '../errors.js'
+import { Logger } from './token.js'
+
+/**
+ * Configuration for callback
+ */
+export interface CallbackConfig {
+  readonly middlewareRedirectUri: string
+}
 
 /**
  * Google OAuth tokens (from google-auth-library)
  */
 interface GoogleOAuthTokens {
   tokens: {
-    access_token: string
-    refresh_token: string | undefined
-    scope: string
-    expires_in: number
-    id_token: string | undefined
-    token_type: string
+    access_token?: string | null
+    refresh_token?: string | null
+    scope?: string | null
+    expires_in?: number | null
+    id_token?: string | null
+    token_type?: string | null
   }
+}
+
+/**
+ * Google OAuth client interface
+ */
+export interface GoogleOAuthClient {
+  getToken(code: string): Promise<GoogleOAuthTokens>
 }
 
 /**
@@ -31,19 +43,16 @@ interface GoogleOAuthTokens {
 const exchangeGoogleCode = (
   code: string,
   redirectUri: string,
-  googleClient: any
-): TE.TaskEither<AppError, GoogleOAuthTokens> =>
-  TE.tryCatch(
-    async () => {
-      const tokenResponse = await googleClient.getToken(code)
-      return tokenResponse
-    },
-    (error) => ({
-      _tag: 'GoogleAuthError' as const,
-      error: 'token_exchange_failed',
-      errorDescription: String(error),
-    })
-  )
+  googleClient: GoogleOAuthClient
+): Effect.Effect<GoogleOAuthTokens, GoogleAuthError> =>
+  Effect.tryPromise({
+    try: () => googleClient.getToken(code),
+    catch: (error) =>
+      new GoogleAuthError({
+        error: 'token_exchange_failed',
+        errorDescription: String(error),
+      }),
+  })
 
 /**
  * Process OAuth callback
@@ -58,90 +67,97 @@ export const processCallback = (
   googleCode: string,
   returnedState: string,
   pkceKey: string,
-  googleClient: any
-): RTE.ReaderTaskEither<AppEnvironment, AppError, string> =>
-  pipe(
-    RTE.ask<AppEnvironment>(),
-    RTE.chainW((env) => {
-      const redisOps = createOAuthRedisOps(env.redis)
+  googleClient: GoogleOAuthClient,
+  config: CallbackConfig
+): Effect.Effect<string, AppError, RedisService | Logger> =>
+  Effect.gen(function* () {
+    // Access services
+    const redis = yield* RedisService
+    const logger = yield* Effect.serviceOption(Logger)
 
-      env.logger.debug('Processing OAuth callback', {
+    const redisOps = createOAuthRedisOps(redis)
+
+    if (logger._tag === 'Some') {
+      yield* logger.value.info('Processing OAuth callback', {
         code: googleCode,
         returnedState,
         pkceKey,
       })
+    }
 
-      return pipe(
-        // Step 1: Fetch PKCE data from Redis
-        RTE.fromTaskEither(redisOps.getPKCEState(pkceKey, PKCEStateCodec)),
+    // Step 1: Fetch PKCE data from Redis
+    const pkceData = yield* redisOps.getPKCEState(pkceKey, PKCEStateSchema)
 
-        // Step 2: Exchange Google code for tokens
-        RTE.chainW((pkceData) => {
-          env.logger.debug('PKCE data fetched', {
-            state: pkceData.state,
-            challenge: pkceData.code_challenge,
-          })
+    if (logger._tag === 'Some') {
+      yield* logger.value.info('PKCE data fetched', {
+        state: pkceData.state,
+        challenge: pkceData.code_challenge,
+      })
+    }
 
-          return pipe(
-            RTE.fromTaskEither(
-              exchangeGoogleCode(
-                googleCode,
-                env.config.middlewareRedirectUri,
-                googleClient
-              )
-            ),
-            RTE.map((googleTokens) => ({ pkceData, googleTokens }))
-          )
-        }),
+    // Step 2: Exchange Google code for tokens
+    const googleTokens = yield* exchangeGoogleCode(
+      googleCode,
+      config.middlewareRedirectUri,
+      googleClient
+    )
 
-        // Step 3: Generate new auth_code for passthrough
-        RTE.chainW(({ pkceData, googleTokens }) => {
-          const authCode = crypto.randomBytes(32).toString('base64url')
-
-          const authData: AuthCodeData = {
-            google_tokens: googleTokens,
-            subject: undefined, // Will be populated from user info if needed
-          }
-
-          env.logger.debug('Generated auth_code', { authCode })
-
-          return pipe(
-            // Store PKCE state with auth_code
-            RTE.fromTaskEither(
-              pipe(
-                TE.Do,
-                TE.chainW(() => redisOps.setAuthCodeState(authCode, pkceData)),
-                TE.chainW(() => redisOps.setAuthCode(authCode, authData, 300))
-              )
-            ),
-            RTE.map(() => ({ pkceData, authCode }))
-          )
-        }),
-
-        // Step 4: Delete PKCE session (cleanup)
-        RTE.chainFirstW(({ pkceData }) =>
-          pipe(
-            RTE.fromTaskEither(redisOps.deletePKCEState(pkceKey)),
-            RTE.map(() => undefined),
-            RTE.orElse((err) => {
-              env.logger.warn('Failed to delete PKCE session', { err, pkceKey })
-              return RTE.right(undefined) // Continue even if deletion fails
-            })
-          )
-        ),
-
-        // Step 5: Build redirect URL
-        RTE.map(({ pkceData, authCode }) => {
-          const ptCallback = new URL(pkceData.redirect_uri)
-          ptCallback.searchParams.set('code', authCode)
-          ptCallback.searchParams.set('state', pkceData.state)
-
-          env.logger.info('Callback complete, redirecting', {
-            redirectUri: ptCallback.toString(),
-          })
-
-          return ptCallback.toString()
+    // Step 3: Ensure required fields are present
+    if (!googleTokens.tokens.access_token) {
+      return yield* Effect.fail(
+        new GoogleAuthError({
+          error: 'missing_access_token',
+          errorDescription: 'Google did not return an access token',
         })
       )
-    })
-  )
+    }
+
+    // Step 4: Generate new auth_code for passthrough
+    const authCode = crypto.randomBytes(32).toString('base64url')
+
+    const authData: AuthCodeData = {
+      google_tokens: {
+        tokens: {
+          access_token: googleTokens.tokens.access_token,
+          scope: googleTokens.tokens.scope || '',
+          expires_in: googleTokens.tokens.expires_in || 3600,
+          token_type: googleTokens.tokens.token_type || 'Bearer',
+          refresh_token: googleTokens.tokens.refresh_token || undefined,
+          id_token: googleTokens.tokens.id_token || undefined,
+        },
+      },
+      subject: undefined, // Will be populated from user info if needed
+    }
+
+    if (logger._tag === 'Some') {
+      yield* logger.value.info('Generated auth_code', { authCode })
+    }
+
+    // Step 5: Store PKCE state and auth_code in Redis (sequential)
+    yield* redisOps.setAuthCodeState(authCode, pkceData)
+    yield* redisOps.setAuthCode(authCode, authData, 300)
+
+    // Step 6: Delete PKCE session (cleanup) - catch errors to not fail the flow
+    yield* Effect.catchAll(
+      redisOps.deletePKCEState(pkceKey),
+      (err) => {
+        if (logger._tag === 'Some') {
+          return logger.value.error('Failed to delete PKCE session', { err, pkceKey })
+        }
+        return Effect.void
+      }
+    )
+
+    // Step 7: Build redirect URL
+    const ptCallback = new URL(pkceData.redirect_uri)
+    ptCallback.searchParams.set('code', authCode)
+    ptCallback.searchParams.set('state', pkceData.state)
+
+    if (logger._tag === 'Some') {
+      yield* logger.value.info('Callback complete, redirecting', {
+        redirectUri: ptCallback.toString(),
+      })
+    }
+
+    return ptCallback.toString()
+  })

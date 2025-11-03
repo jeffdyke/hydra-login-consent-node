@@ -1,10 +1,10 @@
 /**
- * Login flow business logic using ReaderTaskEither
+ * Login flow business logic using Effect
  */
-import * as RTE from 'fp-ts/ReaderTaskEither'
-import { pipe } from 'fp-ts/function'
-import { AppEnvironment } from '../environment.js'
-import { AppError } from '../errors.js'
+import { Effect } from 'effect'
+import { HydraService } from './hydra.js'
+import { type AppError } from '../errors.js'
+import { Logger } from './token.js'
 
 /**
  * Process login request
@@ -13,43 +13,38 @@ import { AppError } from '../errors.js'
 export const processLogin = (
   challenge: string,
   subject: string
-): RTE.ReaderTaskEither<AppEnvironment, AppError, string> =>
-  pipe(
-    RTE.ask<AppEnvironment>(),
-    RTE.chainW((env) => {
-      env.logger.debug('Processing login challenge', { challenge, subject })
+): Effect.Effect<string, AppError, HydraService | Logger> =>
+  Effect.gen(function* () {
+    // Access services
+    const hydra = yield* HydraService
+    const logger = yield* Effect.serviceOption(Logger)
 
-      return pipe(
-        // Get login request details
-        RTE.fromTaskEither(env.hydra.getLoginRequest(challenge)),
+    if (logger._tag === 'Some') {
+      yield* logger.value.info('Processing login challenge', { challenge, subject })
+    }
 
-        // Log client info
-        RTE.chainFirstW((loginRequest) => {
-          env.logger.debug('Login request received', {
-            clientId: loginRequest.client?.client_id,
-          })
-          return RTE.right(undefined)
-        }),
+    // Get login request details
+    const loginRequest = yield* hydra.getLoginRequest(challenge)
 
-        // Accept login request
-        RTE.chainW(() =>
-          RTE.fromTaskEither(
-            env.hydra.acceptLoginRequest(challenge, {
-              subject,
-              remember: true,
-              remember_for: 3600,
-              acr: '0', // Authentication Context Class Reference
-            })
-          )
-        ),
+    if (logger._tag === 'Some') {
+      yield* logger.value.info('Login request received', {
+        clientId: loginRequest.client?.client_id,
+      })
+    }
 
-        // Extract redirect URL
-        RTE.map((redirectTo) => {
-          env.logger.debug('Login accepted, redirecting to', {
-            redirect_to: redirectTo.redirect_to,
-          })
-          return String(redirectTo.redirect_to)
-        })
-      )
+    // Accept login request
+    const redirectTo = yield* hydra.acceptLoginRequest(challenge, {
+      subject,
+      remember: true,
+      remember_for: 3600,
+      acr: '0', // Authentication Context Class Reference
     })
-  )
+
+    if (logger._tag === 'Some') {
+      yield* logger.value.info('Login accepted, redirecting to', {
+        redirect_to: redirectTo.redirect_to,
+      })
+    }
+
+    return String(redirectTo.redirect_to)
+  })

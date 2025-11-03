@@ -23,7 +23,7 @@ import { requestLogger } from './middleware/requestLogger.js'
 import proxyMiddleware from './setup/proxy.js'
 
 // Functional core
-import { createAppEnvironment } from './fp/bootstrap.js'
+import { createAppLayer } from './fp/bootstrap.js'
 
 // Functional routes
 import { createLoginRouter } from './routes/login-fp.js'
@@ -45,16 +45,25 @@ const googleClient = new OAuth2Client({
   redirectUri: appConfig.middlewareRedirectUri,
 })
 
-// Bootstrap functional environment
-const env = createAppEnvironment(redis, hydraAdmin, jsonLogger, {
+// Bootstrap functional environment with Effect Layers
+const serviceLayer = createAppLayer(redis, hydraAdmin, jsonLogger, {
   googleClientId: appConfig.googleClientId || '',
   googleClientSecret: appConfig.googleClientSecret || '',
-  hydraUrl: appConfig.hydraInternalAdmin,
-  redisHost: appConfig.redisHost,
-  redisPort: appConfig.redisPort,
-  middlewareRedirectUri: appConfig.middlewareRedirectUri,
-  hostName: appConfig.hostName,
 })
+
+// Create config objects for routes
+const consentConfig = {
+  googleClientId: appConfig.googleClientId || '',
+  middlewareRedirectUri: appConfig.middlewareRedirectUri,
+}
+
+const callbackConfig = {
+  middlewareRedirectUri: appConfig.middlewareRedirectUri,
+}
+
+const logoutConfig = {
+  hostName: appConfig.hostName,
+}
 
 // Middleware setup (same as original)
 app.set('trust proxy', 1)
@@ -92,12 +101,12 @@ app.use(addUniqueToken)
 // Routes - using functional versions
 app.use('/', routes) // Keep legacy root route for now
 
-// Functional routes with environment injection
-app.use('/login', createLoginRouter(env))
-app.use('/logout', createLogoutRouter(env))
-app.use('/consent', createConsentRouter(env))
-app.use('/callback', createCallbackRouter(env, googleClient))
-app.use('/oauth2', createTokenRouter(env))
+// Functional routes with Effect Layer injection
+app.use('/login', createLoginRouter(serviceLayer))
+app.use('/logout', createLogoutRouter(serviceLayer, logoutConfig))
+app.use('/consent', createConsentRouter(serviceLayer, consentConfig))
+app.use('/callback', createCallbackRouter(serviceLayer, googleClient, callbackConfig))
+app.use('/oauth2', createTokenRouter(serviceLayer))
 
 // Error handlers (same as original)
 app.use((req, res, next) => {

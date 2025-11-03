@@ -1,13 +1,12 @@
 /**
- * Functional Google OAuth callback route using fp-ts
+ * Functional Google OAuth callback route using Effect
  */
 import express from 'express'
-import * as E from 'fp-ts/Either'
-import { pipe } from 'fp-ts/function'
-import { OAuth2Client } from 'google-auth-library'
-import { AppEnvironment } from '../fp/environment.js'
-import { AppError } from '../fp/errors.js'
-import { processCallback } from '../fp/services/callback.js'
+import { Effect, pipe, Layer } from 'effect'
+import { type AppError } from '../fp/errors.js'
+import { processCallback, type GoogleOAuthClient, type CallbackConfig } from '../fp/services/callback.js'
+import { RedisService } from '../fp/services/redis.js'
+import { Logger } from '../fp/services/token.js'
 
 const router = express.Router()
 
@@ -33,58 +32,51 @@ const mapErrorToHttp = (error: AppError): { status: number; message: string } =>
 /**
  * Callback handler
  */
-const createCallbackHandler = (env: AppEnvironment, googleClient: OAuth2Client) => {
+const createCallbackHandler = (
+  serviceLayer: Layer.Layer<RedisService | Logger>,
+  googleClient: GoogleOAuthClient,
+  config: CallbackConfig
+) => {
   return async (req: express.Request, res: express.Response) => {
     const code = req.query.code as string
     const returnedState = req.query.state as string
     const pkceKey = req.session?.pkceKey as string | undefined
 
     if (!code) {
-      env.logger.error('Missing authorization code in callback')
       res.status(400).send('Missing authorization code')
       return
     }
 
     if (!req.session || !pkceKey) {
-      env.logger.error('Missing session or PKCE key', {
-        hasSession: !!req.session,
-        pkceKey,
-      })
       res.status(400).send('Missing session or PKCE key')
       return
     }
 
-    const result = await processCallback(
-      code,
-      returnedState,
-      pkceKey,
-      googleClient
-    )(env)()
-
-    pipe(
-      result,
-      E.fold(
-        (error) => {
-          const { status, message } = mapErrorToHttp(error)
-          env.logger.error('Callback failed', { error, status, message })
-          res.status(status).send(message)
-        },
-        (redirectUrl) => {
-          res.redirect(redirectUrl)
-        }
-      )
+    const program = pipe(
+      processCallback(code, returnedState, pkceKey, googleClient, config),
+      Effect.provide(serviceLayer)
     )
+
+    const result = await Effect.runPromise(Effect.either(program))
+
+    if (result._tag === 'Left') {
+      const { status, message } = mapErrorToHttp(result.left)
+      res.status(status).send(message)
+    } else {
+      res.redirect(result.right)
+    }
   }
 }
 
 /**
- * Create callback router with environment
+ * Create callback router with service layer
  */
 export const createCallbackRouter = (
-  env: AppEnvironment,
-  googleClient: OAuth2Client
+  serviceLayer: Layer.Layer<RedisService | Logger>,
+  googleClient: GoogleOAuthClient,
+  config: CallbackConfig
 ) => {
-  router.get('/', createCallbackHandler(env, googleClient))
+  router.get('/', createCallbackHandler(serviceLayer, googleClient, config))
   return router
 }
 

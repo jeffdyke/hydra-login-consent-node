@@ -1,10 +1,10 @@
 /**
- * Logout flow business logic using ReaderTaskEither
+ * Logout flow business logic using Effect
  */
-import * as RTE from 'fp-ts/ReaderTaskEither'
-import { pipe } from 'fp-ts/function'
-import { AppEnvironment } from '../environment.js'
-import { AppError } from '../errors.js'
+import { Effect } from 'effect'
+import { HydraService } from './hydra.js'
+import { type AppError } from '../errors.js'
+import { Logger } from './token.js'
 
 /**
  * Get logout request information
@@ -12,60 +12,68 @@ import { AppError } from '../errors.js'
  */
 export const getLogoutInfo = (
   challenge: string
-): RTE.ReaderTaskEither<
-  AppEnvironment,
+): Effect.Effect<
+  { challenge: string; subject?: string },
   AppError,
-  { challenge: string; subject?: string }
+  HydraService | Logger
 > =>
-  pipe(
-    RTE.ask<AppEnvironment>(),
-    RTE.chainW((env) => {
-      env.logger.debug('Getting logout request info', { challenge })
+  Effect.gen(function* () {
+    // Access services
+    const hydra = yield* HydraService
+    const logger = yield* Effect.serviceOption(Logger)
 
-      return pipe(
-        RTE.fromTaskEither(env.hydra.getLogoutRequest(challenge)),
-        RTE.map((logoutRequest) => ({
-          challenge,
-          subject: logoutRequest.subject,
-        }))
-      )
-    })
-  )
+    if (logger._tag === 'Some') {
+      yield* logger.value.info('Getting logout request info', { challenge })
+    }
+
+    const logoutRequest = yield* hydra.getLogoutRequest(challenge)
+
+    return {
+      challenge,
+      subject: logoutRequest.subject,
+    }
+  })
 
 /**
  * Accept logout request
  */
 export const acceptLogout = (
   challenge: string
-): RTE.ReaderTaskEither<AppEnvironment, AppError, string> =>
-  pipe(
-    RTE.ask<AppEnvironment>(),
-    RTE.chainW((env) => {
-      env.logger.debug('Accepting logout request', { challenge })
+): Effect.Effect<string, AppError, HydraService | Logger> =>
+  Effect.gen(function* () {
+    // Access services
+    const hydra = yield* HydraService
+    const logger = yield* Effect.serviceOption(Logger)
 
-      return pipe(
-        RTE.fromTaskEither(env.hydra.acceptLogoutRequest(challenge)),
-        RTE.map((redirectTo) => {
-          env.logger.info('Logout accepted, redirecting', {
-            redirect_to: redirectTo.redirect_to,
-          })
-          return String(redirectTo.redirect_to)
-        })
-      )
-    })
-  )
+    if (logger._tag === 'Some') {
+      yield* logger.value.info('Accepting logout request', { challenge })
+    }
+
+    const redirectTo = yield* hydra.acceptLogoutRequest(challenge)
+
+    if (logger._tag === 'Some') {
+      yield* logger.value.info('Logout accepted, redirecting', {
+        redirect_to: redirectTo.redirect_to,
+      })
+    }
+
+    return String(redirectTo.redirect_to)
+  })
 
 /**
  * Reject logout request
  */
 export const rejectLogout = (
   challenge: string
-): RTE.ReaderTaskEither<AppEnvironment, AppError, void> =>
-  pipe(
-    RTE.ask<AppEnvironment>(),
-    RTE.chainW((env) => {
-      env.logger.debug('Rejecting logout request', { challenge })
+): Effect.Effect<void, AppError, HydraService | Logger> =>
+  Effect.gen(function* () {
+    // Access services
+    const hydra = yield* HydraService
+    const logger = yield* Effect.serviceOption(Logger)
 
-      return RTE.fromTaskEither(env.hydra.rejectLogoutRequest(challenge))
-    })
-  )
+    if (logger._tag === 'Some') {
+      yield* logger.value.info('Rejecting logout request', { challenge })
+    }
+
+    yield* hydra.rejectLogoutRequest(challenge)
+  })

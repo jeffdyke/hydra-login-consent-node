@@ -1,12 +1,12 @@
 /**
- * Functional consent route using fp-ts
+ * Functional consent route using Effect
  */
 import express from 'express'
-import * as E from 'fp-ts/Either'
-import { pipe } from 'fp-ts/function'
-import { AppEnvironment } from '../fp/environment.js'
-import { AppError } from '../fp/errors.js'
-import { processConsent } from '../fp/services/consent.js'
+import { Effect, pipe, Layer } from 'effect'
+import { type AppError } from '../fp/errors.js'
+import { processConsent, type ConsentConfig } from '../fp/services/consent.js'
+import { HydraService } from '../fp/services/hydra.js'
+import { Logger } from '../fp/services/token.js'
 
 const router = express.Router()
 
@@ -29,7 +29,10 @@ const mapErrorToHttp = (error: AppError): { status: number; message: string } =>
 /**
  * Consent handler
  */
-const createConsentHandler = (env: AppEnvironment) => {
+const createConsentHandler = (
+  serviceLayer: Layer.Layer<HydraService | Logger>,
+  config: ConsentConfig
+) => {
   return async (req: express.Request, res: express.Response) => {
     const challenge = String(req.query.consent_challenge)
     const requestedScope = req.query.requested_scope as string | undefined
@@ -39,29 +42,30 @@ const createConsentHandler = (env: AppEnvironment) => {
       return
     }
 
-    const result = await processConsent(challenge, requestedScope)(env)()
-
-    pipe(
-      result,
-      E.fold(
-        (error) => {
-          const { status, message } = mapErrorToHttp(error)
-          env.logger.error('Consent failed', { error, status, message })
-          res.status(status).render('error', { message })
-        },
-        (googleAuthUrl) => {
-          res.redirect(googleAuthUrl)
-        }
-      )
+    const program = pipe(
+      processConsent(challenge, config, requestedScope),
+      Effect.provide(serviceLayer)
     )
+
+    const result = await Effect.runPromise(Effect.either(program))
+
+    if (result._tag === 'Left') {
+      const { status, message } = mapErrorToHttp(result.left)
+      res.status(status).render('error', { message })
+    } else {
+      res.redirect(result.right)
+    }
   }
 }
 
 /**
- * Create consent router with environment
+ * Create consent router with service layer
  */
-export const createConsentRouter = (env: AppEnvironment) => {
-  router.get('/', createConsentHandler(env))
+export const createConsentRouter = (
+  serviceLayer: Layer.Layer<HydraService | Logger>,
+  config: ConsentConfig
+) => {
+  router.get('/', createConsentHandler(serviceLayer, config))
   return router
 }
 

@@ -1,12 +1,12 @@
 /**
- * Functional login route using fp-ts
+ * Functional login route using Effect
  */
 import express from 'express'
-import * as E from 'fp-ts/Either'
-import { pipe } from 'fp-ts/function'
-import { AppEnvironment } from '../fp/environment.js'
-import { AppError } from '../fp/errors.js'
+import { Effect, pipe, Layer } from 'effect'
+import { type AppError } from '../fp/errors.js'
 import { processLogin } from '../fp/services/login.js'
+import { HydraService } from '../fp/services/hydra.js'
+import { Logger } from '../fp/services/token.js'
 
 const router = express.Router()
 const SUBJECT_PLACEHOLDER = 'claude@claude.ai'
@@ -28,7 +28,7 @@ const mapErrorToHttp = (error: AppError): { status: number; message: string } =>
 /**
  * Login handler factory
  */
-const createLoginHandler = (env: AppEnvironment) => {
+const createLoginHandler = (serviceLayer: Layer.Layer<HydraService | Logger>) => {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const challenge = String(req.query.login_challenge || req.body.challenge)
 
@@ -37,29 +37,27 @@ const createLoginHandler = (env: AppEnvironment) => {
       return
     }
 
-    const result = await processLogin(challenge, SUBJECT_PLACEHOLDER)(env)()
-
-    pipe(
-      result,
-      E.fold(
-        (error) => {
-          const { status, message } = mapErrorToHttp(error)
-          env.logger.error('Login failed', { error, status, message })
-          res.status(status).send(message)
-        },
-        (redirectUrl) => {
-          res.redirect(redirectUrl)
-        }
-      )
+    const program = pipe(
+      processLogin(challenge, SUBJECT_PLACEHOLDER),
+      Effect.provide(serviceLayer)
     )
+
+    const result = await Effect.runPromise(Effect.either(program))
+
+    if (result._tag === 'Left') {
+      const { status, message } = mapErrorToHttp(result.left)
+      res.status(status).send(message)
+    } else {
+      res.redirect(result.right)
+    }
   }
 }
 
 /**
- * Create login router with environment
+ * Create login router with service layer
  */
-export const createLoginRouter = (env: AppEnvironment) => {
-  const handler = createLoginHandler(env)
+export const createLoginRouter = (serviceLayer: Layer.Layer<HydraService | Logger>) => {
+  const handler = createLoginHandler(serviceLayer)
 
   router.get('/', handler)
   router.post('/', handler)
