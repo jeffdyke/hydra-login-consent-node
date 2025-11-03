@@ -51,7 +51,7 @@ interface RedisPKCE {
 }
 interface RedisRefreshToken {
   client_id: string,
-  google_refresh_token: string,
+  refresh_token: string,
   access_token: string,
   scope: string,
   subject: string,
@@ -63,8 +63,8 @@ interface GoogleTokenResponse {
   expires_in: number;
   scope: string;
   token_type: string;
-  id_token?: string; // Optional, depending on the requested scopes and flow
-  refresh_token?: string; // Optional, if a refresh token is issued
+  id_token: string | undefined; // depending on the requested scopes and flow
+  refresh_token: string | undefined; // if a refresh token is issued
 }
 function base64URLEncode(buffer: Buffer): string {
   return buffer

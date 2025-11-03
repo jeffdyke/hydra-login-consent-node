@@ -62,7 +62,7 @@ router.get("/", (req, res) => {
 
   // Build authorization URL
   const postData: ParseAuthRequest = {
-    clientId:CLIENT_ID,
+    clientId:DCR_MASTER_CLIENT_ID,
     scope: "openid email profile",
     redirectUri:appConfig.middlewareRedirectUri,
     state:state,
