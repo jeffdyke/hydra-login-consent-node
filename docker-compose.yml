@@ -48,8 +48,6 @@ services:
       - POSTGRES_DB=hydra
     volumes:
       - postgres-data:/var/lib/postgres/data
-      - /etc/bondlink/hydra/postgres/postgresql.conf:/var/lib/postgresql/18/docker/postgresql.conf
-
     networks:
       - hydra-net
     ports:
