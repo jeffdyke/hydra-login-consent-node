@@ -1,9 +1,8 @@
 /**
- * Hydra Admin API service using TaskEither
+ * Hydra Admin API service using Effect
  * Wraps all Hydra OAuth2 API operations
  */
-import * as TE from 'fp-ts/TaskEither'
-import { pipe } from 'fp-ts/function'
+import { Effect, Context, Layer } from 'effect'
 import type { OAuth2Api } from '@ory/hydra-client-fetch/dist/index.js'
 import type {
   OAuth2LoginRequest,
@@ -13,90 +12,74 @@ import type {
   AcceptOAuth2ConsentRequest,
   OAuth2LogoutRequest,
 } from '@ory/client-fetch'
-import { HttpError } from '../errors.js'
+import { HttpError, HttpStatusError, NetworkError } from '../errors.js'
 
 /**
  * Hydra service interface
  */
 export interface HydraService {
-  /**
-   * Get login request details
-   */
-  getLoginRequest: (
+  readonly getLoginRequest: (
     challenge: string
-  ) => TE.TaskEither<HttpError, OAuth2LoginRequest>
+  ) => Effect.Effect<OAuth2LoginRequest, HttpError>
 
-  /**
-   * Accept login request
-   */
-  acceptLoginRequest: (
+  readonly acceptLoginRequest: (
     challenge: string,
     body: AcceptOAuth2LoginRequest
-  ) => TE.TaskEither<HttpError, OAuth2RedirectTo>
+  ) => Effect.Effect<OAuth2RedirectTo, HttpError>
 
-  /**
-   * Get consent request details
-   */
-  getConsentRequest: (
+  readonly getConsentRequest: (
     challenge: string
-  ) => TE.TaskEither<HttpError, OAuth2ConsentRequest>
+  ) => Effect.Effect<OAuth2ConsentRequest, HttpError>
 
-  /**
-   * Accept consent request
-   */
-  acceptConsentRequest: (
+  readonly acceptConsentRequest: (
     challenge: string,
     body: AcceptOAuth2ConsentRequest
-  ) => TE.TaskEither<HttpError, OAuth2RedirectTo>
+  ) => Effect.Effect<OAuth2RedirectTo, HttpError>
 
-  /**
-   * Get logout request details
-   */
-  getLogoutRequest: (
+  readonly getLogoutRequest: (
     challenge: string
-  ) => TE.TaskEither<HttpError, OAuth2LogoutRequest>
+  ) => Effect.Effect<OAuth2LogoutRequest, HttpError>
 
-  /**
-   * Accept logout request
-   */
-  acceptLogoutRequest: (
+  readonly acceptLogoutRequest: (
     challenge: string
-  ) => TE.TaskEither<HttpError, OAuth2RedirectTo>
+  ) => Effect.Effect<OAuth2RedirectTo, HttpError>
 
-  /**
-   * Reject logout request
-   */
-  rejectLogoutRequest: (
-    challenge: string
-  ) => TE.TaskEither<HttpError, void>
+  readonly rejectLogoutRequest: (challenge: string) => Effect.Effect<void, HttpError>
 }
+
+/**
+ * Hydra service tag
+ */
+export const HydraService = Context.GenericTag<HydraService>('HydraService')
 
 /**
  * Create Hydra service from OAuth2Api client
  */
-export const createHydraService = (client: OAuth2Api): HydraService => {
+export const makeHydraService = (client: OAuth2Api): HydraService => {
   /**
-   * Helper to wrap Hydra API calls in TaskEither
+   * Helper to wrap Hydra API calls in Effect
    */
   const wrapHydraCall = <A>(
     operation: () => Promise<A>,
     operationName: string
-  ): TE.TaskEither<HttpError, A> =>
-    TE.tryCatch(
-      operation,
-      (error) => {
-        // Try to extract status code from error
+  ): Effect.Effect<A, HttpError> =>
+    Effect.tryPromise({
+      try: operation,
+      catch: (error): HttpError => {
         const err = error as any
         if (err.response) {
-          return HttpError.status(
-            err.response.status || 500,
-            err.response.statusText || 'Hydra API error',
-            err.response.data
-          )
+          return new HttpStatusError({
+            status: err.response.status || 500,
+            statusText: err.response.statusText || 'Hydra API error',
+            body: err.response.data,
+          })
         }
-        return HttpError.network(`Hydra ${operationName} failed`, error)
-      }
-    )
+        return new NetworkError({
+          message: `Hydra ${operationName} failed`,
+          cause: error,
+        })
+      },
+    })
 
   return {
     getLoginRequest: (challenge: string) =>
@@ -152,3 +135,9 @@ export const createHydraService = (client: OAuth2Api): HydraService => {
       ),
   }
 }
+
+/**
+ * Create a Layer for HydraService
+ */
+export const HydraServiceLive = (client: OAuth2Api) =>
+  Layer.succeed(HydraService, makeHydraService(client))

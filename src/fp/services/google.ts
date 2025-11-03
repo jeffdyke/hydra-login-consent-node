@@ -1,30 +1,31 @@
 /**
- * Google OAuth service using TaskEither for HTTP operations
- * All external calls return TaskEither for proper error handling
+ * Google OAuth service using Effect for HTTP operations
+ * All external calls return Effect for proper error handling
  */
-import * as TE from 'fp-ts/TaskEither'
-import { pipe } from 'fp-ts/function'
+import { Effect, pipe, Context, Layer, Schema } from 'effect'
 import axios, { AxiosError } from 'axios'
-import { HttpError, GoogleOAuthError } from '../errors.js'
+import { HttpError, NetworkError, HttpStatusError, ParseError, GoogleAuthError } from '../errors.js'
 import {
   GoogleTokenResponse,
-  GoogleTokenResponseCodec,
-  GoogleErrorResponseCodec,
+  GoogleTokenResponseSchema,
+  GoogleErrorResponseSchema,
   RefreshTokenData,
 } from '../domain.js'
-import { validateCodec } from '../validation.js'
+import { validateSchema } from '../validation.js'
 
 /**
  * Google OAuth service interface
  */
 export interface GoogleOAuthService {
-  /**
-   * Refresh Google access token using refresh token
-   */
-  refreshToken: (
+  readonly refreshToken: (
     tokenData: RefreshTokenData
-  ) => TE.TaskEither<HttpError | GoogleOAuthError, GoogleTokenResponse>
+  ) => Effect.Effect<GoogleTokenResponse, HttpError | GoogleAuthError>
 }
+
+/**
+ * Google OAuth service tag
+ */
+export const GoogleOAuthService = Context.GenericTag<GoogleOAuthService>('GoogleOAuthService')
 
 /**
  * Configuration for Google OAuth
@@ -36,58 +37,24 @@ export interface GoogleOAuthConfig {
 }
 
 /**
- * Create Google OAuth service
+ * Create Google OAuth service implementation
  */
-export const createGoogleOAuthService = (
+export const makeGoogleOAuthService = (
   config: GoogleOAuthConfig
 ): GoogleOAuthService => {
   const TOKEN_ENDPOINT = config.tokenEndpoint || 'https://oauth2.googleapis.com/token'
 
-  /**
-   * Helper to handle axios errors
-   */
-  const handleAxiosError = (error: unknown): HttpError | GoogleOAuthError => {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError
-
-      // Try to parse Google error response
-      if (axiosError.response?.data) {
-        const errorResult = validateCodec(
-          GoogleErrorResponseCodec,
-          axiosError.response.data
-        )
-
-        if (errorResult._tag === 'Right') {
-          return GoogleOAuthError.authError(
-            errorResult.right.error,
-            errorResult.right.error_description
-          )
-        }
-      }
-
-      // Generic HTTP error
-      return HttpError.status(
-        axiosError.response?.status || 500,
-        axiosError.response?.statusText || 'Unknown error',
-        axiosError.response?.data
-      )
-    }
-
-    // Network or unknown error
-    return HttpError.network('Network error during Google OAuth request', error)
-  }
-
   return {
     refreshToken: (tokenData: RefreshTokenData) =>
       pipe(
-        TE.tryCatch(
-          async () => {
+        Effect.tryPromise({
+          try: async () => {
             const response = await axios.post(
               TOKEN_ENDPOINT,
               new URLSearchParams({
                 client_id: config.clientId,
                 client_secret: config.clientSecret,
-                refresh_token: tokenData.refresh_token,
+                refresh_token: tokenData.google_refresh_token,
                 grant_type: 'refresh_token',
               }).toString(),
               {
@@ -98,19 +65,55 @@ export const createGoogleOAuthService = (
             )
             return response.data
           },
-          handleAxiosError
-        ),
-        TE.chainW((data) =>
-          pipe(
-            validateCodec(GoogleTokenResponseCodec, data),
-            TE.fromEither,
-            TE.mapLeft((validationError) =>
-              HttpError.parse(
-                `Failed to parse Google token response: ${JSON.stringify(validationError)}`
-              )
-            )
-          )
+          catch: (error): HttpError | GoogleAuthError => {
+            if (axios.isAxiosError(error)) {
+              const axiosError = error as AxiosError
+
+              // Try to parse Google error response
+              if (axiosError.response?.data) {
+                try {
+                  const errorValidation = Schema.decodeUnknownSync(
+                    GoogleErrorResponseSchema
+                  )(axiosError.response.data)
+                  return new GoogleAuthError({
+                    error: errorValidation.error,
+                    errorDescription: errorValidation.error_description,
+                  })
+                } catch {
+                  // Fall through to generic HTTP error
+                }
+              }
+
+              // Generic HTTP error
+              return new HttpStatusError({
+                status: axiosError.response?.status || 500,
+                statusText: axiosError.response?.statusText || 'Unknown error',
+                body: axiosError.response?.data,
+              })
+            }
+
+            // Network or unknown error
+            return new NetworkError({
+              message: 'Network error during Google OAuth request',
+              cause: error,
+            })
+          },
+        }),
+        Effect.flatMap((data) => validateSchema(GoogleTokenResponseSchema, data)),
+        Effect.mapError(
+          (error): HttpError | GoogleAuthError =>
+            error._tag === 'SchemaValidationError'
+              ? new ParseError({
+                  message: `Failed to parse Google token response: ${error.errors.join(', ')}`,
+                })
+              : error
         )
       ),
   }
 }
+
+/**
+ * Create a Layer for GoogleOAuthService
+ */
+export const GoogleOAuthServiceLive = (config: GoogleOAuthConfig) =>
+  Layer.succeed(GoogleOAuthService, makeGoogleOAuthService(config))
