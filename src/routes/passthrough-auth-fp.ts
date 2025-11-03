@@ -8,9 +8,7 @@ import {
   TokenRequestSchema,
   AuthCodeGrantSchema,
   RefreshTokenGrantSchema,
-  AuthCodeGrant,
   createOAuth2Error,
-  RefreshTokenGrant,
 } from '../fp/domain.js'
 import { type AppError, InvalidGrant } from '../fp/errors.js'
 import { validateSchema } from '../fp/validation.js'

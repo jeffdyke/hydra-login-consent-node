@@ -14,6 +14,8 @@ Configuration({
     strictGroups: false
   }
 })
+
+// Consider removing these
 export class UserInfo {
   @Property()
   id: string | undefined;
