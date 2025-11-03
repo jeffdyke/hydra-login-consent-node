@@ -9,7 +9,7 @@ import path from 'path'
 import cookieParser from 'cookie-parser'
 import bodyParser from 'body-parser'
 import session from 'express-session'
-import { OAuth2Client } from 'google-auth-library'
+import { OAuth2Client as GoogleOAuth2Client } from 'google-auth-library'
 import favicon from 'serve-favicon'
 import { dirname } from 'path'
 
@@ -39,7 +39,7 @@ const app = express()
 const __dirname = import.meta.dirname
 
 // Create Google OAuth2 client
-const googleClient = new OAuth2Client({
+const googleClient = new GoogleOAuth2Client({
   clientId: appConfig.googleClientId,
   clientSecret: appConfig.googleClientSecret,
   redirectUri: appConfig.middlewareRedirectUri,

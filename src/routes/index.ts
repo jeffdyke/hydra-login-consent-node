@@ -89,22 +89,6 @@ router.post("/", async (req, res) => {
     clientId:parsed.searchParams.get("client_id") || "",
     responseType:parsed.searchParams.get("response_type") || "",
   }
-
-
-  const existing = await getClient(DCR_MASTER_CLIENT_ID).then(c => {
-    jsonLogger.info("Client exists", {clientId:DCR_MASTER_CLIENT_ID})
-    let auth = googleAuthUrl(internalPost.scope, req.session.state || "").then(authUrl => {
-      res.redirect(authUrl)
-    }).catch(errA => {
-      jsonLogger.error("caught an error creating authUri", {e: errA})
-    })
-    return auth
-  }).catch(err => {
-    jsonLogger.error("caught an error fetching client", {e: err})
-
-  })
-
-  return existing
 })
 
 export default router
