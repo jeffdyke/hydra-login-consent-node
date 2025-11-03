@@ -20,7 +20,6 @@ class ClaudeClient extends OAuth2Client {
 
 }
 
-
 async function getClient(clientId: string): Promise<OAuth2Client> {
   const params = new URLSearchParams()
   params.append('id', clientId)
