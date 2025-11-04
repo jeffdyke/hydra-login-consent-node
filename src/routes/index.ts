@@ -34,7 +34,7 @@ function generateCodeChallenge(verifier: string): string {
 }
 
 router.head('/', (req, res) => {
-  res.set('X-BondLink-Special', 'Head-Only-Value');
+  res.set('X-HeadLess-Special', 'Head-Only-Value');
   res.status(204).end();
 });
 function authPost(data:ParseAuthRequest): URL {

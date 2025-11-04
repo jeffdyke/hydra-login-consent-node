@@ -110,7 +110,7 @@ app.use(favicon(path.join(__dirname, '..', 'public', 'favicon.ico')))
 app.use(express.static(path.join(dirname(import.meta.url), 'public')))
 
 function addUniqueToken(req: Request, res: Response, next: Function) {
-  req.headers['x-bondlink-id'] = v4()
+  req.headers['x-hydra-headless-id'] = v4()
   next()
 }
 app.use(addUniqueToken)

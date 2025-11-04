@@ -18,7 +18,7 @@ export type AppEnvironment = 'local' | 'development' | 'staging' | 'production'
  * Separates public-facing domains from private IPs for internal communication
  */
 export interface DomainConfig {
-  readonly public: string   // Public domain (e.g., auth.staging.bondlink.org)
+  readonly public: string   // Public domain (e.g., auth.staging.yourdomain.org)
   readonly private: string  // Private IP/host for internal services (e.g., 10.1.1.230)
 }
 

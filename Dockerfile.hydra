@@ -2,5 +2,5 @@ FROM oryd/hydra:v2.2.0
 USER root
 RUN mkdir -p /etc/hydra-headless-ts/hydra \
   && chmod 777 /etc/hydra-headless-ts/hydra \
-  && mkdir -p /var/log/bondlink/hydra \
-  && chmod 777 /var/log/bondlink/hydra
+  && mkdir -p /var/log/hydra-headless-ts \
+  && chmod 777 /var/log/hydra-headless-ts

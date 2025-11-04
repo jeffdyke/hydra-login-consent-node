@@ -34,7 +34,7 @@ services:
       dockerfile: Dockerfile.hydra
     restart: unless-stopped
     volumes:
-      - /var/log/bondlink/hydra:/var/log/bondlink/hydra
+      - /var/log/hydra-headless-ts:/var/log/hydra-headless-ts
       - /etc/hydra-headless-ts/hydra:/etc/hydra-headless-ts/hydra:ro
     depends_on:
       - hydra-migrate
@@ -79,7 +79,7 @@ services:
       - hydra-net
     restart: unless-stopped
     volumes:
-      - /var/log/bondlink/hydra:/var/log/bondlink/hydra
+      - /var/log/hydra-headless-ts:/var/log/hydra-headless-ts
       - /etc/hydra-headless-ts/hydra:/etc/hydra-headless-ts/hydra:ro
 
 networks:
