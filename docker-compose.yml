@@ -59,7 +59,7 @@ services:
       - 16379:6379
     networks:
       - hydra-net
-  consent-app:
+  headless-ts:
     image: 668874212870.dkr.ecr.us-east-1.amazonaws.com/drone-hydra-consent-node
     env_file:
       - /etc/hydra-headless-ts/.env
@@ -69,7 +69,7 @@ services:
       - "3000:3000"
     build:
       context: .
-      dockerfile: build/Dockerfile.consent-app
+      dockerfile: build/Dockerfile.headless-ts
     environment:
       - NODE_TLS_REJECT_UNAUTHORIZED=0
       - NODE_ENV=development
