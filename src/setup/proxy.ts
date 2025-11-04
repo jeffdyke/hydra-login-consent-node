@@ -4,12 +4,18 @@
  */
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import { Effect } from 'effect'
+import { Redis } from 'ioredis'
 import jsonLogger from '../logging.js'
-import redisClient from './redis.js'
 import { Request, Response, NextFunction } from 'express'
 import { appConfig } from '../config.js'
 import { RedisService, RedisServiceLive, createOAuthRedisOps } from '../fp/services/redis.js'
 import { PKCEState } from '../fp/domain.js'
+
+// Create Redis client
+const redisClient = new Redis({
+  host: appConfig.redisHost,
+  port: appConfig.redisPort,
+})
 
 // Create Redis service layer from the redis client
 const redisLayer = RedisServiceLive(redisClient)

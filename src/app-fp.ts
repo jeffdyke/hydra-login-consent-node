@@ -10,13 +10,12 @@ import cookieParser from 'cookie-parser'
 import bodyParser from 'body-parser'
 import session from 'express-session'
 import { OAuth2Client as GoogleOAuth2Client } from 'google-auth-library'
+import { Redis } from 'ioredis'
 import favicon from 'serve-favicon'
 import { dirname } from 'path'
 
 // Existing infrastructure
 import pool from './pool.js'
-import redis from './setup/redis.js'
-//TODO: Update this import and service layer creation
 import hydraAdmin, { OAuth2ApiLayer } from './setup/hydra.js'
 import { PgStore, appConfig } from './config.js'
 import jsonLogger from './logging.js'
@@ -40,6 +39,12 @@ import routes from './routes/index.js'
 const app = express()
 const __dirname = import.meta.dirname
 
+// Create Redis client
+const redisClient = new Redis({
+  host: appConfig.redisHost,
+  port: appConfig.redisPort,
+})
+
 // Create Google OAuth2 client
 const googleClient = new GoogleOAuth2Client({
   clientId: appConfig.googleClientId,
@@ -48,7 +53,7 @@ const googleClient = new GoogleOAuth2Client({
 })
 
 // Bootstrap functional environment with Effect Layers
-const serviceLayer = createAppLayer(redis, hydraAdmin, jsonLogger, {
+const serviceLayer = createAppLayer(redisClient, hydraAdmin, jsonLogger, {
   googleClientId: appConfig.googleClientId || '',
   googleClientSecret: appConfig.googleClientSecret || '',
 })
