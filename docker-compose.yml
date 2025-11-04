@@ -62,7 +62,6 @@ services:
   headless-ts:
     image: 668874212870.dkr.ecr.us-east-1.amazonaws.com/drone-hydra-headless-ts
     env_file:
-      - /etc/hydra-headless-ts/.env
       - /etc/hydra-headless-ts/.env.auth.hydra
       - /etc/hydra-headless-ts/.env.auth.google
     ports:
