@@ -1,8 +1,8 @@
-import express from "express"
 import crypto from "crypto"
-import jsonLogger from "../logging.js"
-import {generateCsrfToken, DCR_MASTER_CLIENT_ID, appConfig} from "../config.js"
+import express from "express"
 import { getClient } from "../authFlow.js"
+import {generateCsrfToken, DCR_MASTER_CLIENT_ID, appConfig} from "../config.js"
+import jsonLogger from "../logging.js"
 const router = express.Router()
 
 interface ParseAuthRequest {
@@ -63,8 +63,8 @@ router.get("/", (req, res) => {
     clientId:DCR_MASTER_CLIENT_ID,
     scope: "openid email profile",
     redirectUri:appConfig.middlewareRedirectUri,
-    state:state,
-    codeChallenge:codeChallenge,
+    state,
+    codeChallenge,
     responseType: "code"
   }
   // Redirect to Hydra for authorization
@@ -78,7 +78,7 @@ router.post("/", async (req, res) => {
    * capture google response
    */
 
-  const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl
+  const fullUrl = `${req.protocol  }://${  req.get('host')  }${req.originalUrl}`
   const parsed = new URL(fullUrl)
   const internalPost: ParseAuthRequest = {
     codeChallenge: parsed.searchParams.get("code_challenge") || "",

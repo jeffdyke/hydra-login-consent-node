@@ -1,13 +1,14 @@
 /**
  * Functional logout route using Effect
  */
+import { Effect, pipe } from 'effect'
 import express from 'express'
-import { Effect, pipe, Layer } from 'effect'
+import { generateCsrfToken } from '../config.js'
 import { type AppError } from '../fp/errors.js'
 import { getLogoutInfo, acceptLogout, rejectLogout } from '../fp/services/logout.js'
-import { HydraService } from '../fp/services/hydra.js'
-import { Logger } from '../fp/services/token.js'
-import { generateCsrfToken } from '../config.js'
+import type { HydraService } from '../fp/services/hydra.js'
+import type { Logger } from '../fp/services/token.js'
+import type { Layer } from 'effect';
 
 const router = express.Router()
 

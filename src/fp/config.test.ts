@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { Effect, ConfigProvider } from 'effect'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import {
   type AppEnvironment,
   type DomainConfig,

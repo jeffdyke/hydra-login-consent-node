@@ -1,9 +1,10 @@
-import express from 'express'
 import url from 'url'
-import { Effect, pipe, Layer } from 'effect'
-import { generateCsrfToken, appConfig } from '../config.js'
+import { Effect, pipe } from 'effect'
+import express from 'express'
 import { OAuth2ApiService } from '../api/oauth2.js'
+import { generateCsrfToken, appConfig } from '../config.js'
 import { type AppError } from '../fp/errors.js'
+import type { Layer } from 'effect';
 
 const router = express.Router()
 

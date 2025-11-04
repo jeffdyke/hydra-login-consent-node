@@ -1,5 +1,6 @@
-import { ISettings, ILogObj, Logger } from "tslog";
 import { createStream } from "rotating-file-stream";
+import { Logger } from "tslog";
+import type { ISettings, ILogObj} from "tslog";
 
 const accessLogStream = createStream("hydra-consent.log", {
   interval: "1d", // Rotate daily
@@ -26,6 +27,6 @@ function safeStringify(value: any): string {
   }
 }
 
-jsonLogger.attachTransport((logO) => accessLogStream.write(safeStringify(logO) + "\n" ))
+jsonLogger.attachTransport((logO) => accessLogStream.write(`${safeStringify(logO)  }\n` ))
 
 export default jsonLogger

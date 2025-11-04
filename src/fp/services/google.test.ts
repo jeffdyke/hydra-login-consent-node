@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { Effect } from 'effect'
 import axios from 'axios'
+import { Effect } from 'effect'
 import { OAuth2Client } from 'google-auth-library'
-import { makeGoogleOAuthService, type GoogleOAuthConfig } from './google.js'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { HttpStatusError, NetworkError, GoogleAuthError } from '../errors.js'
+import { makeGoogleOAuthService, type GoogleOAuthConfig } from './google.js'
 import type { GoogleTokenResponse, RefreshTokenData } from '../domain.js'
 
 // Mock axios

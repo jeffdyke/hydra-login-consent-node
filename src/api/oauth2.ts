@@ -3,7 +3,8 @@
  * Converts @ory/client-fetch OAuth2Api calls to Effect-based operations
  */
 import { Effect, Context, Layer } from 'effect'
-import { HttpError, HttpStatusError, NetworkError } from '../fp/errors.js'
+import { HttpStatusError, NetworkError } from '../fp/errors.js'
+import type { HttpError} from '../fp/errors.js';
 import type {
   AcceptDeviceUserCodeRequest,
   AcceptOAuth2ConsentRequest,

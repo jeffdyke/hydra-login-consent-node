@@ -2,39 +2,39 @@
  * Functional application entry point
  * Uses fp-ts based routes with dependency injection
  */
-import express from 'express'
-import { v4 } from 'uuid'
-import { NextFunction, Response, Request } from 'express'
 import path from 'path'
-import cookieParser from 'cookie-parser'
+import { dirname } from 'path'
 import bodyParser from 'body-parser'
+import cookieParser from 'cookie-parser'
+import express from 'express'
 import session from 'express-session'
 import { OAuth2Client as GoogleOAuth2Client } from 'google-auth-library'
 import { Redis } from 'ioredis'
 import favicon from 'serve-favicon'
-import { dirname } from 'path'
+import { v4 } from 'uuid'
 
 // Existing infrastructure
-import pool from './pool.js'
-import { OAuth2ApiLayer } from './setup/hydra.js'
 import { PgStore, appConfig } from './config.js'
-import jsonLogger from './logging.js'
-import { requestLogger } from './middleware/requestLogger.js'
-import proxyMiddleware from './setup/proxy.js'
 
 // Functional core
 import { createAppLayer } from './fp/bootstrap.js'
+import jsonLogger from './logging.js'
+import { requestLogger } from './middleware/requestLogger.js'
+import pool from './pool.js'
 
 // Functional routes
-import { createLoginRouter } from './routes/login-fp.js'
-import { createLogoutRouter } from './routes/logout-fp.js'
-import { createConsentRouter } from './routes/consent-fp.js'
 import { createCallbackRouter } from './routes/callback-fp.js'
-import { createTokenRouter } from './routes/passthrough-auth-fp.js'
+import { createConsentRouter } from './routes/consent-fp.js'
 import { createDeviceRouter } from './routes/device.js'
 
 // Legacy route (for non-functional endpoints)
 import routes from './routes/index.js'
+import { createLoginRouter } from './routes/login-fp.js'
+import { createLogoutRouter } from './routes/logout-fp.js'
+import { createTokenRouter } from './routes/passthrough-auth-fp.js'
+import { OAuth2ApiLayer } from './setup/hydra.js'
+import proxyMiddleware from './setup/proxy.js'
+import type { NextFunction, Response, Request } from 'express'
 
 const app = express()
 const __dirname = import.meta.dirname
@@ -88,7 +88,7 @@ app.use(requestLogger)
 app.use(
   session({
     store: new PgStore({
-      pool: pool,
+      pool,
       tableName: 'session',
       createTableIfMissing: true,
     }),

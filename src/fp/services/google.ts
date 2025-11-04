@@ -8,18 +8,21 @@
  * - Token exchange from code
  * - User info retrieval
  */
+import axios from 'axios'
 import { Effect, pipe, Context, Layer } from 'effect'
-import axios, { AxiosError } from 'axios'
 import { OAuth2Client } from 'google-auth-library'
-import { HttpError, NetworkError, HttpStatusError, ParseError, GoogleAuthError } from '../errors.js'
 import {
-  GoogleTokenResponse,
   GoogleTokenResponseSchema,
-  GoogleUserInfoResponse,
-  GoogleUserInfoSchema,
-  RefreshTokenData,
+  GoogleUserInfoSchema
 } from '../domain.js'
+import { NetworkError, HttpStatusError, ParseError, GoogleAuthError } from '../errors.js'
 import { validateSchema } from '../validation.js'
+import type {
+  GoogleTokenResponse,
+  GoogleUserInfoResponse,
+  RefreshTokenData} from '../domain.js';
+import type { HttpError} from '../errors.js';
+import type { AxiosError } from 'axios';
 
 /**
  * Google OAuth service interface
@@ -161,9 +164,9 @@ export const makeGoogleOAuthService = (
           }
           const authUri = oauth2Client.generateAuthUrl({
             access_type: 'offline',
-            scope: scope,
+            scope,
             prompt: 'consent',
-            state: state,
+            state,
             response_type: 'code',
             redirect_uri: redirectUrl,
           })

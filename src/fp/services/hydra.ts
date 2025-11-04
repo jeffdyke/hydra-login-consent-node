@@ -3,7 +3,8 @@
  * Wraps all Hydra OAuth2 API operations
  */
 import { Effect, Context, Layer } from 'effect'
-import type { OAuth2Api } from '@ory/hydra-client-fetch/dist/index.js'
+import { HttpStatusError, NetworkError } from '../errors.js'
+import type { HttpError} from '../errors.js';
 import type {
   OAuth2LoginRequest,
   AcceptOAuth2LoginRequest,
@@ -12,7 +13,7 @@ import type {
   AcceptOAuth2ConsentRequest,
   OAuth2LogoutRequest,
 } from '@ory/client-fetch'
-import { HttpError, HttpStatusError, NetworkError } from '../errors.js'
+import type { OAuth2Api } from '@ory/hydra-client-fetch/dist/index.js'
 
 /**
  * Hydra service interface

@@ -2,14 +2,14 @@
  * Proxy middleware for OAuth2 authorization flow
  * Uses RedisService from fp/services to store PKCE state with proper error handling
  */
-import { createProxyMiddleware } from 'http-proxy-middleware'
 import { Effect } from 'effect'
+import { createProxyMiddleware } from 'http-proxy-middleware'
 import { Redis } from 'ioredis'
-import jsonLogger from '../logging.js'
-import { Request, Response, NextFunction } from 'express'
 import { appConfig } from '../config.js'
 import { RedisService, RedisServiceLive, createOAuthRedisOps } from '../fp/services/redis.js'
-import { PKCEState } from '../fp/domain.js'
+import jsonLogger from '../logging.js'
+import type { PKCEState } from '../fp/domain.js'
+import type { Request, Response, NextFunction } from 'express'
 
 // Create Redis client
 const redisClient = new Redis({
@@ -26,7 +26,7 @@ const proxyOptions = {
   prependPath: false,
   logger: jsonLogger,
   pathRewrite: async (path: string, req: Request) => {
-    const parsed = new URL(req.protocol + '://' + req.get('host') + req.originalUrl)
+    const parsed = new URL(`${req.protocol  }://${  req.get('host')  }${req.originalUrl}`)
 
     if (parsed.pathname === '/oauth2/auth') {
       const sessionId = crypto.randomUUID()

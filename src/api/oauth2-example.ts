@@ -6,8 +6,8 @@
  */
 
 import { Effect, pipe } from 'effect'
-import { OAuth2ApiService } from './oauth2.js'
 import { OAuth2ApiLayer } from '../setup/hydra.js'
+import { OAuth2ApiService } from './oauth2.js'
 import type { HttpError } from '../fp/errors.js'
 
 /**

@@ -1,12 +1,13 @@
 /**
  * Functional login route using Effect
  */
+import { Effect, pipe } from 'effect'
 import express from 'express'
-import { Effect, pipe, Layer } from 'effect'
 import { type AppError } from '../fp/errors.js'
 import { processLogin } from '../fp/services/login.js'
-import { HydraService } from '../fp/services/hydra.js'
-import { Logger } from '../fp/services/token.js'
+import type { HydraService } from '../fp/services/hydra.js'
+import type { Logger } from '../fp/services/token.js'
+import type { Layer } from 'effect';
 
 const router = express.Router()
 const SUBJECT_PLACEHOLDER = 'claude@claude.ai'

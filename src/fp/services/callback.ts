@@ -1,12 +1,13 @@
 /**
  * Google OAuth callback business logic using Effect
  */
-import { Effect } from 'effect'
 import * as crypto from 'crypto'
-import { RedisService, createOAuthRedisOps } from './redis.js'
-import { PKCEStateSchema, AuthCodeData } from '../domain.js'
+import { Effect } from 'effect'
+import { PKCEStateSchema } from '../domain.js'
 import { type AppError, GoogleAuthError } from '../errors.js'
+import { RedisService, createOAuthRedisOps } from './redis.js'
 import { Logger } from './token.js'
+import type { AuthCodeData } from '../domain.js';
 
 /**
  * Configuration for callback

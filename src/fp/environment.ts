@@ -2,9 +2,9 @@
  * Application environment (dependencies) for ReaderTaskEither pattern
  * This provides dependency injection in a functional way
  */
-import { RedisService } from './services/redis.js'
-import { GoogleOAuthService } from './services/google.js'
-import { HydraService } from './services/hydra.js'
+import type { GoogleOAuthService } from './services/google.js'
+import type { HydraService } from './services/hydra.js'
+import type { RedisService } from './services/redis.js'
 
 /**
  * Logging service interface

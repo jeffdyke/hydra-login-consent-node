@@ -1,12 +1,13 @@
 /**
  * Functional Google OAuth callback route using Effect
  */
+import { Effect, pipe } from 'effect'
 import express from 'express'
-import { Effect, pipe, Layer } from 'effect'
 import { type AppError } from '../fp/errors.js'
 import { processCallback, type GoogleOAuthClient, type CallbackConfig } from '../fp/services/callback.js'
-import { RedisService } from '../fp/services/redis.js'
-import { Logger } from '../fp/services/token.js'
+import type { RedisService } from '../fp/services/redis.js'
+import type { Logger } from '../fp/services/token.js'
+import type { Layer } from 'effect';
 
 const router = express.Router()
 

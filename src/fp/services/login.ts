@@ -2,8 +2,8 @@
  * Login flow business logic using Effect
  */
 import { Effect } from 'effect'
-import { HydraService } from './hydra.js'
 import { type AppError } from '../errors.js'
+import { HydraService } from './hydra.js'
 import { Logger } from './token.js'
 
 /**

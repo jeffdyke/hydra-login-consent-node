@@ -1,7 +1,7 @@
 
-import { Request, Response, NextFunction } from "express";
-import logger  from "../logging.js";
 import { appConfig } from "../config.js";
+import logger  from "../logging.js";
+import type { Request, Response, NextFunction } from "express";
 
 export function requestLogger(req: Request, res: Response, next: NextFunction) {
   const start = process.hrtime.bigint();

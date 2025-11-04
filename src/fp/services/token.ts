@@ -4,13 +4,9 @@
  */
 import { Effect, pipe, Context } from 'effect'
 import {
-  AuthCodeGrant,
-  RefreshTokenGrant,
-  OAuth2TokenResponse,
   PKCEStateSchema,
   AuthCodeDataSchema,
-  RefreshTokenDataSchema,
-  RefreshTokenData,
+  RefreshTokenDataSchema
 } from '../domain.js'
 import {
   type AppError,
@@ -18,8 +14,13 @@ import {
   MissingParameter,
 } from '../errors.js'
 import { validatePKCE, parseScopeString, validateScopes } from '../validation.js'
-import { RedisService, createOAuthRedisOps } from './redis.js'
 import { GoogleOAuthService } from './google.js'
+import { RedisService, createOAuthRedisOps } from './redis.js'
+import type {
+  AuthCodeGrant,
+  RefreshTokenGrant,
+  OAuth2TokenResponse,
+  RefreshTokenData} from '../domain.js';
 
 /**
  * Logger service interface
