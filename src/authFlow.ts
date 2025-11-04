@@ -14,33 +14,49 @@ import { OAuth2ApiService } from './api/oauth2.js'
 import { validateCreateClient } from "./fp/validation.js";
 
 
-class ClaudeClient extends OAuth2Client {
-  client_id: string = DCR_MASTER_CLIENT_ID
-  client_name: string = "Claude MCP Incoming client"
-  scope: string = "openid email profile"
-  grant_types: Array<string> = ["authorization_code", "refresh_token"]
-  response_types: Array<string> = ["code"]
-  redirect_urls: Array<string> = ["https://claude.ai/api/mcp/auth_callback"]
-  token_endpoint_auth_method: string = "none"
-  constructor(clientId: string, options: OAuth2ClientOptions) {
-    super(options)
-    this.client_id = clientId
-  }
+// class ClaudeClient extends OAuth2Client {
+//   client_id: string = DCR_MASTER_CLIENT_ID
+//   client_name: string = "Claude MCP Incoming client"
+//   scope: string = "openid email profile"
+//   grant_types: Array<string> = ["authorization_code", "refresh_token"]
+//   response_types: Array<string> = ["code"]
+//   redirect_urls: Array<string> = ["https://claude.ai/api/mcp/auth_callback"]
+//   token_endpoint_auth_method: string = "none"
+//   constructor(clientId: string, options: OAuth2ClientOptions) {
+//     super(options)
+//     this.client_id = clientId
+//   }
 
-}
+// }
 
 export const getClient = (clientId:string) =>
   pipe(
     OAuth2ApiService,
-    Effect.map((api) => api.getClient(clientId)),
+    Effect.map((api) => api.getClient(clientId))
   )
+export const safeGetClient = (
+  clientId: string
+) => {
+  pipe(
+    OAuth2ApiService,
+    Effect.map((api) => api.getClient(clientId)),
+    Effect.flatten,
+    Effect.flatMap((possibleValue) =>
+      possibleValue
+        ? Effect.succeed(possibleValue)
+        : Effect.fail(`No Client found with id ${clientId}`)
+    )
+
+  )
+}
 export const listClients = () =>
   pipe(
     OAuth2ApiService,
     Effect.map((api) => api.listClients()),
   )
 
-//Don't need to create clients at the moment, this needs validation to ensure duplicates are not attempted
+//Don't need to create clients at the moment
+// Creating clients needs thought into how they interact with the system
 export const createClient = (clientId:string) =>
   pipe(
     listClients(),
