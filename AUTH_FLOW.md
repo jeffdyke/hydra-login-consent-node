@@ -24,8 +24,6 @@ Notes:
     - That would be part of the `kratos` flow, and out of scope for Hydra
   - There may be a better client configuration, yet to be seen, there are no bugs in this config that imped progress.
 
-
-
 ```json
 {
   "client_id": "a8c11f42-a9d7-4437-9b0b-cd48e25a71a5",
@@ -134,6 +132,7 @@ Supporting code exists for both, especially `/oauth2/token` more forthcoming.
 - Redis is used for all state updates/reads.
   - Session is used during the code_challenge phase which covers
     - /oauth2/auth
+    - /oauth2/token
     - /login
     - /consent
     - /callback

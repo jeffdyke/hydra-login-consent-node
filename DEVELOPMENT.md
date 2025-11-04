@@ -23,7 +23,7 @@ npm run validate
 
 ## Project Structure
 
-```
+```text
 hydra-headless-ts/
 ├── src/
 │   ├── fp/                      # Functional programming modules
@@ -54,16 +54,19 @@ hydra-headless-ts/
 The project uses environment-specific configuration files in `src/env/`:
 
 ### Local Development
+
 ```bash
 npm run start:local   # Uses ./src/env/local.env
 ```
 
 ### Staging
+
 ```bash
 npm run start:staging # Uses ./src/env/staging.env
 ```
 
 ### Production
+
 ```bash
 npm run start:production # Uses ./src/env/production.env
 ```
@@ -75,6 +78,7 @@ See [src/env/local.env](src/env/local.env) and [src/env/staging.env](src/env/sta
 ### 1. Make Changes
 
 Edit source files in `src/`. The project uses:
+
 - **Effect** for functional programming
 - **Effect Schema** for runtime validation
 - **TypeScript** for type safety
@@ -135,6 +139,7 @@ Comprehensive test suite covering all Effect-based services:
 - **Schema Tests**: Runtime validation with Effect Schema
 
 **Test Files**:
+
 - `src/fp/config.test.ts` - Configuration service
 - `src/fp/domain.test.ts` - Schema validation
 - `src/fp/services/redis.test.ts` - Redis operations
@@ -169,12 +174,14 @@ npm run tswatch
 ```
 
 Build outputs:
+
 - `dist/` - Compiled JavaScript
 - `lib/` - Package distribution
 
 ## Running the Application
 
 ### Development Mode
+
 ```bash
 # Local environment with hot reload
 npm run start:local
@@ -187,6 +194,7 @@ npm run start:production
 ```
 
 ### Production Mode
+
 ```bash
 # Build first
 npm run build
@@ -202,6 +210,7 @@ npm run serve:production # Production
 The codebase uses Effect for functional programming:
 
 ### Services
+
 ```typescript
 import { Effect, Layer, Context } from 'effect'
 
@@ -218,6 +227,7 @@ export const MyServiceLive = Layer.succeed(
 ```
 
 ### Using Services
+
 ```typescript
 const program = Effect.gen(function* () {
   const service = yield* MyService
@@ -233,6 +243,7 @@ const result = await Effect.runPromise(runnable)
 ```
 
 ### Error Handling
+
 ```typescript
 const program = Effect.gen(function* () {
   const result = yield* riskyOperation
@@ -256,6 +267,7 @@ if (result._tag === 'Left') {
 ### Add a New Service
 
 1. Create service interface in `src/fp/services/myservice.ts`:
+
 ```typescript
 export interface MyService {
   readonly operation: (input: string) => Effect.Effect<Result, Error>
@@ -264,27 +276,30 @@ export interface MyService {
 export const MyService = Context.GenericTag<MyService>('MyService')
 ```
 
-2. Create service implementation:
-```typescript
-export const makeMyService = (): MyService => ({
-  operation: (input) => Effect.succeed(result)
-})
+- Create service implementation:
 
-export const MyServiceLive = Layer.succeed(MyService, makeMyService())
-```
+  ```typescript
+  export const makeMyService = (): MyService => ({
+    operation: (input) => Effect.succeed(result)
+  })
 
-3. Add to bootstrap in `src/fp/bootstrap.ts`:
+  export const MyServiceLive = Layer.succeed(MyService, makeMyService())
+  ```
+
+- Add to bootstrap in `src/fp/bootstrap.ts`:
+
 ```typescript
 const myServiceLayer = MyServiceLive()
 return Layer.mergeAll(existingLayers, myServiceLayer)
 ```
 
-4. Write tests in `src/fp/services/myservice.test.ts`
+- Write tests in `src/fp/services/myservice.test.ts`
 
 ### Add a New Route
 
-1. Create route handler in `src/routes/myroute-fp.ts`
-2. Use services via Effect:
+- Create route handler in `src/routes/myroute-fp.ts`
+- Use services via Effect:
+
 ```typescript
 const program = Effect.gen(function* () {
   const service = yield* MyService
@@ -296,22 +311,25 @@ const result = await Effect.runPromise(
 )
 ```
 
-3. Register route in `src/app-fp.ts`
+- Register route in `src/app-fp.ts`
 
 ### Add Environment Variable
 
-1. Add to `src/env/*.env` files:
+- Add to `src/env/*.env` files:
+
 ```bash
 MY_VARIABLE=value
 ```
 
-2. Add to config schema in `src/fp/config.ts`:
+- Add to config schema in `src/fp/config.ts`:
+
 ```typescript
 const myVariableConfig = Config.string('MY_VARIABLE')
   .pipe(Config.withDefault('default-value'))
 ```
 
-3. Add to AppConfig interface:
+- Add to AppConfig interface:
+
 ```typescript
 export interface AppConfig {
   readonly myVariable: string
@@ -322,6 +340,7 @@ export interface AppConfig {
 ## Troubleshooting
 
 ### Tests Failing
+
 ```bash
 # Clear test cache
 rm -rf node_modules/.vitest
@@ -331,6 +350,7 @@ npm test
 ```
 
 ### TypeScript Errors
+
 ```bash
 # Rebuild
 npm run clean && npm run build
@@ -340,6 +360,7 @@ npm run typecheck
 ```
 
 ### Linting Issues
+
 ```bash
 # Auto-fix
 npm run lint:fix
@@ -349,6 +370,7 @@ npm run format
 ```
 
 ### Environment Issues
+
 - Check `.env` files exist in `src/env/`
 - Verify required variables are set
 - Check APP_ENV matches environment file name
@@ -370,6 +392,7 @@ npm run format
 5. Create pull request
 
 ### Git Workflow
+
 ```bash
 # Create feature branch
 git checkout -b feature/my-feature
