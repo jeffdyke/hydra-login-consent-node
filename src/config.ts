@@ -2,10 +2,13 @@
  * Application configuration
  * Uses Effect-based functional configuration from fp/config.ts
  */
-import session from 'express-session'
 import connectPgSimple from 'connect-pg-simple'
-import pool from './pool.js'
-import { loadAppConfigSync, getHydraAdminUrl, getHydraInternalUrl } from './fp/config.js'
+import session from 'express-session'
+import {
+  loadAppConfigSync,
+  getHydraAdminUrl,
+  getHydraInternalUrl
+} from './fp/config.js'
 
 /**
  * Load configuration from environment

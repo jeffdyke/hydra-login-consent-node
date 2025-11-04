@@ -6,7 +6,7 @@
  * and type safety. Uses Effect for composable, testable configuration.
  */
 import { Config, Effect, Layer, pipe, Context } from 'effect'
-import { SameSiteType } from 'csrf-csrf'
+import type { SameSiteType } from 'csrf-csrf'
 
 /**
  * Environment types
