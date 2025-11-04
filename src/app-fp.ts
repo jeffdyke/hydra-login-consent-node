@@ -16,7 +16,8 @@ import { dirname } from 'path'
 // Existing infrastructure
 import pool from './pool.js'
 import redis from './setup/redis.js'
-import hydraAdmin from './setup/hydra.js'
+//TODO: Update this import and service layer creation
+import hydraAdmin, { OAuth2ApiLayer } from './setup/hydra.js'
 import { PgStore, appConfig } from './config.js'
 import jsonLogger from './logging.js'
 import { requestLogger } from './middleware/requestLogger.js'
@@ -31,6 +32,7 @@ import { createLogoutRouter } from './routes/logout-fp.js'
 import { createConsentRouter } from './routes/consent-fp.js'
 import { createCallbackRouter } from './routes/callback-fp.js'
 import { createTokenRouter } from './routes/passthrough-auth-fp.js'
+import { createDeviceRouter } from './routes/device.js'
 
 // Legacy route (for non-functional endpoints)
 import routes from './routes/index.js'
@@ -107,6 +109,7 @@ app.use('/logout', createLogoutRouter(serviceLayer, logoutConfig))
 app.use('/consent', createConsentRouter(serviceLayer, consentConfig))
 app.use('/callback', createCallbackRouter(serviceLayer, googleClient, callbackConfig))
 app.use('/oauth2', createTokenRouter(serviceLayer))
+app.use('/device', createDeviceRouter(OAuth2ApiLayer))
 
 // Error handlers (same as original)
 app.use((req, res, next) => {

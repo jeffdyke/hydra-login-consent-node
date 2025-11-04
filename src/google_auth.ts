@@ -11,6 +11,7 @@ import { validateSchema } from './fp/validation.js'
 
 /**
  * Google Auth service interface
+ * This is a minimal implementation based on current needs, could easily wrap more of the library
  */
 export interface GoogleAuthService {
   readonly generateAuthUrl: (
