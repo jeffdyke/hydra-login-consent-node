@@ -1,20 +1,10 @@
 
 import axios from "./middleware/axios.js"
 
-import { Property } from "@tsed/schema";
-import {Configuration} from "@tsed/di";
-import {OAuth2Client, TokenPayload } from 'google-auth-library';
 import jsonLogger  from "./logging.js"
 import {appConfig} from "./config.js"
-import { GoogleTokenResponse, GoogleUserInfoResponse } from "./fp/domain.js";
-Configuration({
-  jsonMapper: {
-    additionalProperties: false,
-    disableUnsecureConstructor: false,
-    strictGroups: false
-  }
-})
-
+import { OAuth2Client } from "google-auth-library";
+import { GoogleUserInfoResponse, GoogleTokenResponse } from "./fp/domain.js";
 
 
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -26,6 +16,7 @@ const client = new OAuth2Client({
     clientSecret: appConfig.googleClientSecret,
     redirectUri: appConfig.middlewareRedirectUri
   })
+
 
 async function googleAuthUrl(scope: string, incomingState: string, redirectUrl: string = appConfig.dcrOriginRedirectUri): Promise<string> {
   const authUri = await client.generateAuthUrl({
@@ -39,14 +30,13 @@ async function googleAuthUrl(scope: string, incomingState: string, redirectUrl: 
 
   return authUri
 }
-async function googleOAuthTokens(code: string, redirectUrl:string = appConfig.dcrOriginRedirectUri): Promise<TokenPayload> {
+async function googleOAuthTokens(code: string, redirectUrl:string = appConfig.dcrOriginRedirectUri): Promise<GoogleTokenResponse> {
 
   const params = {
     code: code,
     grant_type:"authorization_code"
   }
   jsonLogger.info("Auth Token Request", {request: params});
-  //update this
   const tokenResponse = await client.getToken(code)
     .then((resp) => {
       return resp
