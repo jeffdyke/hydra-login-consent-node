@@ -74,6 +74,18 @@ export const GoogleTokenResponseSchema = Schema.Struct({
   refresh_token: Schema.optional(Schema.String),
 })
 export type GoogleTokenResponse = typeof GoogleTokenResponseSchema.Type
+export const GoogleUserInfoSchema = Schema.Struct({
+  id: Schema.String,
+  email: Schema.String,
+  verified_email: Schema.Boolean,
+  name: Schema.optional(Schema.String),
+  given_name: Schema.optional(Schema.String),
+  family_name: Schema.optional(Schema.String),
+  picture: Schema.optional(Schema.String),
+  locale: Schema.optional(Schema.String)
+})
+
+export type GoogleUserInfoResponse = typeof GoogleTokenResponseSchema.Type
 
 /**
  * Google Error Response

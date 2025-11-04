@@ -6,7 +6,7 @@ import {Configuration} from "@tsed/di";
 import {OAuth2Client, TokenPayload } from 'google-auth-library';
 import jsonLogger  from "./logging.js"
 import {appConfig} from "./config.js"
-
+import { GoogleTokenResponse, GoogleUserInfoResponse } from "./fp/domain.js";
 Configuration({
   jsonMapper: {
     additionalProperties: false,
@@ -15,44 +15,8 @@ Configuration({
   }
 })
 
-// Consider removing these
-export class UserInfo {
-  @Property()
-  id: string | undefined;
-  @Property()
-  email: string | undefined;
-  @Property()
-  verified_email: boolean | undefined;
-  @Property()
-  name: string | undefined;
-  @Property()
-  given_name: string | undefined;
-  @Property()
-  family_name: string | undefined;
-  @Property()
-  picture: string | undefined;
-  @Property()
-  locale: string | undefined;
-}
-export class GoogleTokenResponse {
-  @Property()
-  access_token: string | undefined;
 
-  @Property()
-  expires_in: number | undefined;
 
-  @Property()
-  scope: string | undefined;
-
-  @Property()
-  token_type: string | undefined;
-
-  @Property()
-  id_token: string | undefined; // Present if OpenID Connect scopes are requested
-
-  @Property()
-  refresh_token: string | undefined; // Present if offline access is requested
-}
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const formHeader = {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -117,7 +81,7 @@ async function googleRefreshResponse(refreshToken:string): Promise<any> {
   }
 
 
-async function getGoogleUser(access_token: string, id_token: string): Promise<UserInfo> {
+async function getGoogleUser(access_token: string, id_token: string): Promise<GoogleUserInfoResponse> {
   const url = `https://www.googleapis.com/oauth2/v2/userinfo?alt=json&access_token=${access_token}`;
   jsonLogger.debug("Calling google at url", {url:url})
   return await axios.get(url, { headers: { Authorization: `Bearer ${id_token}` } })
@@ -159,4 +123,4 @@ async function googleTokenResponse(code: string, redirectUrl: string = appConfig
     return tokenResponse
   }
 
-export { googleOAuthTokens, getGoogleUser, googleTokenResponse, googleAuthUrl, googleRefreshResponse }
+export { googleOAuthTokens, googleTokenResponse, googleAuthUrl, googleRefreshResponse }
