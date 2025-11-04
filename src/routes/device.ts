@@ -1,52 +1,94 @@
-import express from "express"
-import url from "url"
-import { generateCsrfToken, appConfig } from "../config.js"
-import { hydraAdmin } from "../setup/hydra.js"
+import express from 'express'
+import url from 'url'
+import { Effect, pipe, Layer } from 'effect'
+import { generateCsrfToken, appConfig } from '../config.js'
+import { OAuth2ApiService } from '../api/oauth2.js'
+import { type AppError } from '../fp/errors.js'
 
 const router = express.Router()
 
-router.get("/verify", (req, res, next) => {
-  // Parses the URL query
+const mapErrorToHttp = (error: AppError): { status: number; message: string } => {
+  switch (error._tag) {
+    case 'HttpStatusError':
+      return { status: error.status, message: error.statusText }
+    case 'NetworkError':
+      return { status: 500, message: 'Network error communicating with Hydra' }
+    default:
+      return { status: 500, message: 'Internal server error' }
+  }
+}
+
+/**
+ * GET /verify - Render device verification form
+ * This doesn't need Effect since it's just rendering a form
+ */
+router.get('/verify', (req, res, next) => {
   const query = url.parse(req.url, true).query
 
-  // The challenge is used to fetch information about the login request from ORY Hydra.
+  // The challenge is used to fetch information about the device request from ORY Hydra
   const challenge = String(query.device_challenge)
   if (!challenge) {
-    next(new Error("Expected a device challenge to be set but received none."))
+    next(new Error('Expected a device challenge to be set but received none.'))
     return
   }
 
-  res.render("device/verify", {
-    csrfToken: "",
+  res.render('device/verify', {
+    csrfToken: '',
     envXsrfToken: appConfig.xsrfHeaderName,
     challenge,
     userCode: String(query.user_code),
   })
 })
 
-router.post("/verify", (req, res, next) => {
-  // The code is a input field, so let's take it from the request body
-  const { code: userCode, challenge } = req.body
-  // All we need to do now is to redirect the user back to hydra!
-  hydraAdmin
-    .acceptUserCodeRequest({
-      deviceChallenge: challenge,
-      acceptDeviceUserCodeRequest: {
-        user_code: userCode,
-      },
-    })
-    .then(({ redirect_to }) => {
-      // All we need to do now is to redirect the user back to hydra!
-      res.redirect(String(redirect_to))
-    })
-    .catch(next)
-})
+/**
+ * POST /verify handler factory
+ */
+const createVerifyHandler = (serviceLayer: Layer.Layer<OAuth2ApiService>) => {
+  return async (req: express.Request, res: express.Response) => {
+    const { code: userCode, challenge } = req.body
 
-router.get("/success", (req, res, next) => {
-  res.render("device/success", {
+    if (!challenge || !userCode) {
+      res.status(400).send('Missing challenge or user_code')
+      return
+    }
+
+    const program = pipe(
+      Effect.gen(function* () {
+        const oauth2Api = yield* OAuth2ApiService
+        const redirectTo = yield* oauth2Api.acceptUserCodeRequest(challenge, {
+          user_code: userCode,
+        })
+
+        return redirectTo.redirect_to || ''
+      }),
+      Effect.provide(serviceLayer)
+    )
+
+    const result = await Effect.runPromise(Effect.either(program))
+
+    if (result._tag === 'Left') {
+      const { status, message } = mapErrorToHttp(result.left)
+      res.status(status).send(message)
+    } else {
+      res.redirect(result.right)
+    }
+  }
+}
+
+/**
+ * GET /success - Render success page
+ * This doesn't need Effect since it's just rendering a page
+ */
+router.get('/success', (req, res) => {
+  res.render('device/success', {
     csrfToken: generateCsrfToken(req, res),
     envXsrfToken: appConfig.xsrfHeaderName,
   })
 })
+
+export const createDeviceRouter = (serviceLayer: Layer.Layer<OAuth2ApiService>) => {
+  router.post('/verify', createVerifyHandler(serviceLayer))
+  return router
+}
 
 export default router

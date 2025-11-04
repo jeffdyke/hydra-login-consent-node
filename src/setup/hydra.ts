@@ -1,21 +1,28 @@
-import { Configuration } from "@ory/hydra-client-fetch";
-import { OAuth2Api } from "@ory/hydra-client-fetch/dist/index.js"
-import { DCR_MASTER_CLIENT_ID, appConfig } from "../config.js";
+/**
+ * OAuth2 API service setup
+ * Provides Effect-based OAuth2ApiService for Hydra operations
+ */
+import { appConfig } from "../config.js";
+import { makeOAuth2ApiService, OAuth2ApiServiceLive } from "../api/oauth2.js";
 
-const baseOptions: any = {}
+// Create headers for OAuth2 API
+const headers: Record<string, string> = {}
 if (process.env.MOCK_TLS_TERMINATION) {
-  baseOptions.headers = { "X-Forwarded-Proto": "https" }
+  headers["X-Forwarded-Proto"] = "https"
 }
-const configuration = new Configuration({
+
+/**
+ * OAuth2 API service instance (for direct usage)
+ */
+export const oauth2ApiService = makeOAuth2ApiService({
   basePath: appConfig.hydraInternalAdmin,
-  accessToken: process.env.ORY_API_KEY || process.env.ORY_PAT,
-  headers: baseOptions.headers,
+  headers,
 })
 
-const CLIENT_ID = DCR_MASTER_CLIENT_ID
-if (!CLIENT_ID) {
-  throw(`CLIENT_ID environment is not legit ${process.env.DCR_MASTER_CLIENT_ID}`)
-}
-const hydraAdmin = new OAuth2Api(configuration)
-
-export {hydraAdmin, CLIENT_ID, configuration as HYDRA_CONFIG  }
+/**
+ * OAuth2 API service layer (for Effect composition)
+ */
+export const OAuth2ApiLayer = OAuth2ApiServiceLive({
+  basePath: appConfig.hydraInternalAdmin,
+  headers,
+})

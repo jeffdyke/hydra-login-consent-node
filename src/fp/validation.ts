@@ -9,6 +9,7 @@ import {
   RequiredFieldMissing,
   InvalidFormat,
   SchemaValidationError,
+  ClientExistsError,
 } from './errors.js'
 import { PKCEMethod } from './domain.js'
 import crypto from 'crypto'
@@ -29,6 +30,7 @@ export const validateSchema = <A, I>(
       })
     )
   )
+
 
 /**
  * Pure PKCE validation function
@@ -69,7 +71,17 @@ export const validatePKCE = (
         method: String(error),
       }),
   })
-
+/**
+ * Ensure the client doesn't exists in the clients table
+ */
+export const validateCreateClient = (
+    clientId: string,
+    clients: string[]
+  ): Effect.Effect<true, ClientExistsError> => {
+    return clients.includes(clientId)
+      ? Effect.fail(new ClientExistsError({ clientId: clientId, clients: clients}))
+      : Effect.succeed(true as const)
+  }
 /**
  * Validate OAuth2 scopes
  * Ensures all requested scopes are within the granted scopes

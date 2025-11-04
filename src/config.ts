@@ -8,6 +8,7 @@ const DCR_MASTER_CLIENT_ID = process.env.DCR_MASTER_CLIENT_ID || ""
 interface AppConfigI {
   csrfTokenName: string,
   hostName: string
+  hydraPublicUrl: string
   middlewareRedirectUri: string
   sameSite: SameSiteType
   httpOnly: boolean
@@ -31,6 +32,7 @@ class DevAppConfig implements AppConfigI {
   hostName: string = "http://dev.bondlin.org:3000"
   middlewareRedirectUri: string = "http://dev.bondlin.org:3000/callback"
   hydraInternalUrl: string = "http://dev.bondlink.org:4444"
+  hydraPublicUrl: string = "http://dev.bondlink.org:4444"
   hydraInternalAdmin: string = "http://dev.bondlink.org:4445"
   sameSite: SameSiteType = "lax"
   httpOnly: boolean = true
@@ -46,6 +48,7 @@ class DevAppConfig implements AppConfigI {
 class StagingAppConfig implements AppConfigI {
   csrfTokenName: string = "xsrf_token"
   hostName: string = "http://auth.staging.bondlink.org"
+  hydraPublicUrl: string = "http://auth.staging.bondlink.org"
   middlewareRedirectUri: string = "https://auth.staging.bondlink.org/callback"
   hydraInternalUrl: string = "http://10.1.1.230:4444"
   hydraInternalAdmin: string = "http://10.1.1.230:4445"
@@ -96,7 +99,6 @@ const appConfig = (httpOnly) ? new DevAppConfig() : new StagingAppConfig()
 // });
 const STATIC_CSRF = "YOU-ARE-USING-THE-STATIC-CSRF"
 const generateCsrfToken = (req:any, res:any) => STATIC_CSRF
-const HYDRA_URL = process.env.HYDRA_URL
 const pgConfig = {
   user: process.env.POSTGRES_USER || "hydra",
   password: process.env.POSTGRES_PASSWORD || "shaken!stirred",
@@ -106,21 +108,6 @@ const pgConfig = {
 }
 
 const PgStore = connectPgSimple(session)
-// function hasClientId() {
-//   let s = "select * from hydra_client where id = $1"
-//   const res = pool.query(s, [CLIENT_ID]);
-//   return res
-// }
-function dumpSessionData() {
-  try {
-    const result = pool.query('SELECT * FROM session');
-    jsonLogger.info('Session data:', {session:result});
-    return result;
-  } catch (err) {
-    jsonLogger.error('Error fetching session data: %s', err);
-    throw err;
-  }
-}
 
 export {
   pgConfig,
@@ -129,8 +116,5 @@ export {
   DCR_MASTER_CLIENT_ID,
   STATIC_CSRF,
   PgStore,
-  httpOnly,
-  dumpSessionData,
-  appConfig,
-  HYDRA_URL
+  appConfig
 }

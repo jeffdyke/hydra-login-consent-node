@@ -9,14 +9,14 @@ import path from 'path'
 import cookieParser from 'cookie-parser'
 import bodyParser from 'body-parser'
 import session from 'express-session'
-import { OAuth2Client } from 'google-auth-library'
+import { OAuth2Client as GoogleOAuth2Client } from 'google-auth-library'
+import { Redis } from 'ioredis'
 import favicon from 'serve-favicon'
 import { dirname } from 'path'
 
 // Existing infrastructure
 import pool from './pool.js'
-import redis from './setup/redis.js'
-import { hydraAdmin } from './setup/hydra.js'
+import { OAuth2ApiLayer } from './setup/hydra.js'
 import { PgStore, appConfig } from './config.js'
 import jsonLogger from './logging.js'
 import { requestLogger } from './middleware/requestLogger.js'
@@ -31,6 +31,7 @@ import { createLogoutRouter } from './routes/logout-fp.js'
 import { createConsentRouter } from './routes/consent-fp.js'
 import { createCallbackRouter } from './routes/callback-fp.js'
 import { createTokenRouter } from './routes/passthrough-auth-fp.js'
+import { createDeviceRouter } from './routes/device.js'
 
 // Legacy route (for non-functional endpoints)
 import routes from './routes/index.js'
@@ -38,15 +39,31 @@ import routes from './routes/index.js'
 const app = express()
 const __dirname = import.meta.dirname
 
+// Create Redis client
+const redisClient = new Redis({
+  host: appConfig.redisHost,
+  port: appConfig.redisPort,
+})
+
 // Create Google OAuth2 client
-const googleClient = new OAuth2Client({
+const googleClient = new GoogleOAuth2Client({
   clientId: appConfig.googleClientId,
   clientSecret: appConfig.googleClientSecret,
   redirectUri: appConfig.middlewareRedirectUri,
 })
 
+// Create OAuth2 API configuration
+const headers: Record<string, string> = {}
+if (process.env.MOCK_TLS_TERMINATION) {
+  headers['X-Forwarded-Proto'] = 'https'
+}
+const oauth2Config = {
+  basePath: appConfig.hydraInternalAdmin,
+  headers,
+}
+
 // Bootstrap functional environment with Effect Layers
-const serviceLayer = createAppLayer(redis, hydraAdmin, jsonLogger, {
+const serviceLayer = createAppLayer(redisClient, oauth2Config, jsonLogger, {
   googleClientId: appConfig.googleClientId || '',
   googleClientSecret: appConfig.googleClientSecret || '',
 })
@@ -107,6 +124,7 @@ app.use('/logout', createLogoutRouter(serviceLayer, logoutConfig))
 app.use('/consent', createConsentRouter(serviceLayer, consentConfig))
 app.use('/callback', createCallbackRouter(serviceLayer, googleClient, callbackConfig))
 app.use('/oauth2', createTokenRouter(serviceLayer))
+app.use('/device', createDeviceRouter(OAuth2ApiLayer))
 
 // Error handlers (same as original)
 app.use((req, res, next) => {
