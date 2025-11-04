@@ -101,7 +101,7 @@ export type GoogleErrorResponse = typeof GoogleErrorResponseSchema.Type
  */
 export const RefreshTokenDataSchema = Schema.Struct({
   client_id: Schema.String,
-  google_refresh_token: Schema.String,
+  refresh_token: Schema.String,
   access_token: Schema.String,
   scope: Schema.String,
   subject: Schema.String,

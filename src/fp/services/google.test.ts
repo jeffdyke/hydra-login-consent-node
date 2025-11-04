@@ -40,7 +40,12 @@ describe('GoogleOAuthService', () => {
       const mockTokenData: RefreshTokenData = {
         refresh_token: 'refresh-token-123',
         client_id: 'test-client',
-        client_secret: 'test-secret',
+        access_token: 'test-access-token',
+        scope: "scopeOne scopeTwo",
+        subject: "test@test.tld",
+        created_at: Date.now(),
+        expires_in: 300,
+        updated_at: Date.now(),
       }
 
       const mockResponse: GoogleTokenResponse = {
@@ -72,9 +77,14 @@ describe('GoogleOAuthService', () => {
 
     it('should handle Google auth errors', async () => {
       const mockTokenData: RefreshTokenData = {
-        refresh_token: 'invalid-token',
+        refresh_token: 'refresh-token-123',
         client_id: 'test-client',
-        client_secret: 'test-secret',
+        access_token: 'test-access-token',
+        scope: "scopeOne scopeTwo",
+        subject: "test@test.tld",
+        created_at: Date.now(),
+        expires_in: 300,
+        updated_at: Date.now(),
       }
 
       const axiosError = {
@@ -105,9 +115,14 @@ describe('GoogleOAuthService', () => {
 
     it('should handle network errors', async () => {
       const mockTokenData: RefreshTokenData = {
-        refresh_token: 'token-123',
+        refresh_token: 'refresh-token-123',
         client_id: 'test-client',
-        client_secret: 'test-secret',
+        access_token: 'test-access-token',
+        scope: "scopeOne scopeTwo",
+        subject: "test@test.tld",
+        created_at: Date.now(),
+        expires_in: 300,
+        updated_at: Date.now(),
       }
 
       vi.mocked(axios.post).mockRejectedValue(new Error('Network timeout'))
@@ -124,9 +139,14 @@ describe('GoogleOAuthService', () => {
 
     it('should handle schema validation errors', async () => {
       const mockTokenData: RefreshTokenData = {
-        refresh_token: 'token-123',
+        refresh_token: 'refresh-token-123',
         client_id: 'test-client',
-        client_secret: 'test-secret',
+        access_token: 'test-access-token',
+        scope: "scopeOne scopeTwo",
+        subject: "test@test.tld",
+        created_at: Date.now(),
+        expires_in: 300,
+        updated_at: Date.now(),
       }
 
       // Invalid response missing required fields

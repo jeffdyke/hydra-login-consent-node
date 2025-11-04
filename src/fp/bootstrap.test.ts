@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { Effect, Layer } from 'effect'
+import { Effect, Layer, Context } from 'effect'
 import type { Redis } from 'ioredis'
 import {
   createAppLayer,
@@ -314,10 +314,13 @@ describe('bootstrap', () => {
           googleClientSecret: 'client-secret',
         }
       )
-
+      class CustomServiceTag extends Context.Tag("CustomService")<
+        CustomServiceTag,
+        { customMethod: () => 'custom-value' }
+      >() {}
       // Create a custom layer that depends on app services
       const customLayer = Layer.succeed(
-        'CustomService',
+        CustomServiceTag,
         { customMethod: () => 'custom-value' }
       )
 
