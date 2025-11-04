@@ -24,7 +24,7 @@ services:
       driver: json-file
       options:
         tag: hydra
-    command: serve all --dev --config /etc/hydra-headless-ts/hydra.yml
+    command: serve all --dev --config /etc/hydra-headless-ts.yml
     environment:
       # If this changes and the application is using it, the database will need to be rebuilt
       - SECRETS_SYSTEM=G6KaOf8aJsLagw566he8yxOTTO3tInKD
@@ -35,7 +35,7 @@ services:
     restart: unless-stopped
     volumes:
       - /var/log/hydra-headless-ts:/var/log/hydra-headless-ts
-      - /etc/hydra-headless-ts/hydra:/etc/hydra-headless-ts/hydra:ro
+      - /etc/hydra-headless-ts:/etc/hydra-headless-ts:ro
     depends_on:
       - hydra-migrate
     networks:
@@ -80,7 +80,7 @@ services:
     restart: unless-stopped
     volumes:
       - /var/log/hydra-headless-ts:/var/log/hydra-headless-ts
-      - /etc/hydra-headless-ts/hydra:/etc/hydra-headless-ts/hydra:ro
+      - /etc/hydra-headless-ts:/etc/hydra-headless-ts:ro
 
 networks:
   hydra-net:

@@ -5,7 +5,7 @@ ENV ENV_SUBCOMMAND="${ENV_FILE_PREFIX}"
 RUN mkdir -p /usr/src/app
 
 WORKDIR /usr/src/app
-RUN apk add --no-cache vim git bash postgresql-client redis-cli
+RUN apk add --no-cache vim git bash postgresql-client
 
 RUN git clone https://github.com/jeffdyke/hydra-headless-ts.git /tmp/repo && \
     cp -rf /tmp/repo/* /usr/src/app/ && \
@@ -16,6 +16,6 @@ RUN git clone https://github.com/jeffdyke/hydra-headless-ts.git /tmp/repo && \
 
 VOLUME [ "/var/log/hydra-headless-ts", "/etc/hydra-headless-ts" ]
 
-ENTRYPOINT ["npm", "run", "serve:${ENV_SUBCOMMAND}}"]
+ENTRYPOINT ["npm", "run", "serve:${ENV_FILE_PREFIX}"]
 
 EXPOSE 3000
