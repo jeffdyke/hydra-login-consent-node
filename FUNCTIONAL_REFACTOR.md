@@ -1,6 +1,6 @@
-# Functional Programming Refactor with fp-ts
+# Functional Programming Refactor with Effect
 
-This document explains the functional refactoring of the OAuth2 token endpoint from an imperative to a functional paradigm using `fp-ts`.
+This document explains the functional refactoring of the OAuth2 token endpoint from an imperative to a functional paradigm using Effect.
 
 ## What Changed
 
@@ -17,12 +17,12 @@ This document explains the functional refactoring of the OAuth2 token endpoint f
 ### After (Functional - passthrough-auth-fp.ts)
 
 **Characteristics:**
-- All side effects wrapped in `TaskEither`
-- Consistent error handling via `Either` type
-- Dependency injection via `ReaderTaskEither`
-- Runtime validation with io-ts codecs
-- Explicit data pipelines using `pipe`
-- Errors as values (ADTs)
+- All side effects wrapped in `Effect`
+- Consistent error handling via Effect's error channel
+- Dependency injection via Effect Context and Layers
+- Runtime validation with Effect Schema
+- Explicit data pipelines using `pipe` and `Effect.gen`
+- Errors as typed values using `Data.TaggedError`
 
 ## File Structure
 
@@ -30,16 +30,21 @@ This document explains the functional refactoring of the OAuth2 token endpoint f
 
 ```
 fp/
-├── types.ts              # Type aliases (TaskEither, ReaderTaskEither)
-├── errors.ts             # ADT error types
-├── domain.ts             # Domain types + io-ts codecs
-├── validation.ts         # Pure validation functions
-├── environment.ts        # Dependency injection types
-├── bootstrap.ts          # Environment creation
+├── errors.ts             # Tagged error types using Data.TaggedError
+├── domain.ts             # Domain types + Effect Schema validation
+├── validation.ts         # Schema validation with Effect
+├── config.ts             # Type-safe configuration with Effect Config
+├── bootstrap.ts          # Service layer composition with Layer
 ├── services/
-│   ├── redis.ts          # Redis as TaskEither
-│   ├── google.ts         # Google OAuth as TaskEither
-│   └── token.ts          # Business logic with RTE
+│   ├── redis.ts          # Redis operations as Effect
+│   ├── hydra.ts          # Hydra OAuth2 API as Effect
+│   ├── google.ts         # Google OAuth as Effect
+│   ├── login.ts          # Login business logic
+│   ├── consent.ts        # Consent business logic
+│   ├── callback.ts       # Callback business logic
+│   ├── logout.ts         # Logout business logic
+│   └── token.ts          # Token operations with Effect
+├── *.test.ts             # Comprehensive test coverage
 └── README.md
 ```
 
