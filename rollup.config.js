@@ -1,7 +1,7 @@
 import typescript from '@rollup/plugin-typescript';
 import packageJson from './package.json' with { type: "json" };
 import resolve from '@rollup/plugin-node-resolve';
-import copy from 'rollup-plugin-copy';
+import copy from 'rollup-plugin-copy2';
 import json from '@rollup/plugin-json';
 import commonjs from '@rollup/plugin-commonjs';
 // {preferBuiltins:true, jsnext: true}
