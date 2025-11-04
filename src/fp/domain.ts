@@ -85,7 +85,7 @@ export const GoogleUserInfoSchema = Schema.Struct({
   locale: Schema.optional(Schema.String)
 })
 
-export type GoogleUserInfoResponse = typeof GoogleTokenResponseSchema.Type
+export type GoogleUserInfoResponse = typeof GoogleUserInfoSchema.Type
 
 /**
  * Google Error Response

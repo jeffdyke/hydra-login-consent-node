@@ -1,16 +1,7 @@
 
-import axios from "axios"
-import { DCR_MASTER_CLIENT_ID } from "./config.js";
-import hydraAdmin from "./setup/hydra.js"
-import { OAuth2Client, OAuth2ClientOptions } from 'google-auth-library';
-import jsonLogger from "./logging.js";
-import { URLSearchParams } from "url";
 import { OAuth2Client as OryOAuth2Client } from "@ory/client-fetch";
-import { Effect, pipe, Either } from 'effect'
+import { Effect, pipe } from 'effect'
 import { OAuth2ApiService } from './api/oauth2.js'
-// import {cli}
-// import { OAuth2ApiLayer } from './api/hydra.js'
-// import type { HttpError } from './fp/errors.js'
 import { validateCreateClient } from "./fp/validation.js";
 
 

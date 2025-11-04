@@ -3,7 +3,6 @@ import crypto from "crypto"
 import jsonLogger from "../logging.js"
 import {generateCsrfToken, DCR_MASTER_CLIENT_ID, appConfig} from "../config.js"
 import { getClient } from "../authFlow.js"
-import { googleAuthUrl } from "../google_auth.js"
 const router = express.Router()
 
 interface ParseAuthRequest {

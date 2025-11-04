@@ -1,116 +1,199 @@
+/**
+ * Google Auth service using Effect for OAuth operations
+ * Wraps Google OAuth2Client and HTTP operations with proper error handling
+ */
+import { Effect, Context, Layer, pipe } from 'effect'
+import axios, { AxiosError } from 'axios'
+import { OAuth2Client } from 'google-auth-library'
+import { GoogleUserInfoResponse, GoogleTokenResponse, GoogleTokenResponseSchema, GoogleUserInfoSchema } from './fp/domain.js'
+import { HttpError, HttpStatusError, NetworkError, ParseError, GoogleAuthError } from './fp/errors.js'
+import { validateSchema } from './fp/validation.js'
 
-import axios from "./middleware/axios.js"
+/**
+ * Google Auth service interface
+ */
+export interface GoogleAuthService {
+  readonly generateAuthUrl: (
+    scope: string,
+    state: string,
+    redirectUrl: string
+  ) => Effect.Effect<string, HttpError>
 
-import jsonLogger  from "./logging.js"
-import {appConfig} from "./config.js"
-import { OAuth2Client } from "google-auth-library";
-import { GoogleUserInfoResponse, GoogleTokenResponse } from "./fp/domain.js";
+  readonly getTokensFromCode: (
+    code: string,
+    redirectUrl: string
+  ) => Effect.Effect<GoogleTokenResponse, HttpError | GoogleAuthError>
 
+  readonly refreshAccessToken: (
+    refreshToken: string
+  ) => Effect.Effect<GoogleTokenResponse, HttpError | GoogleAuthError>
 
-const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
-const formHeader = {
-      "Content-Type": "application/x-www-form-urlencoded",
-    };
-const client = new OAuth2Client({
-    clientId: appConfig.googleClientId,
-    clientSecret: appConfig.googleClientSecret,
-    redirectUri: appConfig.middlewareRedirectUri
-  })
-
-
-async function googleAuthUrl(scope: string, incomingState: string, redirectUrl: string = appConfig.dcrOriginRedirectUri): Promise<string> {
-  const authUri = await client.generateAuthUrl({
-    access_type:'offline',
-    scope: scope,
-    prompt: 'consent',
-    state: incomingState,
-    response_type: "code",
-    redirect_uri: redirectUrl
-  })
-
-  return authUri
+  readonly getUserInfo: (
+    accessToken: string,
+    idToken: string
+  ) => Effect.Effect<GoogleUserInfoResponse, HttpError | GoogleAuthError>
 }
-async function googleOAuthTokens(code: string, redirectUrl:string = appConfig.dcrOriginRedirectUri): Promise<GoogleTokenResponse> {
 
-  const params = {
-    code: code,
-    grant_type:"authorization_code"
-  }
-  jsonLogger.info("Auth Token Request", {request: params});
-  const tokenResponse = await client.getToken(code)
-    .then((resp) => {
-      return resp
-    })
-    .catch((err) => {
-      jsonLogger.error("Error fetching AuthCode", {
-        authCodeRequest:params,
-        error:err
+export const GoogleAuthService = Context.GenericTag<GoogleAuthService>('GoogleAuthService')
+
+export interface GoogleAuthConfig {
+  clientId: string
+  clientSecret: string
+  redirectUri: string
+  tokenEndpoint?: string
+  userInfoEndpoint?: string
+}
+
+export const makeGoogleAuthService = (config: GoogleAuthConfig): GoogleAuthService => {
+  const TOKEN_ENDPOINT = config.tokenEndpoint || 'https://oauth2.googleapis.com/token'
+  const USER_INFO_ENDPOINT = config.userInfoEndpoint || 'https://www.googleapis.com/oauth2/v2/userinfo'
+
+  const oauth2Client = new OAuth2Client({
+    clientId: config.clientId,
+    clientSecret: config.clientSecret,
+    redirectUri: config.redirectUri,
+  })
+
+  /**
+   * Helper to handle axios errors
+   */
+  const handleAxiosError = (error: unknown, operationName: string): HttpError | GoogleAuthError => {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError
+
+      if (axiosError.response?.data) {
+        try {
+          const errorData = axiosError.response.data as any
+          if (errorData.error) {
+            return new GoogleAuthError({
+              error: errorData.error,
+              errorDescription: errorData.error_description,
+            })
+          }
+        } catch {
+          // Fall through to generic HTTP error
+        }
       }
-    )
-    return err.response.data
-  });
-  return tokenResponse
-}
 
-async function googleRefreshResponse(refreshToken:string): Promise<any> {
-  const params = new URLSearchParams()
-  params.append("grant_type","refresh_token")
-  params.append("refresh_token", refreshToken)
-  params.append("client_id", appConfig.googleClientId || "")
-  params.append("client_secret", appConfig.googleClientSecret || "")
+      // Generic HTTP error
+      return new HttpStatusError({
+        status: axiosError.response?.status || 500,
+        statusText: axiosError.response?.statusText || 'Unknown error',
+        body: axiosError.response?.data,
+      })
+    }
 
-  const resp = await axios.post('https://oauth2.googleapis.com/token', {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params
-      }).catch((err) => {
-        jsonLogger.error("Failed to fetch refresh token", params)
-        return err.response.data
-      });
-
-  return resp;
+    // Network or unknown error
+    return new NetworkError({
+      message: `Network error during ${operationName}`,
+      cause: error,
+    })
   }
 
+  return {
+    generateAuthUrl: (scope: string, state: string, redirectUrl: string) =>
+      Effect.tryPromise({
+        try: async () => {
+          const authUri = oauth2Client.generateAuthUrl({
+            access_type: 'offline',
+            scope: scope,
+            prompt: 'consent',
+            state: state,
+            response_type: 'code',
+            redirect_uri: redirectUrl,
+          })
+          return authUri
+        },
+        catch: (error): HttpError =>
+          new NetworkError({
+            message: 'Failed to generate Google auth URL',
+            cause: error,
+          }),
+      }),
 
-async function getGoogleUser(access_token: string, id_token: string): Promise<GoogleUserInfoResponse> {
-  const url = `https://www.googleapis.com/oauth2/v2/userinfo?alt=json&access_token=${access_token}`;
-  jsonLogger.debug("Calling google at url", {url:url})
-  return await axios.get(url, { headers: { Authorization: `Bearer ${id_token}` } })
-    .then((resp) => { return resp.data })
-    .catch((err) => { jsonLogger.error("Access token failed for user", {
-        error:err,
-        access_token:access_token
-      }); return err.response.data
-  })  ;
+    getTokensFromCode: (code: string, redirectUrl: string) =>
+      pipe(
+        Effect.tryPromise({
+          try: async () => {
+            const response = await oauth2Client.getToken({
+              code,
+              redirect_uri: redirectUrl,
+            })
+            return response.tokens
+          },
+          catch: (error) => handleAxiosError(error, 'getTokensFromCode'),
+        }),
+        Effect.flatMap((data) => validateSchema(GoogleTokenResponseSchema, data)),
+        Effect.mapError(
+          (error): HttpError | GoogleAuthError =>
+            error._tag === 'SchemaValidationError'
+              ? new ParseError({
+                  message: `Failed to parse Google token response: ${error.errors.join(', ')}`,
+                })
+              : error
+        )
+      ),
 
-}
-async function googleTokenResponse(code: string, redirectUrl: string = appConfig.dcrOriginRedirectUri): Promise<GoogleTokenResponse> {
-    jsonLogger.debug("Calling googleTokenResponse with args", {code:code, redirectUrl:redirectUrl})
-    const authClientConfig: OAuth2Client = new OAuth2Client(
-      appConfig.googleClientId,
-      appConfig.googleClientSecret,
-      redirectUrl
-    )
+    refreshAccessToken: (refreshToken: string) =>
+      pipe(
+        Effect.tryPromise({
+          try: async () => {
+            const response = await axios.post(
+              TOKEN_ENDPOINT,
+              new URLSearchParams({
+                grant_type: 'refresh_token',
+                refresh_token: refreshToken,
+                client_id: config.clientId,
+                client_secret: config.clientSecret,
+              }).toString(),
+              {
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                },
+              }
+            )
+            return response.data
+          },
+          catch: (error) => handleAxiosError(error, 'refreshAccessToken'),
+        }),
+        Effect.flatMap((data) => validateSchema(GoogleTokenResponseSchema, data)),
+        Effect.mapError(
+          (error): HttpError | GoogleAuthError =>
+            error._tag === 'SchemaValidationError'
+              ? new ParseError({
+                  message: `Failed to parse Google token response: ${error.errors.join(', ')}`,
+                })
+              : error
+        )
+      ),
 
-    const params = {code: code, grant_type: 'authorization_code'}
-    jsonLogger.debug("Requesting TokenResponse",  {auth:authClientConfig, params:params})
-    const tokenResponse = await axios.post(
-      GOOGLE_TOKEN_URL,
-      params,
-      { headers: formHeader })
-      .then((resp) => {
-        return resp.data
-      })
-      .catch((err) => {
-        jsonLogger.error("GoogleTokenResponse Error",  {
-          error:err,
-          code:code,
-          authClientConfig:authClientConfig,
-          urlParams:params
-        });
-        return err.response.data
-      })
-    jsonLogger.debug("result from token request", {resp:tokenResponse})
-    return tokenResponse
+    getUserInfo: (accessToken: string, idToken: string) =>
+      pipe(
+        Effect.tryPromise({
+          try: async () => {
+            const url = `${USER_INFO_ENDPOINT}?alt=json&access_token=${accessToken}`
+            const response = await axios.get(url, {
+              headers: { Authorization: `Bearer ${idToken}` },
+            })
+            return response.data
+          },
+          catch: (error) => handleAxiosError(error, 'getUserInfo'),
+        }),
+        Effect.flatMap((data) => validateSchema(GoogleUserInfoSchema, data)),
+        Effect.mapError(
+          (error): HttpError | GoogleAuthError =>
+            error._tag === 'SchemaValidationError'
+              ? new ParseError({
+                  message: `Failed to parse Google user info response: ${error.errors.join(', ')}`,
+                })
+              : error
+        )
+      ),
   }
+}
 
-export { googleOAuthTokens, googleTokenResponse, googleAuthUrl, googleRefreshResponse }
+/**
+ * Create a Layer for GoogleAuthService
+ */
+export const GoogleAuthServiceLive = (config: GoogleAuthConfig) =>
+  Layer.succeed(GoogleAuthService, makeGoogleAuthService(config))
