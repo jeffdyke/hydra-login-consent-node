@@ -5,6 +5,10 @@ import { SameSiteType } from "csrf-csrf";
 import jsonLogger from "./logging.js";
 const httpOnly = !process.env.BASE_URL?.startsWith("https")
 const DCR_MASTER_CLIENT_ID = process.env.DCR_MASTER_CLIENT_ID || ""
+/**
+ * A domain other than localhost should be set, browsers treat localhost and 127.0.0.1 differently
+ */
+const LOCAL_DOMAIN = process.env.LOCAL_DOMAIN || "localhost"
 interface AppConfigI {
   csrfTokenName: string,
   hostName: string
@@ -29,14 +33,14 @@ interface AppConfigI {
  */
 class DevAppConfig implements AppConfigI {
   csrfTokenName: string = "dev_xsrf_token"
-  hostName: string = "http://dev.bondlin.org:3000"
-  middlewareRedirectUri: string = "http://dev.bondlin.org:3000/callback"
-  hydraInternalUrl: string = "http://dev.bondlink.org:4444"
-  hydraPublicUrl: string = "http://dev.bondlink.org:4444"
-  hydraInternalAdmin: string = "http://dev.bondlink.org:4445"
+  hostName: string = `http://${LOCAL_DOMAIN}:3000`
+  middlewareRedirectUri: string = `http://${LOCAL_DOMAIN}:3000/callback`
+  hydraInternalUrl: string = `http://${LOCAL_DOMAIN}:4444`
+  hydraPublicUrl: string = `http://${LOCAL_DOMAIN}:4444`
+  hydraInternalAdmin: string = `http://${LOCAL_DOMAIN}:4445`
   sameSite: SameSiteType = "lax"
   httpOnly: boolean = true
-  redisHost: string = "dev.bondlink.org"
+  redisHost: string = LOCAL_DOMAIN
   redisPort: number = 6379
   secure: boolean = false
   googleClientId?: string | undefined = undefined
