@@ -1,2 +1,21 @@
-.github/pull_request_template.md
-CONTRIBUTING.md
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+lib
+coverage
+
+# Config files
+*.config.js
+
+# Logs
+*.log
+
+# Environment files
+.env*
+!.env.example
+
+# IDE
+.vscode
+.idea
