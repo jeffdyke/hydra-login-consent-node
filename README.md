@@ -32,7 +32,7 @@ Simply change into the root of the repository:
 ## Installing Docker Environment
 
 - sudo docker compose up -d --build
--
+
 Nginx and HAProxy configs to be provided
 
 

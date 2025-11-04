@@ -39,6 +39,7 @@ Tests cover:
 ## Test Structure
 
 All tests follow Effect patterns:
+
 - Use `Effect.runPromise` for async execution
 - Test both success and error paths
 - Verify proper error types
@@ -54,6 +55,7 @@ When adding new services, follow these patterns:
 4. **Verify error types** using instanceof checks
 
 Example:
+
 ```typescript
 it('should handle service errors', async () => {
   const program = service.operation()

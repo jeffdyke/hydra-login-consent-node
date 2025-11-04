@@ -5,6 +5,7 @@ This document summarizes the code quality infrastructure established for the hyd
 ## Overview
 
 A comprehensive baseline has been established covering:
+
 - ✅ Unit and integration testing
 - ✅ TypeScript linting
 - ✅ Code formatting
@@ -21,6 +22,7 @@ A comprehensive baseline has been established covering:
 ### Test Coverage
 
 **Test Files Created**:
+
 1. `src/fp/config.test.ts` (12 tests) - Configuration service with environment handling
 2. `src/fp/domain.test.ts` (34 tests) - Schema validation for all domain types
 3. `src/fp/services/redis.test.ts` (28 tests) - Redis operations and OAuth storage
@@ -29,6 +31,7 @@ A comprehensive baseline has been established covering:
 6. `src/fp/bootstrap.test.ts` (14 tests) - Service layer composition
 
 **Coverage Areas**:
+
 - Effect Config validation and defaults
 - Effect Schema runtime validation
 - Service error handling (HttpError, RedisError, GoogleAuthError)
@@ -50,13 +53,15 @@ npm run test:coverage # Generate coverage report
 ### Tools Installed
 
 **Core**:
+
 - ESLint 9.x (flat config format)
 - @typescript-eslint/parser
 - @typescript-eslint/eslint-plugin
 
 **Plugins**:
+
 - eslint-plugin-import - Import order and organization
-- eslint-plugin-promise - Promise best practices  
+- eslint-plugin-promise - Promise best practices
 - eslint-plugin-functional - FP patterns
 
 ### Configuration
@@ -64,6 +69,7 @@ npm run test:coverage # Generate coverage report
 **File**: `eslint.config.js` (ESLint 9 flat config)
 
 **Key Rules**:
+
 - TypeScript strict mode compatible
 - Import order enforcement
 - Prefer nullish coalescing (??)
@@ -72,6 +78,7 @@ npm run test:coverage # Generate coverage report
 - Functional programming patterns
 
 **Relaxed for Tests**:
+
 - Allow `any` types in tests
 - Allow console statements
 - Allow non-null assertions
@@ -90,6 +97,7 @@ npm run lint:fix      # Auto-fix linting issues
 **Configuration**: `.prettierrc.json`
 
 **Settings**:
+
 - Single quotes
 - No semicolons (Effect style)
 - 100 character line width
@@ -110,6 +118,7 @@ npm run format:check  # Check formatting without fixing
 **Configuration**: `tsconfig.json`
 
 **Scripts**:
+
 ```bash
 npm run typecheck     # Run TypeScript type checking
 ```
@@ -123,6 +132,7 @@ npm run validate      # Runs: typecheck → lint → test
 ```
 
 This single command ensures:
+
 1. ✅ TypeScript compiles without errors
 2. ✅ Code passes all linting rules
 3. ✅ All tests pass
@@ -164,33 +174,38 @@ git commit -m "feat: description"
 ## Package.json Scripts Summary
 
 ### Development
+
 - `start:local` - Dev mode with local.env
 - `start:staging` - Dev mode with staging.env
 - `start:production` - Dev mode with production.env
 
 ### Building
+
 - `build` - Full build (clean + compile + bundle)
 - `clean` - Remove build artifacts
 - `typecheck` - TypeScript type checking
 
 ### Testing
+
 - `test` - Run tests once
 - `test:watch` - Watch mode
 - `test:ui` - Interactive UI
 - `test:coverage` - Coverage report
 
 ### Linting & Formatting
+
 - `lint` - Check linting
 - `lint:fix` - Auto-fix linting
 - `format` - Format code
 - `format:check` - Check formatting
 
 ### Validation
+
 - `validate` - Run typecheck + lint + test
 
 ## File Structure
 
-```
+```text
 hydra-headless-ts/
 ├── vitest.config.ts          # Test configuration
 ├── eslint.config.js          # ESLint configuration (flat config)
@@ -217,17 +232,20 @@ hydra-headless-ts/
 ### Current Baseline
 
 **Tests**: 105/116 passing (90%)
+
 - Config tests: All environment scenarios covered
 - Domain tests: All schemas validated
 - Service tests: Core operations tested
 - Integration tests: Layer composition verified
 
-**Linting**: 
+**Linting**:
+
 - ~100 warnings (mostly import order, easily fixable)
 - 0 errors blocking development
 - All functional programming patterns recognized
 
 **Type Safety**:
+
 - Strict TypeScript mode
 - Effect types properly inferred
 - Schema validation at runtime
@@ -240,11 +258,13 @@ hydra-headless-ts/
    - Fix test expectation mismatches
 
 2. **Linting**: Auto-fix import order warnings
+
    ```bash
    npm run lint:fix
    ```
 
 3. **Coverage Goals**: Aim for 95%+ test coverage
+
    ```bash
    npm run test:coverage
    ```
@@ -266,17 +286,20 @@ This quality baseline provides:
 ## Maintenance
 
 ### Keep Dependencies Updated
+
 ```bash
 npm outdated
 npm update
 ```
 
 ### Review Test Coverage
+
 ```bash
 npm run test:coverage
 ```
 
 ### Fix Linting Warnings
+
 ```bash
 npm run lint:fix
 npm run format
