@@ -8,7 +8,7 @@ ISSUER=
 ISSUER_ADMIN=
 CALLBACK_HOST=
 POSTGRES_PASSWORD="shaken!stirred"
-ENV_PATH=/etc/bondlink/hydra
+ENV_PATH=/etc/hydra-headless-ts/hydra
 HYDRA_AUTH_FILE="${ENV_PATH}/.env.auth.hydra"
 HYDRA_CODE_FILE="${ENV_PATH}/.env.code.hydra"
 GOOGLE_AUTH_FILE="${ENV_PATH}/.env.auth.google"
@@ -133,7 +133,7 @@ getClient() {
 }
 
 createEnvFile() {
-  cat <<-EOF > /etc/bondlink/hydra/.env
+  cat <<-EOF > /etc/hydra-headless-ts/.env
 HYDRA_ADMIN_URL=${ISSUER_ADMIN}
 HYDRA_URL=${ISSUER}
 POSTGRES_HOST=${HOST_IP}

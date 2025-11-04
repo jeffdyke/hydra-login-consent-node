@@ -24,7 +24,7 @@ services:
       driver: json-file
       options:
         tag: hydra
-    command: serve all --dev --config /etc/bondlink/hydra/hydra.yml
+    command: serve all --dev --config /etc/hydra-headless-ts/hydra.yml
     environment:
       # If this changes and the application is using it, the database will need to be rebuilt
       - SECRETS_SYSTEM=G6KaOf8aJsLagw566he8yxOTTO3tInKD
@@ -35,7 +35,7 @@ services:
     restart: unless-stopped
     volumes:
       - /var/log/bondlink/hydra:/var/log/bondlink/hydra
-      - /etc/bondlink/hydra:/etc/bondlink/hydra:ro
+      - /etc/hydra-headless-ts/hydra:/etc/hydra-headless-ts/hydra:ro
     depends_on:
       - hydra-migrate
     networks:
@@ -62,9 +62,9 @@ services:
   consent-app:
     image: 668874212870.dkr.ecr.us-east-1.amazonaws.com/drone-hydra-consent-node
     env_file:
-      - /etc/bondlink/hydra/.env
-      - /etc/bondlink/hydra/.env.auth.hydra
-      - /etc/bondlink/hydra/.env.auth.google
+      - /etc/hydra-headless-ts/.env
+      - /etc/hydra-headless-ts/.env.auth.hydra
+      - /etc/hydra-headless-ts/.env.auth.google
     ports:
       - "3000:3000"
     build:
@@ -80,7 +80,7 @@ services:
     restart: unless-stopped
     volumes:
       - /var/log/bondlink/hydra:/var/log/bondlink/hydra
-      - /etc/bondlink/hydra:/etc/bondlink/hydra:ro
+      - /etc/hydra-headless-ts/hydra:/etc/hydra-headless-ts/hydra:ro
 
 networks:
   hydra-net:
