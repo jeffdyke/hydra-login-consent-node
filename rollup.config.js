@@ -8,7 +8,7 @@ import commonjs from '@rollup/plugin-commonjs';
 // {preferBuiltins:true, jsnext: true}
 const config = [
   {
-    input: 'src/app.ts',
+    input: 'src/app-fp.ts',
     output: {
       dir: 'dist',
       entryFileNames: '[name].js',

@@ -1,124 +1,82 @@
-import session from "express-session"
-import connectPgSimple from "connect-pg-simple"
-import pool from "./pool.js"
-import { SameSiteType } from "csrf-csrf";
-import jsonLogger from "./logging.js";
-const httpOnly = !process.env.BASE_URL?.startsWith("https")
-const DCR_MASTER_CLIENT_ID = process.env.DCR_MASTER_CLIENT_ID || ""
 /**
- * A domain other than localhost should be set, browsers treat localhost and 127.0.0.1 differently
+ * Application configuration
+ * Uses Effect-based functional configuration from fp/config.ts
  */
-const LOCAL_DOMAIN = process.env.LOCAL_DOMAIN || "localhost"
-interface AppConfigI {
-  csrfTokenName: string,
-  hostName: string
-  hydraPublicUrl: string
-  middlewareRedirectUri: string
-  sameSite: SameSiteType
-  httpOnly: boolean
-  secure: boolean
-  googleClientId?: string
-  googleClientSecret?: string
-  dcrOriginRedirectUri: string
-  hydraInternalAdmin: string
-  hydraInternalUrl: string
-  redisHost: string
-  redisPort: number
-  xsrfHeaderName: string
-
-}
+import session from 'express-session'
+import connectPgSimple from 'connect-pg-simple'
+import pool from './pool.js'
+import { loadAppConfigSync, getHydraAdminUrl, getHydraInternalUrl } from './fp/config.js'
 
 /**
- * These should take into account the docker container and not send over the network
+ * Load configuration from environment
+ * Uses Effect Config service with proper validation
  */
-class DevAppConfig implements AppConfigI {
-  csrfTokenName: string = "dev_xsrf_token"
-  hostName: string = `http://${LOCAL_DOMAIN}:3000`
-  middlewareRedirectUri: string = `http://${LOCAL_DOMAIN}:3000/callback`
-  hydraInternalUrl: string = `http://${LOCAL_DOMAIN}:4444`
-  hydraPublicUrl: string = `http://${LOCAL_DOMAIN}:4444`
-  hydraInternalAdmin: string = `http://${LOCAL_DOMAIN}:4445`
-  sameSite: SameSiteType = "lax"
-  httpOnly: boolean = true
-  redisHost: string = LOCAL_DOMAIN
-  redisPort: number = 6379
-  secure: boolean = false
-  googleClientId?: string | undefined = undefined
-  googleClientSecret?: string | undefined = undefined
-  dcrOriginRedirectUri: string = "https://claude.ai/api/mcp/auth_callback"
-  xsrfHeaderName: string = "dev_xsrf_token"
+export const appConfig = (() => {
+  const config = loadAppConfigSync()
+
+  // Add legacy compatibility properties
+  return {
+    ...config,
+    hostName: config.baseUrl,
+    hydraPublicUrl: config.hydra.public.url,
+    hydraInternalAdmin: getHydraAdminUrl(config),
+    hydraInternalUrl: getHydraInternalUrl(config),
+    sameSite: config.security.sameSite as 'lax' | 'none' | 'strict',
+    httpOnly: config.security.httpOnly,
+    secure: config.security.secure,
+    googleClientId: config.google.clientId,
+    googleClientSecret: config.google.clientSecret,
+    csrfTokenName: config.security.csrfTokenName,
+    xsrfHeaderName: config.security.xsrfHeaderName,
+    redisHost: config.redis.host,
+    redisPort: config.redis.port,
+  }
+})()
+
+/**
+ * Postgres configuration for connection pool
+ */
+export const pgConfig = {
+  user: appConfig.database.user,
+  password: appConfig.database.password,
+  database: appConfig.database.database,
+  host: appConfig.database.host,
+  port: appConfig.database.port,
 }
 
-class StagingAppConfig implements AppConfigI {
-  csrfTokenName: string = "xsrf_token"
-  hostName: string = "http://auth.staging.bondlink.org"
-  hydraPublicUrl: string = "http://auth.staging.bondlink.org"
-  middlewareRedirectUri: string = "https://auth.staging.bondlink.org/callback"
-  hydraInternalUrl: string = "http://10.1.1.230:4444"
-  hydraInternalAdmin: string = "http://10.1.1.230:4445"
-  redisHost: string = "10.1.1.230"
-  redisPort: number = 16379
-  sameSite: SameSiteType = "none"
-  httpOnly: boolean = false
-  secure: boolean = true
-  googleClientId?: string | undefined = process.env.GOOGLE_CLIENT_ID;
-  googleClientSecret?: string | undefined = process.env.GOOGLE_CLIENT_SECRET
-  dcrOriginRedirectUri: string = "https://claude.ai/api/mcp/auth_callback"
-  xsrfHeaderName: string = "xsrf_token"
+/**
+ * DCR Master Client ID
+ */
+export const DCR_MASTER_CLIENT_ID = appConfig.dcrMasterClientId
 
-}
+/**
+ * Static CSRF token (for development)
+ */
+export const STATIC_CSRF = 'YOU-ARE-USING-THE-STATIC-CSRF'
 
-// class ProdAppConfig implements AppConfigI {
-//   csrfTokenName: string = "xsrf_token"
-//   hostName: string = "http://auth.staging.bondlink.org"
-//   middlewareRedirectUri: string = "http://auth.staging.bondlink.org/callback"
-//   sameSite: SameSiteType = "none"
-//   httpOnly: boolean = false
-//   secure: boolean = true
-//   googleClientId?: string | undefined = process.env.GOOGLE_CLIENT_ID;
-//   googleClientSecret?: string | undefined = process.env.GOOGLE_CLIENT_SECRET
-//   dcrOriginRedirectUri: string = "https://claude.ai/api/mcp/auth_callback"
+/**
+ * Generate CSRF token
+ * Currently returns static token, should be replaced with proper CSRF generation
+ */
+export const generateCsrfToken = (_req: any, _res: any) => STATIC_CSRF
 
-// }
-const appConfig = (httpOnly) ? new DevAppConfig() : new StagingAppConfig()
+/**
+ * PostgreSQL session store
+ */
+export const PgStore = connectPgSimple(session)
 
-// function csrfToken(req:Request, res:Response) {
-// }
-// const {
-//   doubleCsrfProtection, // The middleware to protect routes
-//   generateCsrfToken,        // Helper function to generate a CSRF token
-// } = doubleCsrf({
-//   getSecret: () => "G6KaOf8aJsLagw566he8yxOTTO3tInKD",
-//   cookieName: appConfig.csrfTokenName,
-//   cookieOptions: {
-//     sameSite: appConfig.sameSite,
-//     httpOnly: appConfig.httpOnly,
-//     secure: appConfig.secure,
-//     // domain: "bondlink.org",
-//     maxAge: 30 * 24 * 60 * 60 * 1000,
-//   },
-//   getSessionIdentifier: (req) => {
-//     return req.session.id
-//   },
-// });
-const STATIC_CSRF = "YOU-ARE-USING-THE-STATIC-CSRF"
-const generateCsrfToken = (req:any, res:any) => STATIC_CSRF
-const pgConfig = {
-  user: process.env.POSTGRES_USER || "hydra",
-  password: process.env.POSTGRES_PASSWORD || "shaken!stirred",
-  database: process.env.POSTGRES_DB || "hydra",
-  host: process.env.POSTGRES_HOST || "localhost",
-  port: parseInt(process.env.POSTGRES_PORT || "5432", 10),
-}
-
-const PgStore = connectPgSimple(session)
-
-export {
-  pgConfig,
-  // doubleCsrfProtection,
-  generateCsrfToken,
-  DCR_MASTER_CLIENT_ID,
-  STATIC_CSRF,
-  PgStore,
-  appConfig
-}
+/**
+ * Log loaded configuration (without secrets)
+ */
+import jsonLogger from './logging.js'
+jsonLogger.info('Configuration loaded', {
+  environment: appConfig.environment,
+  domain: appConfig.domain,
+  port: appConfig.port,
+  baseUrl: appConfig.baseUrl,
+  hydraPublicUrl: appConfig.hydraPublicUrl,
+  hydraAdminUrl: appConfig.hydraInternalAdmin,
+  redisHost: appConfig.redisHost,
+  redisPort: appConfig.redisPort,
+  hasGoogleCredentials: !!(appConfig.googleClientId && appConfig.googleClientSecret),
+})
