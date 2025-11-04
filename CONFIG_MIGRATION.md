@@ -91,7 +91,7 @@ Each service (Hydra, Redis, Database) has structured configuration:
 - `POSTGRES_HOST`: Defaults to private host
 - `POSTGRES_PORT`: Defaults to `5432`
 - `POSTGRES_USER`: Defaults to `hydra`
-- `POSTGRES_PASSWORD`: Defaults to `shaken!stirred`
+- `POSTGRES_PASSWORD`: Defaults to `my-super-secret-password`
 - `POSTGRES_DB`: Defaults to `hydra`
 - `SESSION_SECRET`: Defaults to environment-specific value
 - `COOKIE_SECRET`: Has default value

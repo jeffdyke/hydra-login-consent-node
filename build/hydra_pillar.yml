@@ -6,7 +6,7 @@ base: &defaults
   secrets_cookie: "G6KaOf8aJsLagw566he8yxBLOTTO3tIn"
   secrets_pairwise: "1AvfImNiD7yPGE7LYBcT5hJXOzydEEW1"
   debug: true
-  pg_dsn: "DSN=postgres://hydra:shaken!stirred@postgres:5432/hydra?sslmode=disable"
+  pg_dsn: "DSN=postgres://hydra:my-super-secret-password@postgres:5432/hydra?sslmode=disable"
 staging:
   <<: *defaults
   base_url: "https://auth.staging.bondlink.org"

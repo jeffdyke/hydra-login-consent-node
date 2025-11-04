@@ -213,8 +213,8 @@ const databaseConfig = (env: AppEnvironment, domain: DomainConfig): Config.Confi
   const dsn = Config.string('DSN').pipe(
     Config.withDefault(
       isLocalEnvironment(env)
-        ? `postgres://hydra:shaken!stirred@${domain.private}:5432/hydra?sslmode=disable`
-        : `postgres://hydra:shaken!stirred@${domain.private}:5432/hydra`
+        ? `postgres://hydra:my-super-secret-password@${domain.private}:5432/hydra?sslmode=disable`
+        : `postgres://hydra:my-super-secret-password@${domain.private}:5432/hydra`
     )
   )
 
@@ -224,7 +224,7 @@ const databaseConfig = (env: AppEnvironment, domain: DomainConfig): Config.Confi
     port: Config.integer('POSTGRES_PORT').pipe(Config.withDefault(5432)),
     user: Config.string('POSTGRES_USER').pipe(Config.withDefault('hydra')),
     password: Config.string('POSTGRES_PASSWORD').pipe(
-      Config.withDefault('shaken!stirred')
+      Config.withDefault('my-super-secret-password')
     ),
     database: Config.string('POSTGRES_DB').pipe(Config.withDefault('hydra')),
   })

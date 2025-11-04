@@ -7,7 +7,7 @@ services:
   hydra-migrate:
     image: oryd/hydra:v2.2.0
     environment:
-      - DSN=postgres://hydra:shaken!stirred@postgres:5432/hydra?sslmode=disable
+      - DSN=postgres://hydra:my-super-secret-password@postgres:5432/hydra?sslmode=disable
     command: migrate sql -e --yes
     restart: on-failure
     depends_on:
@@ -28,7 +28,7 @@ services:
     environment:
       # If this changes and the application is using it, the database will need to be rebuilt
       - SECRETS_SYSTEM=G6KaOf8aJsLagw566he8yxOTTO3tInKD
-      - DSN=postgres://hydra:shaken!stirred@postgres:5432/hydra?sslmode=disable
+      - DSN=postgres://hydra:my-super-secret-password@postgres:5432/hydra?sslmode=disable
     build:
       context: .
       dockerfile: Dockerfile.hydra
@@ -44,7 +44,7 @@ services:
     image: postgres:18-alpine
     environment:
       - POSTGRES_USER=hydra
-      - POSTGRES_PASSWORD=shaken!stirred
+      - POSTGRES_PASSWORD=my-super-secret-password
       - POSTGRES_DB=hydra
     volumes:
       - postgres-data:/var/lib/postgres/data
