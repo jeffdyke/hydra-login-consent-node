@@ -4,10 +4,12 @@
  */
 import { Layer, Effect, Context } from 'effect'
 import { Redis } from 'ioredis'
-import type { OAuth2Api } from '@ory/hydra-client-fetch/dist/index.js'
+import { Configuration } from '@ory/hydra-client-fetch'
+import { OAuth2Api } from '@ory/hydra-client-fetch/dist/index.js'
 import { RedisServiceLive } from './services/redis.js'
 import { GoogleOAuthServiceLive } from './services/google.js'
 import { HydraServiceLive } from './services/hydra.js'
+import { OAuth2ApiServiceLive, type OAuth2ApiConfig } from '../api/oauth2.js'
 import { Logger } from './services/token.js'
 
 /**
@@ -46,7 +48,7 @@ export const createLoggerLayer = (tsLogger: any) =>
  */
 export const createAppLayer = (
   redisClient: Redis,
-  hydraClient: OAuth2Api,
+  oauth2Config: OAuth2ApiConfig,
   tsLogger: any,
   config: {
     googleClientId: string
@@ -58,9 +60,17 @@ export const createAppLayer = (
     clientId: config.googleClientId,
     clientSecret: config.googleClientSecret,
   })
-  const hydraLayer = HydraServiceLive(hydraClient)
+  const oauth2ApiLayer = OAuth2ApiServiceLive(oauth2Config)
   const loggerLayer = createLoggerLayer(tsLogger)
 
+  // Create legacy HydraService for routes that still use it
+  const configuration = new Configuration({
+    basePath: oauth2Config.basePath,
+    headers: oauth2Config.headers,
+  })
+  const hydraClient = new OAuth2Api(configuration)
+  const hydraLayer = HydraServiceLive(hydraClient)
+
   // Merge all service layers
-  return Layer.mergeAll(redisLayer, googleLayer, hydraLayer, loggerLayer)
+  return Layer.mergeAll(redisLayer, googleLayer, oauth2ApiLayer, hydraLayer, loggerLayer)
 }

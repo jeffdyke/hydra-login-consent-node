@@ -16,7 +16,7 @@ import { dirname } from 'path'
 
 // Existing infrastructure
 import pool from './pool.js'
-import hydraAdmin, { OAuth2ApiLayer } from './setup/hydra.js'
+import { OAuth2ApiLayer } from './setup/hydra.js'
 import { PgStore, appConfig } from './config.js'
 import jsonLogger from './logging.js'
 import { requestLogger } from './middleware/requestLogger.js'
@@ -52,8 +52,18 @@ const googleClient = new GoogleOAuth2Client({
   redirectUri: appConfig.middlewareRedirectUri,
 })
 
+// Create OAuth2 API configuration
+const headers: Record<string, string> = {}
+if (process.env.MOCK_TLS_TERMINATION) {
+  headers['X-Forwarded-Proto'] = 'https'
+}
+const oauth2Config = {
+  basePath: appConfig.hydraInternalAdmin,
+  headers,
+}
+
 // Bootstrap functional environment with Effect Layers
-const serviceLayer = createAppLayer(redisClient, hydraAdmin, jsonLogger, {
+const serviceLayer = createAppLayer(redisClient, oauth2Config, jsonLogger, {
   googleClientId: appConfig.googleClientId || '',
   googleClientSecret: appConfig.googleClientSecret || '',
 })
