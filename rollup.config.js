@@ -16,12 +16,14 @@ const config = [
 
     },
     external: packageJson.dependencies ? Object.keys(packageJson.dependencies) : [],
-    plugins: [typescript(), json(), resolve({preferBuiltins:true}), commonjs({include: ['src/app.ts', 'node_modules/**']}),
-    copy({
-        targets: [
-          { src: 'views/**/*', dest: 'dist/views' }, // Copy the 'views' folder and its contents
-          { src: 'node_modules', dest: 'dist' }
-
+    plugins: [
+      typescript(),
+      json(),
+      resolve({preferBuiltins:true}),
+      commonjs({include: ['src/app.ts', 'node_modules/**']}),
+      copy({
+        assets: [
+          'views/**/*.pug',
         ],
         flatten: false // Preserve the directory structure within 'views'
       })
