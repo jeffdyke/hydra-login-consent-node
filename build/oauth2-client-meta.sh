@@ -2,7 +2,7 @@
 set -e
 OPERATION=$1
 shift
-COOKIE_DOMAIN="bondlink.org"
+COOKIE_DOMAIN="domain.tld"
 HOST_IP=
 ISSUER=
 ISSUER_ADMIN=
@@ -25,10 +25,10 @@ if [ "$(uname)" = "Darwin" ]; then
   ISSUER_ADMIN="http://${HOST_IP}:4445"
   CALLBACK_HOST="http://${SERVER_NAME}:3000"
 elif [[ "$(hostname)" == "staging"* ]]; then
-  SERVER_NAME="auth.staging.bondlink.org"
+  SERVER_NAME="auth.staging.${COOKIE_DOMAIN}"
   HOST_IP=$(hostname -I | cut -d ' ' -f1)
   ISSUER_ADMIN="http://${HOST_IP}:4445"
-  CALLBACK_HOST="https://auth.staging.bondlink.org"
+  CALLBACK_HOST="https://auth.staging.${COOKIE_DOMAIN}"
   ISSUER="https://${SERVER_NAME}"
 fi
 
@@ -144,7 +144,7 @@ URLS_LOGIN=${CALLBACK_HOST}/login
 BASE_URL=${CALLBACK_HOST}
 REDIRECT_URL=${CALLBACK_HOST}/callback
 NODE_ENV=development
-SERVE_COOKIES_DOMAIN=bondlink.org
+SERVE_COOKIES_DOMAIN=domain.tld
 SERVE_PUBLIC_CORS_ENABLED=false
 SERVE_ADMIN_CORS_ENABLED=false
 SERVE_PUBLIC_CORS_ALLOWED_ORIGINS="*"

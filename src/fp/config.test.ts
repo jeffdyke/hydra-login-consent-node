@@ -20,10 +20,10 @@ describe('fp/config', () => {
   describe('appConfigEffect - development environment', () => {
     it('should load local development config with defaults', async () => {
       process.env.APP_ENV = 'development'
-      process.env.BASE_URL = 'http://dev.bondlink.org:3000'
-      process.env.PUBLIC_DOMAIN = 'dev.bondlink.org'
+      process.env.BASE_URL = 'http://dev.domain.tld:3000'
+      process.env.PUBLIC_DOMAIN = 'dev.domain.tld'
       process.env.PRIVATE_HOST = 'localhost'
-      process.env.HYDRA_PUBLIC_URL = 'http://dev.bondlink.org:4444'
+      process.env.HYDRA_PUBLIC_URL = 'http://dev.domain.tld:4444'
       process.env.GOOGLE_CLIENT_ID = 'test-client-id'
       process.env.GOOGLE_CLIENT_SECRET = 'test-secret'
 
@@ -35,10 +35,10 @@ describe('fp/config', () => {
       const result = await Effect.runPromise(program)
 
       expect(result.environment).toBe('development')
-      expect(result.domain.public).toBe('dev.bondlink.org')
+      expect(result.domain.public).toBe('dev.domain.tld')
       expect(result.domain.private).toBe('localhost')
       expect(result.port).toBe(3000)
-      expect(result.baseUrl).toContain('dev.bondlink.org')
+      expect(result.baseUrl).toContain('dev.domain.tld')
       expect(result.google.clientId).toBe('test-client-id')
       expect(result.google.clientSecret).toBe('test-secret')
       expect(result.security.secure).toBe(false) // Development should be insecure
@@ -46,10 +46,10 @@ describe('fp/config', () => {
 
     it('should use http for development environment', async () => {
       process.env.APP_ENV = 'development'
-      process.env.BASE_URL = 'http://dev.bondlink.org:3000'
-      process.env.PUBLIC_DOMAIN = 'dev.bondlink.org'
+      process.env.BASE_URL = 'http://dev.domain.tld:3000'
+      process.env.PUBLIC_DOMAIN = 'dev.domain.tld'
       process.env.PRIVATE_HOST = 'localhost'
-      process.env.HYDRA_PUBLIC_URL = 'http://dev.bondlink.org:4444'
+      process.env.HYDRA_PUBLIC_URL = 'http://dev.domain.tld:4444'
 
       const program = Effect.gen(function* () {
         const config = yield* appConfigEffect
@@ -66,10 +66,10 @@ describe('fp/config', () => {
   describe('appConfigEffect - staging environment', () => {
     it('should load staging config with https', async () => {
       process.env.APP_ENV = 'staging'
-      process.env.BASE_URL = 'https://auth.staging.bondlink.org'
-      process.env.PUBLIC_DOMAIN = 'auth.staging.bondlink.org'
+      process.env.BASE_URL = 'https://auth.staging.domain.tld'
+      process.env.PUBLIC_DOMAIN = 'auth.staging.domain.tld'
       process.env.PRIVATE_HOST = '10.1.1.230'
-      process.env.HYDRA_PUBLIC_URL = 'https://auth.staging.bondlink.org'
+      process.env.HYDRA_PUBLIC_URL = 'https://auth.staging.domain.tld'
       process.env.HYDRA_ADMIN_HOST = '10.1.1.230'
       process.env.HYDRA_ADMIN_PORT = '4445'
       process.env.REDIS_HOST = '10.1.1.230'
@@ -86,7 +86,7 @@ describe('fp/config', () => {
       const result = await Effect.runPromise(program)
 
       expect(result.environment).toBe('staging')
-      expect(result.domain.public).toBe('auth.staging.bondlink.org')
+      expect(result.domain.public).toBe('auth.staging.domain.tld')
       expect(result.domain.private).toBe('10.1.1.230')
       expect(result.baseUrl).toMatch(/^https:\/\//)
       expect(result.hydra.admin.host).toBe('10.1.1.230')
@@ -100,7 +100,7 @@ describe('fp/config', () => {
   describe('appConfigEffect - production environment', () => {
     it('should load production config with strict security', async () => {
       process.env.APP_ENV = 'production'
-      process.env.PUBLIC_DOMAIN = 'auth.bondlink.org'
+      process.env.PUBLIC_DOMAIN = 'auth.domain.tld'
       process.env.PRIVATE_HOST = '10.0.0.100'
       process.env.HYDRA_ADMIN_HOST = '10.0.0.100'
       process.env.HYDRA_ADMIN_PORT = '4445'
@@ -127,7 +127,7 @@ describe('fp/config', () => {
 
     it('should allow optional Google OAuth credentials in production', async () => {
       process.env.APP_ENV = 'production'
-      process.env.PUBLIC_DOMAIN = 'auth.bondlink.org'
+      process.env.PUBLIC_DOMAIN = 'auth.domain.tld'
       process.env.PRIVATE_HOST = '10.0.0.100'
       process.env.HYDRA_ADMIN_HOST = '10.0.0.100'
       process.env.DSN = 'postgres://user:pass@host:5432/db'
@@ -162,9 +162,9 @@ describe('fp/config', () => {
 
     it('should handle custom port from environment', async () => {
       process.env.APP_ENV = 'development'
-      process.env.PUBLIC_DOMAIN = 'dev.bondlink.org'
+      process.env.PUBLIC_DOMAIN = 'dev.domain.tld'
       process.env.PRIVATE_HOST = 'localhost'
-      process.env.HYDRA_PUBLIC_URL = 'http://dev.bondlink.org:4444'
+      process.env.HYDRA_PUBLIC_URL = 'http://dev.domain.tld:4444'
       process.env.PORT = '4000'
 
       const program = Effect.gen(function* () {
@@ -180,9 +180,9 @@ describe('fp/config', () => {
 
     it('should parse database DSN correctly', async () => {
       process.env.APP_ENV = 'development'
-      process.env.PUBLIC_DOMAIN = 'dev.bondlink.org'
+      process.env.PUBLIC_DOMAIN = 'dev.domain.tld'
       process.env.PRIVATE_HOST = 'localhost'
-      process.env.HYDRA_PUBLIC_URL = 'http://dev.bondlink.org:4444'
+      process.env.HYDRA_PUBLIC_URL = 'http://dev.domain.tld:4444'
       process.env.DSN = 'postgres://testuser:testpass@dbhost:5555/testdb?sslmode=disable'
 
       const program = Effect.gen(function* () {
@@ -204,14 +204,14 @@ describe('fp/config', () => {
   describe('loadAppConfigSync', () => {
     it('should synchronously load config', () => {
       process.env.APP_ENV = 'development'
-      process.env.PUBLIC_DOMAIN = 'dev.bondlink.org'
+      process.env.PUBLIC_DOMAIN = 'dev.domain.tld'
       process.env.PRIVATE_HOST = 'localhost'
-      process.env.HYDRA_PUBLIC_URL = 'http://dev.bondlink.org:4444'
+      process.env.HYDRA_PUBLIC_URL = 'http://dev.domain.tld:4444'
 
       const config = loadAppConfigSync()
 
       expect(config.environment).toBe('development')
-      expect(config.domain.public).toBe('dev.bondlink.org')
+      expect(config.domain.public).toBe('dev.domain.tld')
     })
 
     it('should throw on invalid config', () => {
@@ -224,7 +224,7 @@ describe('fp/config', () => {
   describe('DomainConfig', () => {
     it('should support separate public and private domains', async () => {
       process.env.APP_ENV = 'staging'
-      process.env.PUBLIC_DOMAIN = 'auth.staging.bondlink.org'
+      process.env.PUBLIC_DOMAIN = 'auth.staging.domain.tld'
       process.env.PRIVATE_HOST = '10.1.1.230'
       process.env.HYDRA_ADMIN_HOST = '10.1.1.230'
       process.env.DSN = 'postgres://user:pass@host:5432/db'
@@ -236,9 +236,9 @@ describe('fp/config', () => {
 
       const result = await Effect.runPromise(program)
 
-      expect(result.domain.public).toBe('auth.staging.bondlink.org')
+      expect(result.domain.public).toBe('auth.staging.domain.tld')
       expect(result.domain.private).toBe('10.1.1.230')
-      expect(result.baseUrl).toContain('auth.staging.bondlink.org')
+      expect(result.baseUrl).toContain('auth.staging.domain.tld')
       expect(result.hydra.admin.host).toBe('10.1.1.230')
     })
   })
@@ -246,9 +246,9 @@ describe('fp/config', () => {
   describe('Environment defaults', () => {
     it('should default to local when APP_ENV is not set', async () => {
       delete process.env.APP_ENV
-      process.env.PUBLIC_DOMAIN = 'dev.bondlink.org'
+      process.env.PUBLIC_DOMAIN = 'dev.domain.tld'
       process.env.PRIVATE_HOST = 'localhost'
-      process.env.HYDRA_PUBLIC_URL = 'http://dev.bondlink.org:4444'
+      process.env.HYDRA_PUBLIC_URL = 'http://dev.domain.tld:4444'
 
       const program = Effect.gen(function* () {
         const config = yield* appConfigEffect
