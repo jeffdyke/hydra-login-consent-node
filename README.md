@@ -1,9 +1,8 @@
-# Hydra-headless-ts
+# Overview
 
-A hydra middleware client, based on the great information in hydra-consent-node.
-Currently Google middleware is implemented. This application will handle the DCR OAuth2 Flows,
-currently from Claude.ai. Though the client should not matter. The limitation is currently the types
-of flows supported.
+This service implements a **headless OAuth2 login/consent provider** that bridges Ory Hydra (OAuth2 server with DCR) and Google OAuth (identity provider without DCR support).
+
+[Detailed breakdown of this OAuth2 flow](OAUTH2_ARCHITECTURE.md)
 
 ## Localhost vs Proxy
 

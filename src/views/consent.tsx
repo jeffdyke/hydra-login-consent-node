@@ -1,15 +1,46 @@
 import Html from '@kitajs/html'
 import { Layout } from './components/Layout.js'
 
+/**
+ * OAuth2 Consent Flow - Step 2: Authorization
+ *
+ * This template renders the consent screen in the OAuth2 authorization flow.
+ * After successful authentication, the user must authorize the client application
+ * to access their resources with the requested scopes.
+ *
+ * Flow Context:
+ * 1. User has successfully authenticated via Google OAuth
+ * 2. Hydra redirects to this consent page with a consent_challenge
+ * 3. User reviews requested OAuth2 scopes (openid, profile, email, etc.)
+ * 4. User grants or denies authorization
+ * 5. Upon grant, Hydra issues authorization code/tokens to client
+ *
+ * DCR Bridge:
+ * - Hydra requires Dynamic Client Registration (DCR)
+ * - Google OAuth doesn't support DCR
+ * - This consent flow bridges the gap by managing client metadata
+ *
+ * @see src/routes/consent-fp.ts - Consent handler using Effect
+ * @see src/fp/services/consent.ts - Consent business logic
+ */
 export interface ConsentProps {
+  /** POST endpoint for consent form submission */
   action: string
+  /** XSRF token header name for CSRF protection */
   envXsrfToken: string
+  /** CSRF token value */
   csrfToken: string
+  /** Hydra's consent challenge identifying this OAuth2 flow */
   challenge: string
+  /** OAuth2 scopes requested by the client (e.g., openid, profile, email) */
   requestedScope?: string[]
+  /** OAuth2 client metadata from Hydra */
   client?: {
+    /** Client application name */
     client_name?: string
+    /** Privacy policy URL */
     policy_uri?: string
+    /** Terms of service URL */
     tos_uri?: string
   }
 }
