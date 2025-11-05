@@ -1,9 +1,8 @@
 /**
  * Functional application entry point
- * Uses fp-ts based routes with dependency injection
+ * Uses Effect-based routes with dependency injection
  */
-import path from 'path'
-import { dirname } from 'path'
+import path, { dirname } from 'path'
 import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import express from 'express'
@@ -25,6 +24,7 @@ import { createLogoutRouter } from './routes/logout-fp.js'
 import { createTokenRouter } from './routes/passthrough-auth-fp.js'
 import { OAuth2ApiLayer } from './setup/hydra.js'
 import proxyMiddleware from './setup/proxy.js'
+import { ErrorPage } from './views/index.js'
 import type { NextFunction, Response, Request } from 'express'
 
 const app = express()
@@ -95,8 +95,6 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cookieParser(process.env.SECRETS_SYSTEM ?? 'G6KaOf8aJsLagw566he8yxOTTO3tInKD'))
 
-app.set('views', path.join(__dirname, 'views'))
-app.set('view engine', 'pug')
 app.use(favicon(path.join(__dirname, '..', 'public', 'favicon.ico')))
 app.use(express.static(path.join(dirname(import.meta.url), 'public')))
 
@@ -106,10 +104,8 @@ function addUniqueToken(req: Request, res: Response, next: Function) {
 }
 app.use(addUniqueToken)
 
-// // Routes - using functional versions
-// app.use('/', routes) // Keep legacy root route for now
-
 // Functional routes with Effect Layer injection
+// All templates use @kitajs/html for type-safe, functional rendering
 app.use('/login', createLoginRouter(serviceLayer))
 app.use('/logout', createLogoutRouter(serviceLayer, logoutConfig))
 app.use('/consent', createConsentRouter(serviceLayer, consentConfig))
@@ -124,28 +120,31 @@ app.use((req, res, next) => {
 })
 
 if (app.get('env') === 'development') {
-  app.use((err: Error, req: Request, res: Response) => {
-    res.status(500)
-    res.render('error', {
-      message: err.message ?? 'Empty Message',
-      error: err,
-    })
+  app.use((err: Error, _req: Request, res: Response) => {
+    res.status(500).send(
+      ErrorPage({
+        message: err.message ?? 'Empty Message',
+        stack: err.stack,
+      })
+    )
   })
 }
 
-app.use((err: Error, req: Request, res: Response) => {
-  res.status(500)
-  res.render('error', {
-    message: err.message ?? 'Empty Message',
-    error: {},
-  })
+app.use((err: Error, _req: Request, res: Response) => {
+  res.status(500).send(
+    ErrorPage({
+      message: err.message ?? 'Empty Message',
+    })
+  )
 })
 
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   jsonLogger.error('ApplicationError', { stack: err.stack })
-  res.status(500).render('error', {
-    message: JSON.stringify(err),
-  })
+  res.status(500).send(
+    ErrorPage({
+      message: JSON.stringify(err),
+    })
+  )
 })
 
 const listenOn = Number(process.env.PORT ?? 3000)

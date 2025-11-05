@@ -6,9 +6,10 @@ import express from 'express'
 import { generateCsrfToken } from '../config.js'
 import { type AppError } from '../fp/errors.js'
 import { getLogoutInfo, acceptLogout, rejectLogout } from '../fp/services/logout.js'
+import { Logout } from '../views/index.js'
 import type { HydraService } from '../fp/services/hydra.js'
 import type { Logger } from '../fp/services/token.js'
-import type { Layer } from 'effect';
+import type { Layer } from 'effect'
 
 const router = express.Router()
 
@@ -63,12 +64,14 @@ const createLogoutGetHandler = (
       const { status, message } = mapErrorToHttp(result.left)
       res.status(status).send(message)
     } else {
-      res.render('logout', {
-        csrfToken: generateCsrfToken(req, res),
-        envXsrfToken: config.hostName,
-        challenge: result.right.challenge,
-        action: `${config.hostName}/logout`,
-      })
+      res.send(
+        Logout({
+          csrfToken: generateCsrfToken(req, res),
+          envXsrfToken: config.hostName,
+          challenge: result.right.challenge,
+          action: `${config.hostName}/logout`,
+        })
+      )
     }
   }
 }
