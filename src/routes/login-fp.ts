@@ -1,12 +1,13 @@
 /**
  * Functional login route using Effect
  */
+import { Effect, pipe } from 'effect'
 import express from 'express'
-import { Effect, pipe, Layer } from 'effect'
 import { type AppError } from '../fp/errors.js'
 import { processLogin } from '../fp/services/login.js'
-import { HydraService } from '../fp/services/hydra.js'
-import { Logger } from '../fp/services/token.js'
+import type { HydraService } from '../fp/services/hydra.js'
+import type { Logger } from '../fp/services/token.js'
+import type { Layer } from 'effect';
 
 const router = express.Router()
 const SUBJECT_PLACEHOLDER = 'claude@claude.ai'
@@ -30,7 +31,7 @@ const mapErrorToHttp = (error: AppError): { status: number; message: string } =>
  */
 const createLoginHandler = (serviceLayer: Layer.Layer<HydraService | Logger>) => {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    const challenge = String(req.query.login_challenge || req.body.challenge)
+    const challenge = String(req.query.login_challenge ?? req.body.challenge)
 
     if (!challenge) {
       next(new Error('Expected a login challenge to be set but received none.'))

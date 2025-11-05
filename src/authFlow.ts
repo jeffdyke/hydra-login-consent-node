@@ -1,8 +1,8 @@
 
-import { OAuth2Client as OryOAuth2Client } from "@ory/client-fetch";
 import { Effect, pipe } from 'effect'
 import { OAuth2ApiService } from './api/oauth2.js'
 import { validateCreateClient } from "./fp/validation.js";
+import type { OAuth2Client as OryOAuth2Client } from "@ory/client-fetch";
 
 
 // class ClaudeClient extends OAuth2Client {

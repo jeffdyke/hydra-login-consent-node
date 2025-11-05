@@ -2,8 +2,8 @@
  * Functional OAuth2 token endpoint using Effect
  * This demonstrates the functional paradigm vs the imperative passthrough-auth.ts
  */
+import { Effect, pipe } from 'effect'
 import express from 'express'
-import { Effect, pipe, Layer } from 'effect'
 import {
   TokenRequestSchema,
   AuthCodeGrantSchema,
@@ -11,14 +11,16 @@ import {
   createOAuth2Error,
 } from '../fp/domain.js'
 import { type AppError, InvalidGrant } from '../fp/errors.js'
-import { validateSchema } from '../fp/validation.js'
 import {
   processAuthCodeGrant,
-  processRefreshTokenGrant,
-  Logger,
+  processRefreshTokenGrant
 } from '../fp/services/token.js'
-import { RedisService } from '../fp/services/redis.js'
-import { GoogleOAuthService } from '../fp/services/google.js'
+import { validateSchema } from '../fp/validation.js'
+import type { GoogleOAuthService } from '../fp/services/google.js'
+import type { RedisService } from '../fp/services/redis.js'
+import type {
+  Logger} from '../fp/services/token.js';
+import type { Layer } from 'effect';
 
 const router = express.Router()
 
@@ -65,7 +67,7 @@ const mapErrorToOAuth2 = (error: AppError): { status: number; body: object } => 
     case 'GoogleAuthError':
       return {
         status: 400,
-        body: createOAuth2Error('invalid_grant', error.errorDescription || error.error),
+        body: createOAuth2Error('invalid_grant', error.errorDescription ?? error.error),
       }
     case 'GoogleTokenExpired':
     case 'GoogleTokenRevoked':

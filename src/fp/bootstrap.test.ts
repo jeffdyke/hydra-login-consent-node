@@ -1,17 +1,16 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { Effect, Layer, Context } from 'effect'
-import type { Redis } from 'ioredis'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { OAuth2ApiService } from '../api/oauth2.js'
 import {
   createAppLayer,
   createLoggerAdapter,
   createLoggerLayer,
-  type AppConfig,
 } from './bootstrap.js'
-import { RedisService } from './services/redis.js'
 import { GoogleOAuthService } from './services/google.js'
 import { HydraService } from './services/hydra.js'
-import { OAuth2ApiService } from '../api/oauth2.js'
+import { RedisService } from './services/redis.js'
 import { Logger } from './services/token.js'
+import type { Redis } from 'ioredis'
 
 // Mock Redis client
 const createMockRedis = (): Redis => {

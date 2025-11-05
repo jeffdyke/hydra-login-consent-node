@@ -31,5 +31,9 @@ Simply change into the root of the repository:
 
 ## Installing Docker Environment
 
-TODO....
+- sudo docker compose up -d --build
+
 Nginx and HAProxy configs to be provided
+
+
+### Nginx Configuration

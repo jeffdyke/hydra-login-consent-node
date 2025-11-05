@@ -1,9 +1,6 @@
+import { Effect } from 'effect'
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { Effect, ConfigProvider } from 'effect'
 import {
-  type AppEnvironment,
-  type DomainConfig,
-  type AppConfig,
   appConfigEffect,
   loadAppConfigSync,
 } from './config.js'

@@ -1,40 +1,31 @@
 /**
  * Functional application entry point
- * Uses fp-ts based routes with dependency injection
+ * Uses Effect-based routes with dependency injection
  */
-import express from 'express'
-import { v4 } from 'uuid'
-import { NextFunction, Response, Request } from 'express'
-import path from 'path'
-import cookieParser from 'cookie-parser'
+import path, { dirname } from 'path'
 import bodyParser from 'body-parser'
+import cookieParser from 'cookie-parser'
+import express from 'express'
 import session from 'express-session'
 import { OAuth2Client as GoogleOAuth2Client } from 'google-auth-library'
 import { Redis } from 'ioredis'
 import favicon from 'serve-favicon'
-import { dirname } from 'path'
-
-// Existing infrastructure
-import pool from './pool.js'
-import { OAuth2ApiLayer } from './setup/hydra.js'
+import { v4 } from 'uuid'
 import { PgStore, appConfig } from './config.js'
+import { createAppLayer } from './fp/bootstrap.js'
 import jsonLogger from './logging.js'
 import { requestLogger } from './middleware/requestLogger.js'
-import proxyMiddleware from './setup/proxy.js'
-
-// Functional core
-import { createAppLayer } from './fp/bootstrap.js'
-
-// Functional routes
+import pool from './pool.js'
+import { createCallbackRouter } from './routes/callback-fp.js'
+import { createConsentRouter } from './routes/consent-fp.js'
+import { createDeviceRouter } from './routes/device.js'
 import { createLoginRouter } from './routes/login-fp.js'
 import { createLogoutRouter } from './routes/logout-fp.js'
-import { createConsentRouter } from './routes/consent-fp.js'
-import { createCallbackRouter } from './routes/callback-fp.js'
 import { createTokenRouter } from './routes/passthrough-auth-fp.js'
-import { createDeviceRouter } from './routes/device.js'
-
-// Legacy route (for non-functional endpoints)
-import routes from './routes/index.js'
+import { OAuth2ApiLayer } from './setup/hydra.js'
+import proxyMiddleware from './setup/proxy.js'
+import { ErrorPage } from './views/index.js'
+import type { NextFunction, Response, Request } from 'express'
 
 const app = express()
 const __dirname = import.meta.dirname
@@ -64,13 +55,13 @@ const oauth2Config = {
 
 // Bootstrap functional environment with Effect Layers
 const serviceLayer = createAppLayer(redisClient, oauth2Config, jsonLogger, {
-  googleClientId: appConfig.googleClientId || '',
-  googleClientSecret: appConfig.googleClientSecret || '',
+  googleClientId: appConfig.googleClientId ?? '',
+  googleClientSecret: appConfig.googleClientSecret ?? '',
 })
 
 // Create config objects for routes
 const consentConfig = {
-  googleClientId: appConfig.googleClientId || '',
+  googleClientId: appConfig.googleClientId ?? '',
   middlewareRedirectUri: appConfig.middlewareRedirectUri,
 }
 
@@ -88,11 +79,11 @@ app.use(requestLogger)
 app.use(
   session({
     store: new PgStore({
-      pool: pool,
+      pool,
       tableName: 'session',
       createTableIfMissing: true,
     }),
-    secret: process.env.SESSION_SECRET || 'change-me-in-production',
+    secret: process.env.SESSION_SECRET ?? 'change-me-in-production',
     resave: false,
     saveUninitialized: false,
     proxy: true,
@@ -102,10 +93,8 @@ app.use(
 app.use('/oauth2/auth', proxyMiddleware)
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
-app.use(cookieParser(process.env.SECRETS_SYSTEM || 'G6KaOf8aJsLagw566he8yxOTTO3tInKD'))
+app.use(cookieParser(process.env.SECRETS_SYSTEM ?? 'G6KaOf8aJsLagw566he8yxOTTO3tInKD'))
 
-app.set('views', path.join(__dirname, 'views'))
-app.set('view engine', 'pug')
 app.use(favicon(path.join(__dirname, '..', 'public', 'favicon.ico')))
 app.use(express.static(path.join(dirname(import.meta.url), 'public')))
 
@@ -115,10 +104,8 @@ function addUniqueToken(req: Request, res: Response, next: Function) {
 }
 app.use(addUniqueToken)
 
-// Routes - using functional versions
-app.use('/', routes) // Keep legacy root route for now
-
 // Functional routes with Effect Layer injection
+// All templates use @kitajs/html for type-safe, functional rendering
 app.use('/login', createLoginRouter(serviceLayer))
 app.use('/logout', createLogoutRouter(serviceLayer, logoutConfig))
 app.use('/consent', createConsentRouter(serviceLayer, consentConfig))
@@ -133,31 +120,34 @@ app.use((req, res, next) => {
 })
 
 if (app.get('env') === 'development') {
-  app.use((err: Error, req: Request, res: Response) => {
-    res.status(500)
-    res.render('error', {
-      message: err.message || 'Empty Message',
-      error: err,
-    })
+  app.use((err: Error, _req: Request, res: Response) => {
+    res.status(500).send(
+      ErrorPage({
+        message: err.message ?? 'Empty Message',
+        stack: err.stack,
+      })
+    )
   })
 }
 
-app.use((err: Error, req: Request, res: Response) => {
-  res.status(500)
-  res.render('error', {
-    message: err.message || 'Empty Message',
-    error: {},
-  })
+app.use((err: Error, _req: Request, res: Response) => {
+  res.status(500).send(
+    ErrorPage({
+      message: err.message ?? 'Empty Message',
+    })
+  )
 })
 
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   jsonLogger.error('ApplicationError', { stack: err.stack })
-  res.status(500).render('error', {
-    message: JSON.stringify(err),
-  })
+  res.status(500).send(
+    ErrorPage({
+      message: JSON.stringify(err),
+    })
+  )
 })
 
-const listenOn = Number(process.env.PORT || 3000)
+const listenOn = Number(process.env.PORT ?? 3000)
 app.listen(listenOn, () => {
   jsonLogger.info(`Functional app listening on http://0.0.0.0:${listenOn}`)
 })

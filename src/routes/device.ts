@@ -1,9 +1,11 @@
-import express from 'express'
 import url from 'url'
-import { Effect, pipe, Layer } from 'effect'
-import { generateCsrfToken, appConfig } from '../config.js'
+import { Effect, pipe } from 'effect'
+import express from 'express'
 import { OAuth2ApiService } from '../api/oauth2.js'
+import { appConfig } from '../config.js'
 import { type AppError } from '../fp/errors.js'
+import { DeviceVerify, DeviceSuccess } from '../views/index.js'
+import type { Layer } from 'effect'
 
 const router = express.Router()
 
@@ -32,12 +34,15 @@ router.get('/verify', (req, res, next) => {
     return
   }
 
-  res.render('device/verify', {
-    csrfToken: '',
-    envXsrfToken: appConfig.xsrfHeaderName,
-    challenge,
-    userCode: String(query.user_code),
-  })
+  res.send(
+    DeviceVerify({
+      action: '/device/verify',
+      csrfToken: '',
+      envXsrfToken: appConfig.xsrfHeaderName,
+      challenge,
+      userCode: String(query.user_code),
+    })
+  )
 })
 
 /**
@@ -79,11 +84,8 @@ const createVerifyHandler = (serviceLayer: Layer.Layer<OAuth2ApiService>) => {
  * GET /success - Render success page
  * This doesn't need Effect since it's just rendering a page
  */
-router.get('/success', (req, res) => {
-  res.render('device/success', {
-    csrfToken: generateCsrfToken(req, res),
-    envXsrfToken: appConfig.xsrfHeaderName,
-  })
+router.get('/success', (_req, res) => {
+  res.send(DeviceSuccess({}))
 })
 
 export const createDeviceRouter = (serviceLayer: Layer.Layer<OAuth2ApiService>) => {

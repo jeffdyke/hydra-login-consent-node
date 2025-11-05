@@ -2,15 +2,15 @@
  * Bootstrap the functional environment using Effect Layers
  * Creates all services with proper dependency injection
  */
-import { Layer, Effect, Context } from 'effect'
-import { Redis } from 'ioredis'
 import { Configuration } from '@ory/hydra-client-fetch'
 import { OAuth2Api } from '@ory/hydra-client-fetch/dist/index.js'
-import { RedisServiceLive } from './services/redis.js'
+import { Layer, Effect } from 'effect'
+import { OAuth2ApiServiceLive, type OAuth2ApiConfig } from '../api/oauth2.js'
 import { GoogleOAuthServiceLive } from './services/google.js'
 import { HydraServiceLive } from './services/hydra.js'
-import { OAuth2ApiServiceLive, type OAuth2ApiConfig } from '../api/oauth2.js'
+import { RedisServiceLive } from './services/redis.js'
 import { Logger } from './services/token.js'
+import type { Redis } from 'ioredis'
 
 /**
  * Configuration interface

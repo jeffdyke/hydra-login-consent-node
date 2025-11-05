@@ -1,13 +1,15 @@
 /**
  * Functional logout route using Effect
  */
+import { Effect, pipe } from 'effect'
 import express from 'express'
-import { Effect, pipe, Layer } from 'effect'
+import { generateCsrfToken } from '../config.js'
 import { type AppError } from '../fp/errors.js'
 import { getLogoutInfo, acceptLogout, rejectLogout } from '../fp/services/logout.js'
-import { HydraService } from '../fp/services/hydra.js'
-import { Logger } from '../fp/services/token.js'
-import { generateCsrfToken } from '../config.js'
+import { Logout } from '../views/index.js'
+import type { HydraService } from '../fp/services/hydra.js'
+import type { Logger } from '../fp/services/token.js'
+import type { Layer } from 'effect'
 
 const router = express.Router()
 
@@ -62,12 +64,14 @@ const createLogoutGetHandler = (
       const { status, message } = mapErrorToHttp(result.left)
       res.status(status).send(message)
     } else {
-      res.render('logout', {
-        csrfToken: generateCsrfToken(req, res),
-        envXsrfToken: config.hostName,
-        challenge: result.right.challenge,
-        action: `${config.hostName}/logout`,
-      })
+      res.send(
+        Logout({
+          csrfToken: generateCsrfToken(req, res),
+          envXsrfToken: config.hostName,
+          challenge: result.right.challenge,
+          action: `${config.hostName}/logout`,
+        })
+      )
     }
   }
 }
@@ -113,7 +117,7 @@ const createLogoutPostHandler = (serviceLayer: Layer.Layer<HydraService | Logger
     const result = await Effect.runPromise(Effect.either(program))
 
     if (result._tag === 'Left') {
-      const { status, message } = mapErrorToHttp(result.left)
+      // const { status, message } = mapErrorToHttp(result.left)
       next(result.left)
     } else {
       res.redirect(result.right)

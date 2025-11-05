@@ -1,7 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { Effect, Schema } from 'effect'
-import type { Redis } from 'ioredis'
-import { makeRedisService, RedisServiceLive, createOAuthRedisOps } from './redis.js'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import {
   RedisConnectionError,
   RedisKeyNotFound,
@@ -9,6 +7,8 @@ import {
   RedisWriteError,
   RedisDeleteError,
 } from '../errors.js'
+import { makeRedisService, createOAuthRedisOps } from './redis.js'
+import type { Redis } from 'ioredis'
 
 // Mock Redis client
 const createMockRedis = (): Redis => {
@@ -16,7 +16,7 @@ const createMockRedis = (): Redis => {
 
   return {
     get: vi.fn(async (key: string) => store.get(key) ?? null),
-    set: vi.fn(async (key: string, value: string, ...args: any[]) => {
+    set: vi.fn(async (key: string, value: string) => {
       store.set(key, value)
       return 'OK'
     }),

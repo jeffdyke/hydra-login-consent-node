@@ -1,12 +1,14 @@
 /**
  * Functional consent route using Effect
  */
+import { Effect, pipe } from 'effect'
 import express from 'express'
-import { Effect, pipe, Layer } from 'effect'
 import { type AppError } from '../fp/errors.js'
 import { processConsent, type ConsentConfig } from '../fp/services/consent.js'
-import { HydraService } from '../fp/services/hydra.js'
-import { Logger } from '../fp/services/token.js'
+import { ErrorPage } from '../views/index.js'
+import type { HydraService } from '../fp/services/hydra.js'
+import type { Logger } from '../fp/services/token.js'
+import type { Layer } from 'effect'
 
 const router = express.Router()
 
@@ -51,7 +53,7 @@ const createConsentHandler = (
 
     if (result._tag === 'Left') {
       const { status, message } = mapErrorToHttp(result.left)
-      res.status(status).render('error', { message })
+      res.status(status).send(ErrorPage({ message }))
     } else {
       res.redirect(result.right)
     }

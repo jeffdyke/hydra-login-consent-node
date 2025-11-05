@@ -1,8 +1,8 @@
 /**
  * Pure validation functions using Effect for error handling
  */
-import { Effect, Schema, ParseResult } from 'effect'
-import { pipe } from 'effect'
+import crypto from 'crypto'
+import { Effect, Schema, ParseResult , pipe } from 'effect'
 import {
   InvalidPKCE,
   InvalidScope,
@@ -11,8 +11,7 @@ import {
   SchemaValidationError,
   ClientExistsError,
 } from './errors.js'
-import { PKCEMethod } from './domain.js'
-import crypto from 'crypto'
+import type { PKCEMethod } from './domain.js'
 
 /**
  * Validate schema and return Effect
@@ -79,7 +78,7 @@ export const validateCreateClient = (
     clients: string[]
   ): Effect.Effect<true, ClientExistsError> => {
     return clients.includes(clientId)
-      ? Effect.fail(new ClientExistsError({ clientId: clientId, clients: clients}))
+      ? Effect.fail(new ClientExistsError({ clientId, clients}))
       : Effect.succeed(true as const)
   }
 /**

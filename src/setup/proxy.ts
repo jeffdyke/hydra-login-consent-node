@@ -2,14 +2,14 @@
  * Proxy middleware for OAuth2 authorization flow
  * Uses RedisService from fp/services to store PKCE state with proper error handling
  */
-import { createProxyMiddleware } from 'http-proxy-middleware'
 import { Effect } from 'effect'
+import { createProxyMiddleware } from 'http-proxy-middleware'
 import { Redis } from 'ioredis'
-import jsonLogger from '../logging.js'
-import { Request, Response, NextFunction } from 'express'
 import { appConfig } from '../config.js'
 import { RedisService, RedisServiceLive, createOAuthRedisOps } from '../fp/services/redis.js'
-import { PKCEState } from '../fp/domain.js'
+import jsonLogger from '../logging.js'
+import type { PKCEState } from '../fp/domain.js'
+import type { Request, Response, NextFunction } from 'express'
 
 // Create Redis client
 const redisClient = new Redis({
@@ -26,11 +26,11 @@ const proxyOptions = {
   prependPath: false,
   logger: jsonLogger,
   pathRewrite: async (path: string, req: Request) => {
-    const parsed = new URL(req.protocol + '://' + req.get('host') + req.originalUrl)
+    const parsed = new URL(`${req.protocol  }://${  req.get('host')  }${req.originalUrl}`)
 
     if (parsed.pathname === '/oauth2/auth') {
       const sessionId = crypto.randomUUID()
-      req.session.pkceKey = req.session.pkceKey || sessionId
+      req.session.pkceKey = req.session.pkceKey ?? sessionId
 
       const {
         client_id,
@@ -43,19 +43,19 @@ const proxyOptions = {
 
       // Only store PKCE state if we have the required parameters
       if (code_challenge !== undefined && state !== undefined) {
-        const method = String(code_challenge_method || 'S256')
+        const method = String(code_challenge_method ?? 'S256')
         const pkceData: PKCEState = {
           code_challenge: String(code_challenge),
           code_challenge_method: method === 'plain' ? 'plain' : 'S256',
-          scope: String(scope || ''),
+          scope: String(scope ?? ''),
           state: String(state),
-          redirect_uri: String(redirect_uri || ''),
-          client_id: String(client_id || ''),
+          redirect_uri: String(redirect_uri ?? ''),
+          client_id: String(client_id ?? ''),
           timestamp: Date.now(),
         }
 
         // Store PKCE state in Redis using Effect with RedisService
-        const pkceKey = req.session.pkceKey || sessionId
+        const pkceKey = req.session.pkceKey ?? sessionId
         const storePKCE = Effect.gen(function* () {
           const redis = yield* RedisService
           const redisOps = createOAuthRedisOps(redis)

@@ -2,10 +2,10 @@
  * Consent flow business logic using Effect
  */
 import { Effect } from 'effect'
-import { HydraService } from './hydra.js'
-import { RedisService, createOAuthRedisOps } from './redis.js'
 import { PKCEStateSchema } from '../domain.js'
 import { type AppError } from '../errors.js'
+import { HydraService } from './hydra.js'
+import { RedisService, createOAuthRedisOps } from './redis.js'
 import { Logger } from './token.js'
 
 /**

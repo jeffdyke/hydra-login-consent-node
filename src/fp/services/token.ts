@@ -2,24 +2,24 @@
  * OAuth2 Token Service - Effect version
  * Uses Effect.gen for readable async code with dependency injection
  */
-import { Effect, pipe, Context } from 'effect'
+import { Effect, Context } from 'effect'
 import {
-  AuthCodeGrant,
-  RefreshTokenGrant,
-  OAuth2TokenResponse,
   PKCEStateSchema,
   AuthCodeDataSchema,
-  RefreshTokenDataSchema,
-  RefreshTokenData,
+  RefreshTokenDataSchema
 } from '../domain.js'
 import {
   type AppError,
-  InvalidGrant,
   MissingParameter,
 } from '../errors.js'
 import { validatePKCE, parseScopeString, validateScopes } from '../validation.js'
-import { RedisService, createOAuthRedisOps } from './redis.js'
 import { GoogleOAuthService } from './google.js'
+import { RedisService, createOAuthRedisOps } from './redis.js'
+import type {
+  AuthCodeGrant,
+  RefreshTokenGrant,
+  OAuth2TokenResponse,
+  RefreshTokenData} from '../domain.js';
 
 /**
  * Logger service interface
@@ -70,10 +70,10 @@ export const processAuthCodeGrant = (
     const tokenObj = authData.google_tokens.tokens
     const refreshTokenData: RefreshTokenData = {
       client_id: pkceState.client_id,
-      refresh_token: tokenObj.refresh_token || '',
+      refresh_token: tokenObj.refresh_token ?? '',
       access_token: tokenObj.access_token,
       scope: tokenObj.scope,
-      subject: authData.subject || 'user',
+      subject: authData.subject ?? 'user',
       created_at: Date.now(),
       expires_in: tokenObj.expires_in,
       updated_at: Date.now(),
@@ -171,7 +171,7 @@ export const processRefreshTokenGrant = (
       token_type: 'Bearer',
       expires_in: googleResponse.expires_in,
       refresh_token: updatedRefreshToken,
-      scope: googleResponse.scope || updatedData.scope,
+      scope: googleResponse.scope ?? updatedData.scope,
     }
 
     if (logger._tag === 'Some') {

@@ -2,18 +2,18 @@
  * Redis service using Effect for all side effects
  * All Redis operations return Effect<Result, RedisError>
  */
-import { Effect, Schema, pipe, Context, Layer } from 'effect'
-import type { Redis } from 'ioredis'
+import { Effect, pipe, Context, Layer } from 'effect'
 import {
   RedisConnectionError,
   RedisKeyNotFound,
   RedisParseError,
   RedisWriteError,
   RedisDeleteError,
-  SchemaValidationError,
   type RedisError,
-} from '../errors.js'
+  SchemaValidationError} from '../errors.js'
 import { validateSchema } from '../validation.js'
+import type { Schema} from 'effect';
+import type { Redis } from 'ioredis'
 
 /**
  * Redis service interface
