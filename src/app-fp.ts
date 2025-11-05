@@ -23,6 +23,7 @@ import { createLoginRouter } from './routes/login-fp.js'
 import { createLogoutRouter } from './routes/logout-fp.js'
 import { createTokenRouter } from './routes/passthrough-auth-fp.js'
 import { OAuth2ApiLayer } from './setup/hydra.js'
+import { doubleCsrfProtection } from './setup/index.js'
 import proxyMiddleware from './setup/proxy.js'
 import { ErrorPage } from './views/index.js'
 import type { NextFunction, Response, Request } from 'express'
@@ -93,7 +94,11 @@ app.use(
 app.use('/oauth2/auth', proxyMiddleware)
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
-app.use(cookieParser(process.env.SECRETS_SYSTEM ?? 'G6KaOf8aJsLagw566he8yxOTTO3tInKD'))
+app.use(cookieParser(appConfig.security.cookieSecret))
+
+// CSRF Protection - Must come after session and body parser
+// Protects POST routes in OAuth2 flows (login, consent, logout, device)
+app.use(doubleCsrfProtection)
 
 app.use(favicon(path.join(__dirname, '..', 'public', 'favicon.ico')))
 app.use(express.static(path.join(dirname(import.meta.url), 'public')))
@@ -106,6 +111,7 @@ app.use(addUniqueToken)
 
 // Functional routes with Effect Layer injection
 // All templates use @kitajs/html for type-safe, functional rendering
+// CSRF tokens are generated per-request and passed to templates
 app.use('/login', createLoginRouter(serviceLayer))
 app.use('/logout', createLogoutRouter(serviceLayer, logoutConfig))
 app.use('/consent', createConsentRouter(serviceLayer, consentConfig))
