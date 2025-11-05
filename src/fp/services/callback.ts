@@ -120,11 +120,11 @@ export const processCallback = (
       google_tokens: {
         tokens: {
           access_token: googleTokens.tokens.access_token,
-          scope: googleTokens.tokens.scope || '',
-          expires_in: googleTokens.tokens.expires_in || 3600,
-          token_type: googleTokens.tokens.token_type || 'Bearer',
-          refresh_token: googleTokens.tokens.refresh_token || undefined,
-          id_token: googleTokens.tokens.id_token || undefined,
+          scope: googleTokens.tokens.scope ?? '',
+          expires_in: googleTokens.tokens.expires_in ?? 3600,
+          token_type: googleTokens.tokens.token_type ?? 'Bearer',
+          refresh_token: googleTokens.tokens.refresh_token ?? undefined,
+          id_token: googleTokens.tokens.id_token ?? undefined,
         },
       },
       subject: undefined, // Will be populated from user info if needed

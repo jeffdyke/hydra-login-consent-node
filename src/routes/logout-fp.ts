@@ -114,7 +114,7 @@ const createLogoutPostHandler = (serviceLayer: Layer.Layer<HydraService | Logger
     const result = await Effect.runPromise(Effect.either(program))
 
     if (result._tag === 'Left') {
-      const { status, message } = mapErrorToHttp(result.left)
+      // const { status, message } = mapErrorToHttp(result.left)
       next(result.left)
     } else {
       res.redirect(result.right)

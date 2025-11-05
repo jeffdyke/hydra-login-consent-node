@@ -1,7 +1,6 @@
 import crypto from "crypto"
 import express from "express"
-import { getClient } from "../authFlow.js"
-import {generateCsrfToken, DCR_MASTER_CLIENT_ID, appConfig} from "../config.js"
+import {DCR_MASTER_CLIENT_ID, appConfig} from "../config.js"
 import jsonLogger from "../logging.js"
 const router = express.Router()
 
@@ -81,12 +80,12 @@ router.post("/", async (req, res) => {
   const fullUrl = `${req.protocol  }://${  req.get('host')  }${req.originalUrl}`
   const parsed = new URL(fullUrl)
   const internalPost: ParseAuthRequest = {
-    codeChallenge: parsed.searchParams.get("code_challenge") || "",
+    codeChallenge: parsed.searchParams.get("code_challenge") ?? "",
     scope: "openid profile email offline_access",
     redirectUri: appConfig.middlewareRedirectUri,
-    state:parsed.searchParams.get("state") || "",
-    clientId:parsed.searchParams.get("client_id") || "",
-    responseType:parsed.searchParams.get("response_type") || "",
+    state:parsed.searchParams.get("state") ?? "",
+    clientId:parsed.searchParams.get("client_id") ?? "",
+    responseType:parsed.searchParams.get("response_type") ?? "",
   }
 })
 

@@ -67,7 +67,7 @@ const mapErrorToOAuth2 = (error: AppError): { status: number; body: object } => 
     case 'GoogleAuthError':
       return {
         status: 400,
-        body: createOAuth2Error('invalid_grant', error.errorDescription || error.error),
+        body: createOAuth2Error('invalid_grant', error.errorDescription ?? error.error),
       }
     case 'GoogleTokenExpired':
     case 'GoogleTokenRevoked':

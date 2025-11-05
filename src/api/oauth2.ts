@@ -287,7 +287,7 @@ export const makeOAuth2ApiService = (config: OAuth2ApiConfig): OAuth2ApiService 
   ): Effect.Effect<A, HttpError> =>
     wrapFetch(
       async () => {
-        const headers = await buildHeaders(options?.contentType || 'application/json')
+        const headers = await buildHeaders(options?.contentType ?? 'application/json')
         const url = buildUrl(path, options?.query)
 
         return fetch(url, {

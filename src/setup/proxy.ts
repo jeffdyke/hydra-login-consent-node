@@ -30,7 +30,7 @@ const proxyOptions = {
 
     if (parsed.pathname === '/oauth2/auth') {
       const sessionId = crypto.randomUUID()
-      req.session.pkceKey = req.session.pkceKey || sessionId
+      req.session.pkceKey = req.session.pkceKey ?? sessionId
 
       const {
         client_id,
@@ -43,19 +43,19 @@ const proxyOptions = {
 
       // Only store PKCE state if we have the required parameters
       if (code_challenge !== undefined && state !== undefined) {
-        const method = String(code_challenge_method || 'S256')
+        const method = String(code_challenge_method ?? 'S256')
         const pkceData: PKCEState = {
           code_challenge: String(code_challenge),
           code_challenge_method: method === 'plain' ? 'plain' : 'S256',
-          scope: String(scope || ''),
+          scope: String(scope ?? ''),
           state: String(state),
-          redirect_uri: String(redirect_uri || ''),
-          client_id: String(client_id || ''),
+          redirect_uri: String(redirect_uri ?? ''),
+          client_id: String(client_id ?? ''),
           timestamp: Date.now(),
         }
 
         // Store PKCE state in Redis using Effect with RedisService
-        const pkceKey = req.session.pkceKey || sessionId
+        const pkceKey = req.session.pkceKey ?? sessionId
         const storePKCE = Effect.gen(function* () {
           const redis = yield* RedisService
           const redisOps = createOAuthRedisOps(redis)

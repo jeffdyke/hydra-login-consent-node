@@ -12,7 +12,6 @@ import {
   type RedisError} from '../errors.js'
 import { validateSchema } from '../validation.js'
 import type {
-
   SchemaValidationError} from '../errors.js';
 import type { Schema} from 'effect';
 import type { Redis } from 'ioredis'

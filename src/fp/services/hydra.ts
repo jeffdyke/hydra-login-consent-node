@@ -70,8 +70,8 @@ export const makeHydraService = (client: OAuth2Api): HydraService => {
         const err = error as any
         if (err.response) {
           return new HttpStatusError({
-            status: err.response.status || 500,
-            statusText: err.response.statusText || 'Hydra API error',
+            status: err.response.status ?? 500,
+            statusText: err.response.statusText ?? 'Hydra API error',
             body: err.response.data,
           })
         }

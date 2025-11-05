@@ -13,16 +13,16 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
     envXsrfToken: appConfig.xsrfHeaderName,
     ip: req.ip,
     body: req.body,
-    userAgent: req.headers["user-agent"] || "Empty UA",
+    userAgent: req.headers["user-agent"] ?? "Empty UA",
   }
-  if (req.originalUrl != "/favicon.ico" && logStarts.test(res.locals.logData.userAgent)) {
+  if (req.originalUrl !== "/favicon.ico" && logStarts.test(res.locals.logData.userAgent)) {
     logger.info("Started request for claude", res.locals.logData)
   }
   res.on("finish", () => {
     if (stripArgs.test(req.originalUrl)) {
       res.locals.logData.url = res.locals.logData.url.split("?")[0]
     }
-    if (req.originalUrl != "/favicon.ico"){
+    if (req.originalUrl !== "/favicon.ico"){
       const end = process.hrtime.bigint();
       const duration = Number(end - start) / 1_000_000;
 

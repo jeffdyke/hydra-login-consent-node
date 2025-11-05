@@ -75,8 +75,8 @@ export interface GoogleOAuthConfig {
 export const makeGoogleOAuthService = (
   config: GoogleOAuthConfig
 ): GoogleOAuthService => {
-  const TOKEN_ENDPOINT = config.tokenEndpoint || 'https://oauth2.googleapis.com/token'
-  const USER_INFO_ENDPOINT = config.userInfoEndpoint || 'https://www.googleapis.com/oauth2/v2/userinfo'
+  const TOKEN_ENDPOINT = config.tokenEndpoint ?? 'https://oauth2.googleapis.com/token'
+  const USER_INFO_ENDPOINT = config.userInfoEndpoint ?? 'https://www.googleapis.com/oauth2/v2/userinfo'
 
   // Create OAuth2Client if redirectUri is provided (for auth flow operations)
   const oauth2Client = config.redirectUri ? new OAuth2Client({
@@ -109,8 +109,8 @@ export const makeGoogleOAuthService = (
 
       // Generic HTTP error
       return new HttpStatusError({
-        status: axiosError.response?.status || 500,
-        statusText: axiosError.response?.statusText || 'Unknown error',
+        status: axiosError.response?.status ?? 500,
+        statusText: axiosError.response?.statusText ?? 'Unknown error',
         body: axiosError.response?.data,
       })
     }

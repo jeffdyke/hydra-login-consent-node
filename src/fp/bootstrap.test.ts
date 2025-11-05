@@ -5,7 +5,6 @@ import {
   createAppLayer,
   createLoggerAdapter,
   createLoggerLayer,
-  type AppConfig,
 } from './bootstrap.js'
 import { GoogleOAuthService } from './services/google.js'
 import { HydraService } from './services/hydra.js'

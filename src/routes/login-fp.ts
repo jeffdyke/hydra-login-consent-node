@@ -31,7 +31,7 @@ const mapErrorToHttp = (error: AppError): { status: number; message: string } =>
  */
 const createLoginHandler = (serviceLayer: Layer.Layer<HydraService | Logger>) => {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    const challenge = String(req.query.login_challenge || req.body.challenge)
+    const challenge = String(req.query.login_challenge ?? req.body.challenge)
 
     if (!challenge) {
       next(new Error('Expected a login challenge to be set but received none.'))

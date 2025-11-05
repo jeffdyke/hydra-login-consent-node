@@ -4,7 +4,7 @@
  */
 import { Configuration } from '@ory/hydra-client-fetch'
 import { OAuth2Api } from '@ory/hydra-client-fetch/dist/index.js'
-import { Layer, Effect, Context } from 'effect'
+import { Layer, Effect } from 'effect'
 import { OAuth2ApiServiceLive, type OAuth2ApiConfig } from '../api/oauth2.js'
 import { GoogleOAuthServiceLive } from './services/google.js'
 import { HydraServiceLive } from './services/hydra.js'
