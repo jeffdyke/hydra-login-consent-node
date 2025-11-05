@@ -20,8 +20,6 @@ import pool from './pool.js'
 import { createCallbackRouter } from './routes/callback-fp.js'
 import { createConsentRouter } from './routes/consent-fp.js'
 import { createDeviceRouter } from './routes/device.js'
-// Legacy route (for non-functional endpoints)
-import routes from './routes/index.js'
 import { createLoginRouter } from './routes/login-fp.js'
 import { createLogoutRouter } from './routes/logout-fp.js'
 import { createTokenRouter } from './routes/passthrough-auth-fp.js'
@@ -108,8 +106,8 @@ function addUniqueToken(req: Request, res: Response, next: Function) {
 }
 app.use(addUniqueToken)
 
-// Routes - using functional versions
-app.use('/', routes) // Keep legacy root route for now
+// // Routes - using functional versions
+// app.use('/', routes) // Keep legacy root route for now
 
 // Functional routes with Effect Layer injection
 app.use('/login', createLoginRouter(serviceLayer))
