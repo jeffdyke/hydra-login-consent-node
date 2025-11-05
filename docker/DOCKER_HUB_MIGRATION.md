@@ -7,22 +7,26 @@ The `hydra-headless-ts` Docker image has been migrated from **AWS ECR** to **Doc
 ## Migration Details
 
 ### Previous Image Location (ECR)
-```
+
+```ascii
 668874212870.dkr.ecr.us-east-1.amazonaws.com/drone-hydra-headless-ts:latest
 ```
 
 **Limitations:**
+
 - Requires AWS CLI authentication
 - Requires ECR permissions
 - Region-specific (us-east-1)
 - Not publicly accessible
 
 ### New Image Location (Docker Hub)
-```
+
+```ascii
 jeffdyke/hydra-headless-ts:latest
 ```
 
 **Benefits:**
+
 - ✅ Publicly accessible (no authentication required for pulls)
 - ✅ Platform-agnostic
 - ✅ Faster pulls (Docker Hub CDN)
@@ -44,6 +48,7 @@ Use the provided migration script to copy the latest image from ECR to Docker Hu
 ```
 
 The script will:
+
 1. ✅ Authenticate with AWS ECR
 2. ✅ Pull the latest image from ECR
 3. ✅ Tag the image for Docker Hub
@@ -160,20 +165,23 @@ Update your CI/CD pipeline to push directly to Docker Hub instead of ECR:
 ### Recommended Tags
 
 1. **latest** - Always points to the most recent stable build
-   ```
+
+   ```ascii
    jeffdyke/hydra-headless-ts:latest
    ```
 
 2. **Semantic Version** - Specific release versions
-   ```
+
+  ```ascii
    jeffdyke/hydra-headless-ts:v1.0.0
    jeffdyke/hydra-headless-ts:v1.0.1
    ```
 
 3. **Git SHA** - Specific commit references
-   ```
-   jeffdyke/hydra-headless-ts:9077c27
-   ```
+
+```ascii
+  jeffdyke/hydra-headless-ts:9077c27
+``
 
 4. **Environment-specific** - For different deployment stages
    ```
@@ -231,7 +239,7 @@ docker-compose up -d
 
 The Dockerfile used to build this image:
 
-```
+```ascii
 build/Dockerfile.headless-ts
 ```
 
@@ -288,6 +296,7 @@ COOKIE_SECRET=your-cookie-secret
 **Problem**: `Error response from daemon: pull access denied`
 
 **Solution**:
+
 1. For public repository: No authentication needed, check image name spelling
 2. For private repository: Login first with `docker login`
 
@@ -365,6 +374,7 @@ docker image prune -a
 ## Support
 
 For issues with the Docker image:
+
 1. Check image logs: `docker logs <container-name>`
 2. Verify environment variables are set correctly
 3. Check Docker Hub for latest version
