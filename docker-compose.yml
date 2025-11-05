@@ -47,12 +47,20 @@ services:
       - POSTGRES_PASSWORD=my-super-secret-password
       - POSTGRES_DB=hydra
     volumes:
-      - postgres-data:/var/lib/postgres/data
+      - postgres-data:/var/lib/postgresql/data
+      # Mount initialization script to create session table
+      - ./docker/postgres/init-session-table.sql:/docker-entrypoint-initdb.d/01-init-session-table.sql:ro
     networks:
       - hydra-net
     ports:
       - "5432:5432"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hydra -d hydra"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
   redis:
     image: redis
     ports:
@@ -60,7 +68,9 @@ services:
     networks:
       - hydra-net
   headless-ts:
-    image: 668874212870.dkr.ecr.us-east-1.amazonaws.com/drone-hydra-headless-ts
+    # Migrated from AWS ECR to Docker Hub for easier access
+    # Previous: 668874212870.dkr.ecr.us-east-1.amazonaws.com/drone-hydra-headless-ts
+    image: jeffdyke/hydra-headless-ts:latest
     env_file:
       - /etc/hydra-headless-ts/.env.auth.hydra
       - /etc/hydra-headless-ts/.env.auth.google

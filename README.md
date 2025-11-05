@@ -2,6 +2,7 @@
 
 This service implements a **headless OAuth2 login/consent provider** that bridges Ory Hydra (OAuth2 server with DCR) and Google OAuth (identity provider without DCR support).
 
+In words, I could not write myself:
 [Detailed breakdown of this OAuth2 flow](OAUTH2_ARCHITECTURE.md)
 
 ## Localhost vs Proxy
@@ -15,8 +16,6 @@ Local development does not enable https
 - [Linting](./LINTING.md)
 - [Quality Baseline](./QUALITY_BASELINE.mc)
 - [Unit Tests](./README.test.md)
-- [Authorization Flow](AUTH_FLOW.md)
-  - This ties nuances of the OAuth2 Authorization Flow into decisions made in the application, as a particular flow was required
 
 ### Running Locally
 
