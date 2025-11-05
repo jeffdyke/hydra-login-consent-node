@@ -68,7 +68,9 @@ services:
     networks:
       - hydra-net
   headless-ts:
-    image: 668874212870.dkr.ecr.us-east-1.amazonaws.com/drone-hydra-headless-ts
+    # Migrated from AWS ECR to Docker Hub for easier access
+    # Previous: 668874212870.dkr.ecr.us-east-1.amazonaws.com/drone-hydra-headless-ts
+    image: jeffdyke/hydra-headless-ts:latest
     env_file:
       - /etc/hydra-headless-ts/.env.auth.hydra
       - /etc/hydra-headless-ts/.env.auth.google
