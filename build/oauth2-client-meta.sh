@@ -58,7 +58,7 @@ authClient() {
     --response-type "code,id_token" \
     --format json \
     --token-endpoint-auth-method none \
-    --scope "openid,offline" \
+    --scope "openid,email,profile,offline_access" \
     --redirect-uri "${CALLBACK_HOST}/callback" \
     --format json
   )
