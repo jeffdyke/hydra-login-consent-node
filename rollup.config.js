@@ -21,12 +21,12 @@ const config = [
       json(),
       resolve({preferBuiltins:true}),
       commonjs({include: ['src/app.ts', 'node_modules/**']}),
-      copy({
-        assets: [
-          'views/**/*.pug',
-        ],
-        flatten: false // Preserve the directory structure within 'views'
-      })
+      // copy({
+      //   assets: [
+      //     'views/**/*.pug',
+      //   ],
+      //   flatten: false // Preserve the directory structure within 'views'
+      // })
     ]
   }
 ];
