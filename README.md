@@ -29,9 +29,10 @@ Simply change into the root of the repository:
 
 ## Installing Docker Environment
 
-- sudo docker compose up -d --build
-
-Nginx and HAProxy configs to be provided
-
+- TODO
 
 ### Nginx Configuration
+
+[Virtual Host configuration](build/support_files/nginx/hydra.conf), for Nginx.
+
+- A single variable `private_ip` is required to speak to the upstream docker containers

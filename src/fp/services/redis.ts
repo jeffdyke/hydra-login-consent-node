@@ -3,16 +3,17 @@
  * All Redis operations return Effect<Result, RedisError>
  */
 import { Effect, pipe, Context, Layer } from 'effect'
+import type { Schema } from 'effect'
 import {
   RedisConnectionError,
   RedisKeyNotFound,
   RedisParseError,
   RedisWriteError,
   RedisDeleteError,
-  type RedisError,
-  SchemaValidationError} from '../errors.js'
+  type SchemaValidationError,
+  type RedisError
+} from '../errors.js'
 import { validateSchema } from '../validation.js'
-import type { Schema} from 'effect';
 import type { Redis } from 'ioredis'
 
 /**

@@ -73,7 +73,8 @@ function base64URLEncode(buffer: Buffer): string {
     .replace(/\//g, "_")
     .replace(/=/g, "")
 }
-export {generateCsrfToken, RedisPKCE, validatePKCE, RedisRefreshToken, GoogleTokenResponse, base64URLEncode}
+export { doubleCsrfProtection, generateCsrfToken, validatePKCE, base64URLEncode }
+export type { RedisPKCE, RedisRefreshToken, GoogleTokenResponse }
 
 // const configureCSRF = (app: express.Application) => {
 //   app.use(doubleCsrfProtection);

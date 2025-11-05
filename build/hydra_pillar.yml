@@ -1,6 +1,6 @@
 base: &defaults
-  base_url: "http://dev.bondlink.org:3000"
-  admin_local: "http://dev.bondlink.org:4445"
+  base_url: "http://dev.domain.tld:3000"
+  admin_local: "http://dev.domain.tld:4445"
   is_dev: true
   secrets_system: "G6KaOf8aJsLagw566he8yxOTTO3tInKD"
   secrets_cookie: "G6KaOf8aJsLagw566he8yxBLOTTO3tIn"
@@ -9,5 +9,5 @@ base: &defaults
   pg_dsn: "DSN=postgres://hydra:my-super-secret-password@postgres:5432/hydra?sslmode=disable"
 staging:
   <<: *defaults
-  base_url: "https://auth.staging.bondlink.org"
+  base_url: "https://auth.staging.domain.tld"
   admin_local: "http://10.1.1.230:4445"
