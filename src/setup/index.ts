@@ -9,11 +9,11 @@ const {
   generateCsrfToken,        // Helper function to generate a CSRF token
 } = doubleCsrf({
   getSecret: () => "G6KaOf8aJsLagw566he8yxOTTO3tInKD",
-  cookieName: appConfig.xsrfHeaderName,
+  cookieName: "appConfig.xsrfHeaderName",
   cookieOptions: {
     sameSite: 'none', // Secure cookie settings
-    httpOnly: appConfig.httpOnly,
-    secure: appConfig.secure,
+    httpOnly: true,
+    secure: false,
     maxAge: 30 * 24 * 60 * 60 * 1000,
   },
   getSessionIdentifier: (req) => {
