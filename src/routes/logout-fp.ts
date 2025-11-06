@@ -1,11 +1,14 @@
 /**
  * Functional logout route using Effect
+ *
+ * Handles OAuth2 RP-initiated logout flow with CSRF protection.
  */
 import { Effect, pipe } from 'effect'
 import express from 'express'
-import { generateCsrfToken } from '../config.js'
+import { appConfig } from '../config.js'
 import { type AppError } from '../fp/errors.js'
 import { getLogoutInfo, acceptLogout, rejectLogout } from '../fp/services/logout.js'
+import { generateCsrfToken } from '../setup/index.js'
 import { Logout } from '../views/index.js'
 import type { HydraService } from '../fp/services/hydra.js'
 import type { Logger } from '../fp/services/token.js'
@@ -64,10 +67,13 @@ const createLogoutGetHandler = (
       const { status, message } = mapErrorToHttp(result.left)
       res.status(status).send(message)
     } else {
+      // Generate CSRF token for the logout form
+      const csrfToken = generateCsrfToken(req, res)
+
       res.send(
         Logout({
-          csrfToken: generateCsrfToken(req, res),
-          envXsrfToken: config.hostName,
+          csrfToken,
+          envXsrfToken: appConfig.security.xsrfHeaderName,
           challenge: result.right.challenge,
           action: `${config.hostName}/logout`,
         })

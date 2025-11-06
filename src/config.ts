@@ -4,11 +4,7 @@
  */
 import connectPgSimple from 'connect-pg-simple'
 import session from 'express-session'
-import {
-  loadAppConfigSync,
-  getHydraAdminUrl,
-  getHydraInternalUrl
-} from './fp/config.js'
+import { loadAppConfigSync, getHydraAdminUrl, getHydraInternalUrl } from './fp/config.js'
 
 /**
  * Load configuration from environment
@@ -53,15 +49,14 @@ export const pgConfig = {
 export const DCR_MASTER_CLIENT_ID = appConfig.dcrMasterClientId
 
 /**
- * Static CSRF token (for development)
+ * CSRF token generation
+ *
+ * Re-exported from setup/index.ts for convenience.
+ * Uses csrf-csrf's double-submit cookie pattern.
+ *
+ * @deprecated Import directly from './setup/index.js' instead
  */
-export const STATIC_CSRF = 'YOU-ARE-USING-THE-STATIC-CSRF'
-
-/**
- * Generate CSRF token
- * Currently returns static token, should be replaced with proper CSRF generation
- */
-export const generateCsrfToken = (_req: any, _res: any) => STATIC_CSRF
+export { generateCsrfToken, doubleCsrfProtection } from './setup/index.js'
 
 /**
  * PostgreSQL session store

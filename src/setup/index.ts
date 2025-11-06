@@ -9,11 +9,11 @@ const {
   generateCsrfToken,        // Helper function to generate a CSRF token
 } = doubleCsrf({
   getSecret: () => "G6KaOf8aJsLagw566he8yxOTTO3tInKD",
-  cookieName: appConfig.xsrfHeaderName,
+  cookieName: "appConfig.xsrfHeaderName",
   cookieOptions: {
     sameSite: 'none', // Secure cookie settings
-    httpOnly: appConfig.httpOnly,
-    secure: appConfig.secure,
+    httpOnly: true,
+    secure: false,
     maxAge: 30 * 24 * 60 * 60 * 1000,
   },
   getSessionIdentifier: (req) => {
@@ -73,7 +73,8 @@ function base64URLEncode(buffer: Buffer): string {
     .replace(/\//g, "_")
     .replace(/=/g, "")
 }
-export {generateCsrfToken, RedisPKCE, validatePKCE, RedisRefreshToken, GoogleTokenResponse, base64URLEncode}
+export { doubleCsrfProtection, generateCsrfToken, validatePKCE, base64URLEncode }
+export type { RedisPKCE, RedisRefreshToken, GoogleTokenResponse }
 
 // const configureCSRF = (app: express.Application) => {
 //   app.use(doubleCsrfProtection);

@@ -1,9 +1,15 @@
+/**
+ * OAuth2 Device Authorization Flow (RFC 8628)
+ *
+ * Handles device code verification with CSRF protection.
+ */
 import url from 'url'
 import { Effect, pipe } from 'effect'
 import express from 'express'
 import { OAuth2ApiService } from '../api/oauth2.js'
 import { appConfig } from '../config.js'
 import { type AppError } from '../fp/errors.js'
+import { generateCsrfToken } from '../setup/index.js'
 import { DeviceVerify, DeviceSuccess } from '../views/index.js'
 import type { Layer } from 'effect'
 
@@ -34,13 +40,16 @@ router.get('/verify', (req, res, next) => {
     return
   }
 
+  // Generate CSRF token for the device verification form
+  const csrfToken = generateCsrfToken(req, res)
+
   res.send(
     DeviceVerify({
       action: '/device/verify',
-      csrfToken: '',
-      envXsrfToken: appConfig.xsrfHeaderName,
+      csrfToken,
+      envXsrfToken: appConfig.security.xsrfHeaderName,
       challenge,
-      userCode: String(query.user_code),
+      userCode: String(query.user_code || ''),
     })
   )
 })
