@@ -131,6 +131,7 @@ export const processCallback = (
     }
 
     if (logger._tag === 'Some') {
+      yield* logger.value.info('AuthData', { authData })
       yield* logger.value.info('Generated auth_code', { authCode })
     }
 
