@@ -26,7 +26,7 @@
     "serve:dev": "node --enable-source-maps --loader ts-node/esm --env-file=./src/env/local.env dist/app.js",
     "start": "ts-node-dev --enable-source-maps --loader ts-node/esm --project tsconfig.json --env-file=/etc/hydra-headless-ts/local.env --watch public,views --respawn dist/app-fp.js",
     "start:local": "ts-node-dev --enable-source-maps --loader ts-node/esm --project tsconfig.json --env-file=/etc/hydra-headless-ts/local.env --watch public,views --respawn dist/app-fp.js",
-    "start:staging": "NODE_ENV='--env-file=/etc/hydra-headless-ts/staging.env --env-file=/etc/hydra-headless-ts/.env.auth.hydra --env-file=/etc/hydra-headless-ts/.env.auth.google' node-dev --enable-source-maps --loader ts-node/esm --project tsconfig.json --respawn dist/app-fp.js",
+    "start:staging": "NODE_ENV='--env-file=/etc/hydra-headless-ts/staging.env --env-file=/etc/hydra-headless-ts/.env.auth.hydra --env-file=/etc/hydra-headless-ts/.env.auth.google' ts-node-dev --enable-source-maps --loader ts-node/esm --project tsconfig.json --respawn dist/app-fp.js",
     "start:production": "NODE_ENV=\"--env-file=./src/env/production.env\" ts-node-dev --enable-source-maps --loader ts-node/esm --project tsconfig.json --watch public,views --respawn dist/app-fp.js",
     "test": "vitest run",
     "test:watch": "vitest",
