@@ -9,7 +9,7 @@ import express from 'express'
 import { OAuth2ApiService } from '../api/oauth2.js'
 import { appConfig } from '../config.js'
 import { type AppError } from '../fp/errors.js'
-import { generateCsrfToken } from '../setup/index.js'
+import { doubleCsrfProtection, generateCsrfToken } from '../setup/index.js'
 import { DeviceVerify, DeviceSuccess } from '../views/index.js'
 import type { Layer } from 'effect'
 
@@ -98,7 +98,8 @@ router.get('/success', (_req, res) => {
 })
 
 export const createDeviceRouter = (serviceLayer: Layer.Layer<OAuth2ApiService>) => {
-  router.post('/verify', createVerifyHandler(serviceLayer))
+  // Apply CSRF protection to POST route (form submission)
+  router.post('/verify', doubleCsrfProtection, createVerifyHandler(serviceLayer))
   return router
 }
 

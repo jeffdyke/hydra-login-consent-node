@@ -24,7 +24,6 @@ import { createLoginRouter } from './routes/login-fp.js'
 import { createLogoutRouter } from './routes/logout-fp.js'
 import { createTokenRouter } from './routes/passthrough-auth-fp.js'
 import { OAuth2ApiLayer } from './setup/hydra.js'
-import { doubleCsrfProtection } from './setup/index.js'
 import proxyMiddleware from './setup/proxy.js'
 import { ErrorPage } from './views/index.js'
 import type { NextFunction, Response, Request } from 'express'
@@ -96,10 +95,6 @@ app.use('/oauth2/auth', proxyMiddleware)
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cookieParser(appConfig.security.cookieSecret))
-
-// CSRF Protection - Must come after session and body parser
-// Protects POST routes in OAuth2 flows (login, consent, logout, device)
-app.use(doubleCsrfProtection)
 
 app.use(favicon(path.join(__dirname, '..', 'public', 'favicon.ico')))
 app.use(express.static(path.join(dirname(import.meta.url), 'public')))

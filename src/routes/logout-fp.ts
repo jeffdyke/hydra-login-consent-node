@@ -8,7 +8,7 @@ import express from 'express'
 import { appConfig } from '../config.js'
 import { type AppError } from '../fp/errors.js'
 import { getLogoutInfo, acceptLogout, rejectLogout } from '../fp/services/logout.js'
-import { generateCsrfToken } from '../setup/index.js'
+import { doubleCsrfProtection, generateCsrfToken } from '../setup/index.js'
 import { Logout } from '../views/index.js'
 import type { HydraService } from '../fp/services/hydra.js'
 import type { Logger } from '../fp/services/token.js'
@@ -139,7 +139,8 @@ export const createLogoutRouter = (
   config: LogoutConfig
 ) => {
   router.get('/', createLogoutGetHandler(serviceLayer, config))
-  router.post('/', createLogoutPostHandler(serviceLayer))
+  // Apply CSRF protection to POST route (form submission)
+  router.post('/', doubleCsrfProtection, createLogoutPostHandler(serviceLayer))
   return router
 }
 
