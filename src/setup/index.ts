@@ -19,6 +19,9 @@ const {
   getSessionIdentifier: (req) => {
     return req.session.id
   },
+  // Allow GET, HEAD, OPTIONS by default (OAuth flow endpoints)
+  // POST protection only applies to routes with forms (logout, device/verify)
+  ignoredMethods: ['GET', 'HEAD', 'OPTIONS'],
 });
 
 function validatePKCE(verifier:string, challenge:string, challengeMethod:string) {

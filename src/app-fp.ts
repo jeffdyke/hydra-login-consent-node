@@ -16,10 +16,10 @@ import { createAppLayer } from './fp/bootstrap.js'
 import jsonLogger from './logging.js'
 import { requestLogger } from './middleware/requestLogger.js'
 import pool from './pool.js'
-import index from './routes/index.js'
 import { createCallbackRouter } from './routes/callback-fp.js'
 import { createConsentRouter } from './routes/consent-fp.js'
 import { createDeviceRouter } from './routes/device.js'
+import { createIndexRouter } from './routes/index-fp.js'
 import { createLoginRouter } from './routes/login-fp.js'
 import { createLogoutRouter } from './routes/logout-fp.js'
 import { createTokenRouter } from './routes/passthrough-auth-fp.js'
@@ -113,7 +113,7 @@ app.use(addUniqueToken)
 // Functional routes with Effect Layer injection
 // All templates use @kitajs/html for type-safe, functional rendering
 // CSRF tokens are generated per-request and passed to templates
-app.use('/', index)
+app.use('/', createIndexRouter(serviceLayer))
 app.use('/login', createLoginRouter(serviceLayer))
 app.use('/logout', createLogoutRouter(serviceLayer, logoutConfig))
 app.use('/consent', createConsentRouter(serviceLayer, consentConfig))
