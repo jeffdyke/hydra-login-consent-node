@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+###########################
+### DEPRECATED.  USE npm cli -- list-clients, get-client <client_id> or new-client <client_name>
+###########################
 set -e
 OPERATION=$1
 shift

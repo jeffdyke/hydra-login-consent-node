@@ -1,7 +1,8 @@
 
-import { Effect, pipe } from 'effect'
+import { Effect, pipe, Schema } from 'effect'
 import { OAuth2ApiService } from './api/oauth2.js'
 import { appConfig } from './config.js';
+import { HttpStatusError, type HttpError } from './fp/errors.js';
 import { validateCreateClient } from "./fp/validation.js";
 import type { OAuth2Client as OryOAuth2Client } from "@ory/client-fetch";
 
@@ -29,7 +30,7 @@ export const getClient = (clientId:string) =>
   )
 export const safeGetClient = (
   clientId: string
-) => {
+): Effect.Effect<OryOAuth2Client, string | HttpError, OAuth2ApiService> => {
   return pipe(
     OAuth2ApiService,
     Effect.flatMap((api) => api.getClient(clientId)),

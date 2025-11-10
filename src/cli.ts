@@ -9,13 +9,12 @@
  *   npm run cli -- new-client <client-name>
  */
 
-import { Effect, Exit, Cause, Layer } from 'effect'
-// import { jsonLogger } from 'effect/Logger'
+import { Effect, Exit, Cause, Layer, Schema, Logger, pipe } from 'effect'
 import { type OAuth2ApiService, OAuth2ApiServiceLive } from './api/oauth2.js'
 import * as authFlow from './authFlow.js'
 import { appConfig } from './config.js'
 import { createLoggerLayer } from './fp/bootstrap.js'
-import { HttpStatusError, NetworkError } from './fp/errors.js'
+import { HttpStatusError, NetworkError, type ParseError } from './fp/errors.js'
 import jsonLogger from './logging.js'
 
 
@@ -146,23 +145,32 @@ const formatError = (cause: Cause.Cause<unknown>): string => {
  */
 const printResult = (exit: Exit.Exit<unknown, unknown>) => {
   if (Exit.isSuccess(exit)) {
-    jsonLogger.info('\nSuccess!')
-    jsonLogger.info(JSON.stringify(exit.value, null, 2))
+    Effect.logInfo('\nSuccess!')
+    Effect.logInfo(JSON.stringify(exit.value, null, 2))
   } else {
-    jsonLogger.error('\nError!')
-    jsonLogger.error(formatError(exit.cause))
+    Effect.logError('\nError!')
+    Effect.logError(formatError(exit.cause))
     process.exit(1)
   }
 }
-
+const uuidRegexp = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/i
 /**
  * Command handlers
  */
 type CommandHandler = (...args: string[]) => Promise<void>;
+const ClientIdV = pipe(
+  Schema.NonEmptyString,
+  Schema.pattern(uuidRegexp)
+)
+
+type ClientIdV = Schema.Schema.Type<typeof ClientIdV>
+const parseClientId = (clientId:string): Effect.Effect<string, ParseError, never> => {
+  return Schema.decode(ClientIdV)(clientId)
+}
 
 const commands: Record<string, CommandHandler> = {
   'list-clients': async () => {
-    jsonLogger.info('Listing all OAuth2 clients...')
+    Effect.logInfo('Listing all OAuth2 clients...')
     const program = authFlow.listClients()
     const exit = await runEffect(program)
     printResult(exit)
@@ -170,35 +178,35 @@ const commands: Record<string, CommandHandler> = {
 
   'get-client': async (clientId: string) => {
     if (!clientId) {
-      jsonLogger.error('Error: client-id is required')
-      jsonLogger.error('Usage: cli get-client <client-id>')
+      Effect.log('Error: client-id is required')
+      Effect.log('Usage: cli get-client <client-id>')
       process.exit(1)
     }
-    jsonLogger.info(`Getting client: ${clientId}...`)
+    Effect.log(`Getting client: ${clientId}...`)
     const program = authFlow.getClient(clientId)
     const exit = await runEffect(program)
     printResult(exit)
   },
 
   'safe-get-client': async (clientId: string) => {
-    if (!clientId) {
-      jsonLogger.error('Error: client-id is required')
-      jsonLogger.error('Usage: cli safe-get-client <client-id>')
-      process.exit(1)
-    }
-    jsonLogger.info(`Safely getting client: ${clientId}...`)
-    const program = authFlow.safeGetClient(clientId)
+
+    const program = parseClientId(clientId).pipe(
+      Effect.andThen((validated) => {
+        Effect.logInfo(`Safely getting client: ${clientId}...`),
+        Effect.map(() => authFlow.safeGetClient(validated))
+      })
+    ).pipe(Effect.provide(Logger.json))
     const exit = await runEffect(program)
     printResult(exit)
   },
 
   'create-client': async (clientId: string) => {
     if (!clientId) {
-      jsonLogger.error('Error: client-id is required')
-      jsonLogger.error('Usage: cli create-client <client-id>')
+      Effect.logError('Error: client-id is required')
+      Effect.logError('Usage: cli create-client <client-id>')
       process.exit(1)
     }
-    jsonLogger.info(`Creating client with validation: ${clientId}...`)
+    Effect.logInfo(`Creating client with validation: ${clientId}...`)
     const program = authFlow.createClient(clientId)
     const exit = await runEffect(program)
     printResult(exit)
@@ -206,18 +214,18 @@ const commands: Record<string, CommandHandler> = {
 
   'new-client': async (clientName: string) => {
     if (!clientName) {
-      jsonLogger.error('Error: client-name is required')
-      jsonLogger.error('Usage: cli new-client <client-name>')
+      Effect.logError('Error: client-name is required')
+      Effect.logError('Usage: cli new-client <client-name>')
       process.exit(1)
     }
-    jsonLogger.info(`Creating new client: ${clientName}...`)
+    Effect.logInfo(`Creating new client: ${clientName}...`)
     const program = authFlow.newClient(clientName)
     const exit = await runEffect(program)
     printResult(exit)
   },
 
   'help': async () => {
-    jsonLogger.info(`
+    Effect.logInfo(`
 CLI for running Effect functions from authFlow
 
 Usage: npm run cli -- <command> [arguments]
@@ -252,7 +260,7 @@ Commands:
       '  - HYDRA_ADMIN_URL for Ory Hydra admin endpoint',
       '  - BASE_URL for application base URL',
     ].join('\n')
-    jsonLogger.error(helpText)
+    Effect.logError(helpText)
 `)
   }
 }
@@ -273,7 +281,7 @@ const main = async () => {
   const handler = commands[command as keyof typeof commands]
 
   if (!handler) {
-    jsonLogger.error(`Unknown command: ${command}`)
+    Effect.logError(`Unknown command: ${command}`)
     await commands.help()
     process.exit(1)
   }
@@ -281,13 +289,13 @@ const main = async () => {
   try {
     await handler(...params)
   } catch (error) {
-    jsonLogger.error('Unexpected error:', error)
+    Effect.logError('Unexpected error:', error)
     process.exit(1)
   }
 }
 
 // Run the CLI
 main().catch((error) => {
-  jsonLogger.error('Fatal error:', error)
+  Effect.logError('Fatal error:', error)
   process.exit(1)
 })
