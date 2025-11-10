@@ -1,50 +1,27 @@
-/**
- * Functional index route using Effect
- */
-import { Effect, pipe } from 'effect'
-import express from 'express'
-import { type AppError } from '../fp/errors.js'
-import type { HydraService } from '../fp/services/hydra.js'
-import type { Logger } from '../fp/services/token.js'
-import type { Layer } from 'effect';
+import express from "express"
+import jsonLogger from "../logging.js"
 
-const router = express.Router()
-const SUBJECT_PLACEHOLDER = 'claude@claude.ai'
+const router = express.Router();
 
-/**
- * Map application errors to HTTP responses
- */
-const mapErrorToHttp = (error: AppError): { status: number; message: string } => {
-  switch (error._tag) {
-    case 'HttpStatusError':
-      return { status: error.status, message: error.statusText }
-    case 'NetworkError':
-      return { status: 500, message: 'Network error communicating with Hydra' }
-    default:
-      return { status: 500, message: 'Internal server error' }
-  }
-}
+router.head('/', (req, res) => {
+  jsonLogger.info('HEAD / request received', { headers: req.headers });
+  res.set('X-BondLink-Special', 'Head-Only-Value');
+  res.status(204).end();
+});
 
-/**
- * index handler factory
- */
-const indexHandler = (serviceLayer: Layer.Layer<HydraService | Logger>) => {
-  return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    return res.status(200).json("oh yeah")
 
-  }
-}
+router.get('/', (req, res) => {
+  jsonLogger.info('GET / request received', { headers: req.headers });
+  res.set('X-BondLink-Special', 'Head-Only-Value');
+  res.status(204).end();
+});
 
-/**
- * Create index router with service layer
- */
-export const createIndexRouter = (serviceLayer: Layer.Layer<HydraService | Logger>) => {
-  const handler = indexHandler(serviceLayer)
 
-  router.get('/', handler)
-  router.post('/', handler)
+router.post('/', (req, res) => {
+  jsonLogger.info('POST / request received', { headers: req.headers });
+  res.set('X-BondLink-Special', 'Head-Only-Value');
+  res.status(204).end();
+});
 
-  return router
-}
 
 export default router
