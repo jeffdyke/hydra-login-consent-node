@@ -4,17 +4,18 @@
  */
 import { type ClientRequest } from 'http'
 import { Effect } from 'effect'
-import { createProxyMiddleware,fixRequestBody } from 'http-proxy-middleware'
+import express from 'express'
+import { createProxyMiddleware } from 'http-proxy-middleware'
 import { Redis } from 'ioredis'
 import { appConfig } from '../config.js'
 import { RedisService, RedisServiceLive, createOAuthRedisOps } from '../fp/services/redis.js'
 import jsonLogger from '../logging.js'
 import type { PKCEState } from '../fp/domain.js'
 import type { Request, Response, NextFunction } from 'express'
-import { json } from 'body-parser'
-import { config } from 'dotenv'
-import { cons } from 'effect/List'
 
+const app = express()
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 
 // Create Redis client
 const redisClient = new Redis({
@@ -29,62 +30,42 @@ const proxyOptions = {
   target: appConfig.hydraInternalUrl,
   changeOrigin: true,
   prependPath: false,
-  logger: console,
-  configure: async (proxy:any) => {
-    proxy.on('error', (err:Error, req:Request, res:Response) => {
-      console.error('Proxy error', { error: err.message, stack: err.stack })
-      res.writeHead(500, {
-        'Content-Type': 'application/json',
-      })
-      res.end(
-        JSON.stringify({
-          error: 'proxy_error',
-          error_description: 'An error occurred while processing the proxy request',
-        })
-      )
-    }),
-    proxy.on('proxyReq', (proxyReq: ClientRequest, req: Request, res:Response) => {
-      const parsed = new URL(`${req.protocol  }://${  req.get('host')  }${req.originalUrl}`)
-      console.warn('Checking for Proxy request to Hydra', {
+  logger: jsonLogger,
+  on: {
+    proxyReq: (proxyReq: ClientRequest, req: Request, res: Response) => {
+    const parsed = new URL(`${req.protocol  }://${  req.get('host')  }${req.originalUrl}`)
+    jsonLogger.info('Checking for Proxy request to Hydra', {
       method: req.method,
       originalUrl: req.originalUrl,
       proxiedUrl: `${appConfig.hydraInternalUrl}${parsed.pathname}`,
       body: req.body,
     })
+    if (req.method !== "GET" && Object.keys(req.body).length > 0) {
+      jsonLogger.info('Populating proxy request body for non-GET request', {
+        body: req.body,
+        length: JSON.stringify(req.body).length,
+      })
+      proxyReq.path = req.originalUrl;
+      proxyReq.write(JSON.stringify(req.body));
+    }
+    jsonLogger.info('Proxy onProxyReq processing', {
+      method: req.method,
+      originalUrl: req.originalUrl,
+      proxyPath: proxyReq.path,
     })
+    // Special handling for /oauth2/register to fix contacts being null
+    if (req.body && typeof req.body === 'object' && req.body?.contacts === null) {
+      jsonLogger.info('Modifying /oauth2/register request body to set contacts to empty array instead of null')
+      // Hydra expects contacts to be an array, not null
+      req.body.contacts = []
+      const bodyData = JSON.stringify(req.body)
+      // Update content-length header
+      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData))
+      // Write modified body to proxy request
+      proxyReq.write(bodyData)
+      proxyReq.end()
+    }},
   },
-  // onProxyReq: async (proxyReq: ClientRequest, req: Request, res: Response) => {
-  //   const parsed = new URL(`${req.protocol  }://${  req.get('host')  }${req.originalUrl}`)
-  //   jsonLogger.info("hey i'm in here")
-  //   jsonLogger.info('Checking for Proxy request to Hydra', {
-  //     method: req.method,
-  //     originalUrl: req.originalUrl,
-  //     proxiedUrl: `${appConfig.hydraInternalUrl}${parsed.pathname}`,
-  //     body: req.body,
-  //   })
-  //   if (req.method !== "GET" && Object.keys(req.body).length > 0) {
-  //     jsonLogger.info('Populating proxy request body for non-GET request', {
-  //       body: req.body,
-  //     })
-  //     proxyReq.write(JSON.stringify(req.body));
-  //   }
-  //   jsonLogger.info('Proxy onProxyReq processing', {
-  //     method: req.method,
-  //     originalUrl: req.originalUrl,
-  //   })
-  //   // Special handling for /oauth2/register to fix contacts being null
-  //   if (req.originalUrl.startsWith("/oauth2/register") && req.body && typeof req.body === 'object' && req.body?.contacts === null) {
-  //     jsonLogger.info('Modifying /oauth2/register request body to set contacts to empty array instead of null')
-  //     // Hydra expects contacts to be an array, not null
-  //     req.body.contacts = []
-  //     const bodyData = JSON.stringify(req.body)
-  //     // Update content-length header
-  //     proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData))
-  //     // Write modified body to proxy request
-  //     proxyReq.write(bodyData)
-  //     proxyReq.end()
-  //   }
-  // },
   pathRewrite: async (path: string, req: Request) => {
     const parsed = new URL(`${req.protocol  }://${  req.get('host')  }${req.originalUrl}`)
     if (parsed.pathname === '/oauth2/auth') {
