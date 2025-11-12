@@ -2,6 +2,7 @@
  * Proxy middleware for OAuth2 authorization flow
  * Uses RedisService from fp/services to store PKCE state with proper error handling
  */
+import { type ClientRequest } from 'http'
 import { Effect } from 'effect'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import { Redis } from 'ioredis'
@@ -11,7 +12,7 @@ import jsonLogger from '../logging.js'
 import type { PKCEState } from '../fp/domain.js'
 import type { Request, Response, NextFunction } from 'express'
 import { json } from 'body-parser'
-import { ClientRequest } from 'http'
+
 
 // Create Redis client
 const redisClient = new Redis({
@@ -35,6 +36,13 @@ const proxyOptions = {
       proxiedUrl: `${appConfig.hydraInternalUrl}${parsed.pathname}`,
       body: req.body,
     })
+    if (req.method !== "GET" && Object.keys(req.body).length > 0) {
+      jsonLogger.info('Populating proxy request body for non-GET request', {
+        body: req.body,
+      })
+      proxyReq.write(JSON.stringify(req.body));
+    }
+
     if (req.originalUrl.startsWith("/oauth2/register") && req.body && typeof req.body === 'object' && req.body?.contacts === null) {
       jsonLogger.info('Modifying /oauth2/register request body to set contacts to empty array instead of null')
       // Hydra expects contacts to be an array, not null
