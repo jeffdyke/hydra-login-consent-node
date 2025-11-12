@@ -90,11 +90,12 @@ app.use(
     proxy: true,
   })
 )
-
-app.use('/oauth2/auth', proxyMiddleware)
-app.use('/oauth2/register', proxyMiddleware)
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
+app.use('/oauth2/register', proxyMiddleware)
+app.use('/oauth2/auth', proxyMiddleware)
+
+
 app.use(cookieParser(appConfig.security.cookieSecret))
 
 app.use(favicon(path.join(__dirname, '..', 'public', 'favicon.ico')))
