@@ -26,7 +26,8 @@ const proxyOptions = {
   prependPath: false,
   logger: jsonLogger,
   onProxyReq: (proxyReq: Request, req: Request, res: Response) => {
-    if (req.body && typeof req.body === 'object' && req.body?.contacts === null) {
+    const parsed = new URL(`${req.protocol  }://${  req.get('host')  }${req.originalUrl}`)
+    if (req.originalUrl.startsWith("/oauth2/register") && req.body && typeof req.body === 'object' && req.body?.contacts === null) {
       // Hydra expects contacts to be an array, not null
       proxyReq.body.contacts = []
     }

@@ -92,6 +92,7 @@ app.use(
 )
 
 app.use('/oauth2/auth', proxyMiddleware)
+app.use('/oauth2/register', proxyMiddleware)
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cookieParser(appConfig.security.cookieSecret))
