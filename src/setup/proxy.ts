@@ -28,7 +28,7 @@ const proxyOptions = {
   changeOrigin: true,
   prependPath: false,
   logger: jsonLogger,
-  onProxyReq: (proxyReq: ClientRequest, req: Request, res: Response) => {
+  onProxyReq: (proxyReq: any, req: Request, res: Response) => {
     const parsed = new URL(`${req.protocol  }://${  req.get('host')  }${req.originalUrl}`)
     console.warn("hey i'm in here")
     jsonLogger.info('Checking for Proxy request to Hydra', {
@@ -43,7 +43,11 @@ const proxyOptions = {
       })
       proxyReq.write(JSON.stringify(req.body));
     }
-
+    jsonLogger.info('Proxy onProxyReq processing', {
+      method: req.method,
+      originalUrl: req.originalUrl,
+    })
+    // Special handling for /oauth2/register to fix contacts being null
     if (req.originalUrl.startsWith("/oauth2/register") && req.body && typeof req.body === 'object' && req.body?.contacts === null) {
       jsonLogger.info('Modifying /oauth2/register request body to set contacts to empty array instead of null')
       // Hydra expects contacts to be an array, not null
