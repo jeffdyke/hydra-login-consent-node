@@ -30,6 +30,7 @@ const proxyOptions = {
   logger: jsonLogger,
   onProxyReq: (proxyReq: ClientRequest, req: Request, res: Response) => {
     const parsed = new URL(`${req.protocol  }://${  req.get('host')  }${req.originalUrl}`)
+    console.warn("hey i'm in here")
     jsonLogger.info('Checking for Proxy request to Hydra', {
       method: req.method,
       originalUrl: req.originalUrl,
