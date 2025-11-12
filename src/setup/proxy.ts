@@ -11,6 +11,7 @@ import jsonLogger from '../logging.js'
 import type { PKCEState } from '../fp/domain.js'
 import type { Request, Response, NextFunction } from 'express'
 import { json } from 'body-parser'
+import { ClientRequest } from 'http'
 
 // Create Redis client
 const redisClient = new Redis({
@@ -26,23 +27,28 @@ const proxyOptions = {
   changeOrigin: true,
   prependPath: false,
   logger: jsonLogger,
-
+  onProxyReq: (proxyReq: ClientRequest, req: Request, res: Response) => {
+    const parsed = new URL(`${req.protocol  }://${  req.get('host')  }${req.originalUrl}`)
+    jsonLogger.info('Checking for Proxy request to Hydra', {
+      method: req.method,
+      originalUrl: req.originalUrl,
+      proxiedUrl: `${appConfig.hydraInternalUrl}${parsed.pathname}`,
+      body: req.body,
+    })
+    if (req.originalUrl.startsWith("/oauth2/register") && req.body && typeof req.body === 'object' && req.body?.contacts === null) {
+      jsonLogger.info('Modifying /oauth2/register request body to set contacts to empty array instead of null')
+      // Hydra expects contacts to be an array, not null
+      req.body.contacts = []
+      const bodyData = JSON.stringify(req.body)
+      // Update content-length header
+      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData))
+      // Write modified body to proxy request
+      proxyReq.write(bodyData)
+      proxyReq.end()
+    }
+  },
   pathRewrite: async (path: string, req: Request) => {
     const parsed = new URL(`${req.protocol  }://${  req.get('host')  }${req.originalUrl}`)
-    if (parsed.pathname === "/oauth2/register") {
-      jsonLogger.info('Checking for Proxy request to Hydra', {
-        method: req.method,
-        originalUrl: req.originalUrl,
-        proxiedUrl: `${appConfig.hydraInternalUrl}${parsed.pathname}`,
-        body: req.body,
-      })
-      if (req.body && typeof req.body === 'object' && req.body?.contacts === null) {
-        jsonLogger.info('Modifying /oauth2/register request body to set contacts to empty array instead of null')
-        // Hydra expects contacts to be an array, not null
-        req.body.contacts = []
-      }
-      return path
-    }
     if (parsed.pathname === '/oauth2/auth') {
       const sessionId = crypto.randomUUID()
       req.session.pkceKey = req.session.pkceKey ?? sessionId
