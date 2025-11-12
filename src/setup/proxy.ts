@@ -34,8 +34,9 @@ const proxyOptions = {
         method: req.method,
         originalUrl: req.originalUrl,
         proxiedUrl: `${appConfig.hydraInternalUrl}${parsed.pathname}`,
+        body: req.body,
       })
-      if (req.originalUrl.startsWith("/oauth2/register") && req.body && typeof req.body === 'object' && req.body?.contacts === null) {
+      if (req.body && typeof req.body === 'object' && req.body?.contacts === null) {
         jsonLogger.info('Modifying /oauth2/register request body to set contacts to empty array instead of null')
         // Hydra expects contacts to be an array, not null
         req.body.contacts = []
