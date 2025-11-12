@@ -26,21 +26,22 @@ const proxyOptions = {
   changeOrigin: true,
   prependPath: false,
   logger: jsonLogger,
-  onProxyReq: (proxyReq: Request, req: Request, res: Response) => {
-    const parsed = new URL(`${req.protocol  }://${  req.get('host')  }${req.originalUrl}`)
-    jsonLogger.info('Checking for Proxy request to Hydra', {
-      method: req.method,
-      originalUrl: req.originalUrl,
-      proxiedUrl: `${appConfig.hydraInternalUrl}${parsed.pathname}`,
-    })
-    if (req.originalUrl.startsWith("/oauth2/register") && req.body && typeof req.body === 'object' && req.body?.contacts === null) {
-      jsonLogger.info('Modifying /oauth2/register request body to set contacts to empty array instead of null')
-      // Hydra expects contacts to be an array, not null
-      proxyReq.body.contacts = []
-    }
-  },
+
   pathRewrite: async (path: string, req: Request) => {
     const parsed = new URL(`${req.protocol  }://${  req.get('host')  }${req.originalUrl}`)
+    if (parsed.pathname === "/oauth2/register") {
+      jsonLogger.info('Checking for Proxy request to Hydra', {
+        method: req.method,
+        originalUrl: req.originalUrl,
+        proxiedUrl: `${appConfig.hydraInternalUrl}${parsed.pathname}`,
+      })
+      if (req.originalUrl.startsWith("/oauth2/register") && req.body && typeof req.body === 'object' && req.body?.contacts === null) {
+        jsonLogger.info('Modifying /oauth2/register request body to set contacts to empty array instead of null')
+        // Hydra expects contacts to be an array, not null
+        req.body.contacts = []
+      }
+      return path
+    }
     if (parsed.pathname === '/oauth2/auth') {
       const sessionId = crypto.randomUUID()
       req.session.pkceKey = req.session.pkceKey ?? sessionId
