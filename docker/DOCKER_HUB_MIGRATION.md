@@ -139,7 +139,7 @@ docker build -f build/Dockerfile.headless-ts -t jeffdyke/hydra-headless-ts:lates
 docker tag jeffdyke/hydra-headless-ts:latest jeffdyke/hydra-headless-ts:v1.0.0
 
 # Push to Docker Hub
-docker push jeffdyke/hydra-headless-ts:latest
+  docker push jeffdyke/hydra-headless-ts:latest
 docker push jeffdyke/hydra-headless-ts:v1.0.0
 ```
 

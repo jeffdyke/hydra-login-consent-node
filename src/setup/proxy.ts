@@ -10,6 +10,7 @@ import { RedisService, RedisServiceLive, createOAuthRedisOps } from '../fp/servi
 import jsonLogger from '../logging.js'
 import type { PKCEState } from '../fp/domain.js'
 import type { Request, Response, NextFunction } from 'express'
+import { json } from 'body-parser'
 
 // Create Redis client
 const redisClient = new Redis({
@@ -27,7 +28,13 @@ const proxyOptions = {
   logger: jsonLogger,
   onProxyReq: (proxyReq: Request, req: Request, res: Response) => {
     const parsed = new URL(`${req.protocol  }://${  req.get('host')  }${req.originalUrl}`)
+    jsonLogger.info('Checking for Proxy request to Hydra', {
+      method: req.method,
+      originalUrl: req.originalUrl,
+      proxiedUrl: `${appConfig.hydraInternalUrl}${parsed.pathname}`,
+    })
     if (req.originalUrl.startsWith("/oauth2/register") && req.body && typeof req.body === 'object' && req.body?.contacts === null) {
+      jsonLogger.info('Modifying /oauth2/register request body to set contacts to empty array instead of null')
       // Hydra expects contacts to be an array, not null
       proxyReq.body.contacts = []
     }
