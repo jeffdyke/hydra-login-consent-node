@@ -25,9 +25,14 @@ const proxyOptions = {
   changeOrigin: true,
   prependPath: false,
   logger: jsonLogger,
+  onProxyReq: (proxyReq: Request, req: Request, res: Response) => {
+    if (req.body && typeof req.body === 'object' && req.body?.contacts === null) {
+      // Hydra expects contacts to be an array, not null
+      proxyReq.body.contacts = []
+    }
+  },
   pathRewrite: async (path: string, req: Request) => {
     const parsed = new URL(`${req.protocol  }://${  req.get('host')  }${req.originalUrl}`)
-
     if (parsed.pathname === '/oauth2/auth') {
       const sessionId = crypto.randomUUID()
       req.session.pkceKey = req.session.pkceKey ?? sessionId
