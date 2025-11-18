@@ -31,6 +31,8 @@ export interface AppConfig {
 export const createLoggerAdapter = (tsLogger: any): Logger => ({
   silly: (message: string, meta?: object) =>
     Effect.sync(() => tsLogger.silly(message, meta)),
+  debug: (message: string, meta?: object) =>
+    Effect.sync(() => tsLogger.debug(message, meta)),
   info: (message: string, meta?: object) =>
     Effect.sync(() => tsLogger.info(message, meta)),
   error: (message: string, meta?: object) =>

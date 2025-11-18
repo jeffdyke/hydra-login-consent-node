@@ -26,6 +26,7 @@ import type {
  */
 export interface Logger {
   readonly silly: (message: string, meta?: object) => Effect.Effect<void>
+  readonly debug: (message: string, meta?: object) => Effect.Effect<void>
   readonly info: (message: string, meta?: object) => Effect.Effect<void>
   readonly error: (message: string, meta?: object) => Effect.Effect<void>
 }

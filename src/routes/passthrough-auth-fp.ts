@@ -111,40 +111,69 @@ export const createTokenHandler = (serviceLayer: Layer.Layer<RedisService | Goog
 
   return async (req: express.Request, res: express.Response) => {
 
-    Logger.pipe(
-      Effect.flatMap((logger) =>
-        Effect.sync(() => {
-          logger.info("CreateTokenHandler invoked", { body: req.body });
-        })
-      )
-    );
-    const program = pipe(
+    const program = Effect.gen(function* () {
+      const logger = yield* Logger
+
+      // Log incoming request
+      yield* logger.debug('Token endpoint called', {
+        grant_type: req.body?.grant_type,
+        client_id: req.body?.client_id,
+        has_code: !!req.body?.code,
+        has_refresh_token: !!req.body?.refresh_token,
+        has_code_verifier: !!req.body?.code_verifier,
+      })
+
       // Step 1: Validate request body using Effect Schema
-      validateSchema(TokenRequestSchema, req.body),
+      yield* logger.debug('Validating token request schema')
+      const tokenRequest = yield* validateSchema(TokenRequestSchema, req.body)
+      yield* logger.debug('Token request validated successfully', {
+        grant_type: tokenRequest.grant_type,
+      })
 
       // Step 2: Process based on grant type (discriminated union)
-      Effect.flatMap((tokenRequest) => {
-        if (tokenRequest.grant_type === 'authorization_code') {
-          // Validate as auth code grant and process
-          return pipe(
-            validateSchema(AuthCodeGrantSchema, tokenRequest),
-            Effect.flatMap((grant) => processAuthCodeGrant(grant))
-          )
-        } else if (tokenRequest.grant_type === 'refresh_token') {
-          // Validate as refresh token grant and process
-          return pipe(
-            validateSchema(RefreshTokenGrantSchema, tokenRequest),
-            Effect.flatMap((grant) => processRefreshTokenGrant(grant))
-          )
-        } else {
-          return Effect.fail(
-            new InvalidGrant({
-              reason: `Unsupported grant_type: ${(tokenRequest as any).grant_type}`,
-            })
-          )
-        }
-      }),
-
+      if (tokenRequest.grant_type === 'authorization_code') {
+        yield* logger.debug('Processing authorization_code grant', {
+          code: tokenRequest.code?.substring(0, 10) + '...',
+          client_id: tokenRequest.client_id,
+        })
+        // Validate as auth code grant and process
+        const grant = yield* validateSchema(AuthCodeGrantSchema, tokenRequest)
+        yield* logger.debug('Auth code grant validated, processing...')
+        const result = yield* processAuthCodeGrant(grant)
+        yield* logger.debug('Auth code grant processed successfully', {
+          has_access_token: !!result.access_token,
+          has_refresh_token: !!result.refresh_token,
+          token_type: result.token_type,
+          expires_in: result.expires_in,
+        })
+        return result
+      } else if (tokenRequest.grant_type === 'refresh_token') {
+        yield* logger.debug('Processing refresh_token grant', {
+          refresh_token: tokenRequest.refresh_token?.substring(0, 10) + '...',
+          client_id: tokenRequest.client_id,
+        })
+        // Validate as refresh token grant and process
+        const grant = yield* validateSchema(RefreshTokenGrantSchema, tokenRequest)
+        yield* logger.debug('Refresh token grant validated, processing...')
+        const result = yield* processRefreshTokenGrant(grant)
+        yield* logger.debug('Refresh token grant processed successfully', {
+          has_access_token: !!result.access_token,
+          has_refresh_token: !!result.refresh_token,
+          token_type: result.token_type,
+          expires_in: result.expires_in,
+        })
+        return result
+      } else {
+        yield* logger.debug('Unsupported grant type received', {
+          grant_type: (tokenRequest as any).grant_type,
+        })
+        return yield* Effect.fail(
+          new InvalidGrant({
+            reason: `Unsupported grant_type: ${(tokenRequest as any).grant_type}`,
+          })
+        )
+      }
+    }).pipe(
       // Provide service layer
       Effect.provide(serviceLayer)
     )
@@ -157,8 +186,13 @@ export const createTokenHandler = (serviceLayer: Layer.Layer<RedisService | Goog
     // Step 4: Send response based on result
     if (result._tag === 'Left') {
       const { status, body } = mapErrorToOAuth2(result.left)
+      console.debug('[TokenHandler] Request failed:', {
+        error_tag: result.left._tag,
+        status,
+      })
       res.status(status).json(body)
     } else {
+      console.debug('[TokenHandler] Request succeeded')
       res.json(result.right)
     }
   }
