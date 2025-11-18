@@ -111,7 +111,7 @@ const proxyOptions = {
         const result = await Effect.runPromise(Effect.either(program))
 
         if (result._tag === 'Left') {
-          // Log non-fatal Redis errors but don't fail the request
+          // Log non-fatal Redis errors but don't fail the reques t
           jsonLogger.error('Failed to store PKCE state in Redis', {
             key: `pkce_session:${req.session.pkceKey}`,
             error: result.left,

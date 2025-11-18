@@ -18,7 +18,7 @@ import {
 import { validateSchema } from '../fp/validation.js'
 import type { GoogleOAuthService } from '../fp/services/google.js'
 import type { RedisService } from '../fp/services/redis.js'
-import type {
+import {
   Logger} from '../fp/services/token.js';
 import type { Layer } from 'effect';
 
@@ -108,7 +108,16 @@ const mapErrorToOAuth2 = (error: AppError): { status: number; body: object } => 
  * 5. No side effects in the handler - all IO wrapped in Effect
  */
 export const createTokenHandler = (serviceLayer: Layer.Layer<RedisService | GoogleOAuthService | Logger>) => {
+
   return async (req: express.Request, res: express.Response) => {
+
+    Logger.pipe(
+      Effect.flatMap((logger) =>
+        Effect.sync(() => {
+          logger.info("CreateTokenHandler invoked", { body: req.body });
+        })
+      )
+    );
     const program = pipe(
       // Step 1: Validate request body using Effect Schema
       validateSchema(TokenRequestSchema, req.body),
