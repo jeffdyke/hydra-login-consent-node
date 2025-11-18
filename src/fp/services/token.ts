@@ -138,7 +138,9 @@ export const processRefreshTokenGrant = (
       refreshToken,
       RefreshTokenDataSchema
     )
-
+    if (logger._tag === 'Some') {
+      yield* logger.value.silly('Fetched stored refresh token data', {refresh: refreshToken, token: tokenData })
+    }
     // Step 3: Validate scopes if requested
     if (grant.scope) {
       const requestedScopes = parseScopeString(grant.scope)
