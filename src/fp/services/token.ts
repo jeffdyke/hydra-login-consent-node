@@ -149,37 +149,54 @@ export const processRefreshTokenGrant = (
       yield* validateScopes(requestedScopes, grantedScopes)
     }
 
-    // Step 4: Refresh Google access token
-    const googleResponse = yield* google.refreshToken(tokenData)
+    // Step 4: Refresh Google access token, if needed or return existing
+    if (tokenData.expires_in > 300) {
+      // Token not expired (more than 5 minutes left), return existing
+      if (logger._tag === 'Some') {
+        yield* logger.value.debug('Existing access token still valid, returning it', {
+          expires_in: tokenData.expires_in,
+        })
+      }
+      const response: OAuth2TokenResponse = {
+        access_token: tokenData.access_token,
+        token_type: 'Bearer',
+        expires_in: tokenData.expires_in,
+        refresh_token: tokenData.refresh_token,
+        scope: tokenData.scope,
+      }
+      return response
+    } else {
+      const googleResponse = yield* google.refreshToken(tokenData)
 
-    // Step 5: Check for Google errors (already handled by Effect error channel)
-    // No need for manual error checking - Effect handles it!
+      // Step 5: Check for Google errors (already handled by Effect error channel)
+      // No need for manual error checking - Effect handles it!
 
-    // Step 6: Update stored refresh token
-    const updatedRefreshToken =
-      googleResponse.refresh_token ?? tokenData.refresh_token
+      // Step 6: Update stored refresh token
+      const updatedRefreshToken =
+        googleResponse.refresh_token ?? tokenData.refresh_token
 
-    const updatedData: RefreshTokenData = {
-      ...tokenData,
-      refresh_token: updatedRefreshToken,
-      access_token: googleResponse.access_token,
-      updated_at: Date.now(),
+      const updatedData: RefreshTokenData = {
+        ...tokenData,
+        refresh_token: updatedRefreshToken,
+        access_token: googleResponse.access_token,
+        updated_at: Date.now(),
+      }
+
+      yield* redisOps.setRefreshToken(updatedRefreshToken, updatedData)
+
+      // Step 7: Build OAuth2 token response
+      const response: OAuth2TokenResponse = {
+        access_token: googleResponse.access_token,
+        token_type: 'Bearer',
+        expires_in: googleResponse.expires_in,
+        refresh_token: updatedRefreshToken,
+        scope: googleResponse.scope ?? updatedData.scope,
+      }
+
+      if (logger._tag === 'Some') {
+        yield* logger.value.info('Returning refreshed OAuth2 token response', response)
+      }
+
+      return response
     }
-
-    yield* redisOps.setRefreshToken(updatedRefreshToken, updatedData)
-
-    // Step 7: Build OAuth2 token response
-    const response: OAuth2TokenResponse = {
-      access_token: googleResponse.access_token,
-      token_type: 'Bearer',
-      expires_in: googleResponse.expires_in,
-      refresh_token: updatedRefreshToken,
-      scope: googleResponse.scope ?? updatedData.scope,
-    }
-
-    if (logger._tag === 'Some') {
-      yield* logger.value.info('Returning refreshed OAuth2 token response', response)
-    }
-
-    return response
   })
