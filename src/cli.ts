@@ -15,7 +15,6 @@ import * as authFlow from './authFlow.js'
 import { appConfig } from './config.js'
 import { createLoggerLayer } from './fp/bootstrap.js'
 import { HttpStatusError, NetworkError, type ParseError } from './fp/errors.js'
-import jsonLogger from './logging.js'
 
 
 /**
@@ -31,7 +30,7 @@ const setupLayer = () => {
   }
 
   return Layer.merge(
-    createLoggerLayer(jsonLogger),
+    createLoggerLayer(),
     OAuth2ApiServiceLive(oauth2Config)
   )
 }

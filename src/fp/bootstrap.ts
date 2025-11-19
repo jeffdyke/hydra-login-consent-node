@@ -4,12 +4,11 @@
  */
 import { Configuration } from '@ory/hydra-client-fetch'
 import { OAuth2Api } from '@ory/hydra-client-fetch/dist/index.js'
-import { Layer, Effect } from 'effect'
+import { Layer, Logger } from 'effect'
 import { OAuth2ApiServiceLive, type OAuth2ApiConfig } from '../api/oauth2.js'
 import { GoogleOAuthServiceLive } from './services/google.js'
 import { HydraServiceLive } from './services/hydra.js'
 import { RedisServiceLive } from './services/redis.js'
-import { Logger } from './services/token.js'
 import type { Redis } from 'ioredis'
 
 /**
@@ -26,24 +25,9 @@ export interface AppConfig {
 }
 
 /**
- * Adapter to wrap tslog Logger into our Logger interface
+ * Create Logger Layer using Effect's built-in JSON logger
  */
-export const createLoggerAdapter = (tsLogger: any): Logger => ({
-  silly: (message: string, meta?: object) =>
-    Effect.sync(() => tsLogger.silly(message, meta)),
-  debug: (message: string, meta?: object) =>
-    Effect.sync(() => tsLogger.debug(message, meta)),
-  info: (message: string, meta?: object) =>
-    Effect.sync(() => tsLogger.info(message, meta)),
-  error: (message: string, meta?: object) =>
-    Effect.sync(() => tsLogger.error(message, meta)),
-})
-
-/**
- * Create Logger Layer from tslog instance
- */
-export const createLoggerLayer = (tsLogger: any) =>
-  Layer.succeed(Logger, createLoggerAdapter(tsLogger))
+export const createLoggerLayer = () => Logger.json
 
 /**
  * Create the complete application service layer from existing infrastructure
@@ -51,7 +35,6 @@ export const createLoggerLayer = (tsLogger: any) =>
 export const createAppLayer = (
   redisClient: Redis,
   oauth2Config: OAuth2ApiConfig,
-  tsLogger: any,
   config: {
     googleClientId: string
     googleClientSecret: string
@@ -63,7 +46,7 @@ export const createAppLayer = (
     clientSecret: config.googleClientSecret,
   })
   const oauth2ApiLayer = OAuth2ApiServiceLive(oauth2Config)
-  const loggerLayer = createLoggerLayer(tsLogger)
+  const loggerLayer = createLoggerLayer()
 
   // Create legacy HydraService for routes that still use it
   const configuration = new Configuration({

@@ -14,7 +14,6 @@ import { type AppError, InvalidGrant } from '../fp/errors.js'
 import {
   processAuthCodeGrant,
   processRefreshTokenGrant,
-  Logger
 } from '../fp/services/token.js'
 import { validateSchema } from '../fp/validation.js'
 import type { GoogleOAuthService } from '../fp/services/google.js'
@@ -106,60 +105,66 @@ const mapErrorToOAuth2 = (error: AppError): { status: number; body: object } => 
  * 4. Context-based dependency injection via Layers
  * 5. No side effects in the handler - all IO wrapped in Effect
  */
-export const createTokenHandler = (serviceLayer: Layer.Layer<RedisService | GoogleOAuthService | Logger>) => {
+export const createTokenHandler = (serviceLayer: Layer.Layer<RedisService | GoogleOAuthService>) => {
 
   return async (req: express.Request, res: express.Response) => {
 
     const program = Effect.gen(function* () {
-      const logger = yield* Logger
-
       // Log incoming request
-      yield* logger.debug('Token endpoint called', {
-        grant_type: req.body?.grant_type,
-        client_id: req.body?.client_id,
-        has_code: !!req.body?.code,
-        has_refresh_token: !!req.body?.refresh_token,
-        has_code_verifier: !!req.body?.code_verifier,
-        is_expired: !!req.body?.expired,
-      })
+      yield* Effect.logDebug('Token endpoint called').pipe(
+        Effect.annotateLogs({
+          grant_type: req.body?.grant_type,
+          client_id: req.body?.client_id,
+          has_code: !!req.body?.code,
+          has_refresh_token: !!req.body?.refresh_token,
+          has_code_verifier: !!req.body?.code_verifier,
+          is_expired: !!req.body?.expired,
+        })
+      )
 
       // Step 1: Validate request body using Effect Schema
-      yield* logger.debug('Validating token request schema')
+      yield* Effect.logDebug('Validating token request schema')
       const tokenRequest = yield* validateSchema(TokenRequestSchema, req.body)
-      yield* logger.debug('Token request validated successfully', {
-        grant_type: tokenRequest.grant_type,
-      })
+      yield* Effect.logDebug('Token request validated successfully').pipe(
+        Effect.annotateLogs({ grant_type: tokenRequest.grant_type })
+      )
 
       // Step 2: Process based on grant type (discriminated union)
       if (tokenRequest.grant_type === 'authorization_code') {
-        yield* logger.debug('Processing authorization_code grant', {
-          code: `${tokenRequest.code?.substring(0, 50)}...`,
-          client_id: tokenRequest.client_id,
-        })
+        yield* Effect.logDebug('Processing authorization_code grant').pipe(
+          Effect.annotateLogs({
+            code: `${tokenRequest.code?.substring(0, 50)}...`,
+            client_id: tokenRequest.client_id,
+          })
+        )
         // Validate as auth code grant and process
         const grant = yield* validateSchema(AuthCodeGrantSchema, tokenRequest)
         const result = yield* processAuthCodeGrant(grant)
-        yield* logger.debug('Auth code grant processed successfully', {
-          has_access_token: !!result.access_token,
-          has_refresh_token: !!result.refresh_token,
-          token_type: result.token_type,
-          expires_in: result.expires_in,
-        })
+        yield* Effect.logDebug('Auth code grant processed successfully').pipe(
+          Effect.annotateLogs({
+            has_access_token: !!result.access_token,
+            has_refresh_token: !!result.refresh_token,
+            token_type: result.token_type,
+            expires_in: result.expires_in,
+          })
+        )
         return result
       } else if (tokenRequest.grant_type === 'refresh_token') {
-        yield* logger.debug('Processing refresh_token grant', {
-          refresh_token: `${tokenRequest.refresh_token?.substring(0, 50)}...`,
-          client_id: tokenRequest.client_id
-        })
+        yield* Effect.logDebug('Processing refresh_token grant').pipe(
+          Effect.annotateLogs({
+            refresh_token: `${tokenRequest.refresh_token?.substring(0, 50)}...`,
+            client_id: tokenRequest.client_id
+          })
+        )
         // Validate as refresh token grant and process
         const grant = yield* validateSchema(RefreshTokenGrantSchema, tokenRequest)
         const result = yield* processRefreshTokenGrant(grant)
         return result
 
       } else {
-        yield* logger.debug('Unsupported grant type received', {
-          grant_type: (tokenRequest as any).grant_type,
-        })
+        yield* Effect.logDebug('Unsupported grant type received').pipe(
+          Effect.annotateLogs({ grant_type: (tokenRequest as any).grant_type })
+        )
         return yield* Effect.fail(
           new InvalidGrant({
             reason: `Unsupported grant_type: ${(tokenRequest as any).grant_type}`,
@@ -194,7 +199,7 @@ export const createTokenHandler = (serviceLayer: Layer.Layer<RedisService | Goog
 /**
  * Router factory (will be used when we have service layer available)
  */
-export const createTokenRouter = (serviceLayer: Layer.Layer<RedisService | GoogleOAuthService | Logger>) => {
+export const createTokenRouter = (serviceLayer: Layer.Layer<RedisService | GoogleOAuthService>) => {
   router.post('/token', createTokenHandler(serviceLayer))
   return router
 }

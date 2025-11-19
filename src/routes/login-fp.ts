@@ -6,7 +6,6 @@ import express from 'express'
 import { type AppError } from '../fp/errors.js'
 import { processLogin } from '../fp/services/login.js'
 import type { HydraService } from '../fp/services/hydra.js'
-import type { Logger } from '../fp/services/token.js'
 import type { Layer } from 'effect';
 
 const router = express.Router()
@@ -29,7 +28,7 @@ const mapErrorToHttp = (error: AppError): { status: number; message: string } =>
 /**
  * Login handler factory
  */
-const createLoginHandler = (serviceLayer: Layer.Layer<HydraService | Logger>) => {
+const createLoginHandler = (serviceLayer: Layer.Layer<HydraService>) => {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const challenge = String(req.query.login_challenge ?? req.body.challenge)
 
@@ -57,7 +56,7 @@ const createLoginHandler = (serviceLayer: Layer.Layer<HydraService | Logger>) =>
 /**
  * Create login router with service layer
  */
-export const createLoginRouter = (serviceLayer: Layer.Layer<HydraService | Logger>) => {
+export const createLoginRouter = (serviceLayer: Layer.Layer<HydraService>) => {
   const handler = createLoginHandler(serviceLayer)
 
   router.get('/', handler)
