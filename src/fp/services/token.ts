@@ -2,7 +2,7 @@
  * OAuth2 Token Service - Effect version
  * Uses Effect.gen for readable async code with dependency injection
  */
-import { Effect, Context } from 'effect'
+import { Effect } from 'effect'
 import {
   PKCEStateSchema,
   AuthCodeDataSchema,
@@ -22,31 +22,15 @@ import type {
   RefreshTokenData} from '../domain.js';
 
 /**
- * Logger service interface
- */
-export interface Logger {
-  readonly silly: (message: string, meta?: object) => Effect.Effect<void>
-  readonly debug: (message: string, meta?: object) => Effect.Effect<void>
-  readonly info: (message: string, meta?: object) => Effect.Effect<void>
-  readonly error: (message: string, meta?: object) => Effect.Effect<void>
-}
-
-/**
- * Logger service tag
- */
-export const Logger = Context.GenericTag<Logger>('Logger')
-
-/**
  * Process authorization_code grant type (Effect version)
  * Pipeline: Fetch auth data -> Validate PKCE -> Create tokens -> Store refresh token
  */
 export const processAuthCodeGrant = (
   grant: AuthCodeGrant
-): Effect.Effect<OAuth2TokenResponse, AppError, RedisService | Logger> =>
+): Effect.Effect<OAuth2TokenResponse, AppError, RedisService> =>
   Effect.gen(function* () {
     // Access services from context
     const redis = yield* RedisService
-    const logger = yield* Effect.serviceOption(Logger)
 
     const redisOps = createOAuthRedisOps(redis)
 
@@ -80,10 +64,10 @@ export const processAuthCodeGrant = (
       updated_at: Date.now(),
     }
 
-    // Log if logger available
-    if (logger._tag === 'Some') {
-      yield* logger.value.silly('Created refresh token data', refreshTokenData)
-    }
+    // Log created token data
+    yield* Effect.logTrace('Created refresh token data').pipe(
+      Effect.annotateLogs(refreshTokenData)
+    )
 
     // Step 5: Store refresh token in Redis
     yield* redisOps.setRefreshToken(
@@ -100,9 +84,9 @@ export const processAuthCodeGrant = (
       scope: refreshTokenData.scope,
     }
 
-    if (logger._tag === 'Some') {
-      yield* logger.value.info('Returning OAuth2 token response', response)
-    }
+    yield* Effect.logInfo('Returning OAuth2 token response').pipe(
+      Effect.annotateLogs(response)
+    )
 
     return response
   })
@@ -116,13 +100,12 @@ export const processRefreshTokenGrant = (
 ): Effect.Effect<
   OAuth2TokenResponse,
   AppError,
-  RedisService | GoogleOAuthService | Logger
+  RedisService | GoogleOAuthService
 > =>
   Effect.gen(function* () {
     // Access services
     const redis = yield* RedisService
     const google = yield* GoogleOAuthService
-    const logger = yield* Effect.serviceOption(Logger)
 
     const redisOps = createOAuthRedisOps(redis)
 
@@ -138,9 +121,10 @@ export const processRefreshTokenGrant = (
       refreshToken,
       RefreshTokenDataSchema
     )
-    if (logger._tag === 'Some') {
-      yield* logger.value.silly('Fetched stored refresh token data', {refresh: refreshToken, token: tokenData })
-    }
+    yield* Effect.logTrace('Fetched stored refresh token data').pipe(
+      Effect.annotateLogs({ refresh: refreshToken, token: tokenData })
+    )
+
     // Step 3: Validate scopes if requested
     if (grant.scope) {
       const requestedScopes = parseScopeString(grant.scope)
@@ -152,11 +136,9 @@ export const processRefreshTokenGrant = (
     // Step 4: Refresh Google access token, if needed or return existing
     if (tokenData.expires_in > 300) {
       // Token not expired (more than 5 minutes left), return existing
-      if (logger._tag === 'Some') {
-        yield* logger.value.debug('Existing access token still valid, returning it', {
-          expires_in: tokenData.expires_in,
-        })
-      }
+      yield* Effect.logDebug('Existing access token still valid, returning it').pipe(
+        Effect.annotateLogs({ expires_in: tokenData.expires_in })
+      )
       const response: OAuth2TokenResponse = {
         access_token: tokenData.access_token,
         token_type: 'Bearer',
@@ -193,9 +175,9 @@ export const processRefreshTokenGrant = (
         scope: googleResponse.scope ?? updatedData.scope,
       }
 
-      if (logger._tag === 'Some') {
-        yield* logger.value.info('Returning refreshed OAuth2 token response', response)
-      }
+      yield* Effect.logInfo('Returning refreshed OAuth2 token response').pipe(
+        Effect.annotateLogs(response)
+      )
 
       return response
     }

@@ -7,7 +7,6 @@ import { type AppError } from '../fp/errors.js'
 import { processConsent, type ConsentConfig } from '../fp/services/consent.js'
 import { ErrorPage } from '../views/index.js'
 import type { HydraService } from '../fp/services/hydra.js'
-import type { Logger } from '../fp/services/token.js'
 import type { Layer } from 'effect'
 
 const router = express.Router()
@@ -32,7 +31,7 @@ const mapErrorToHttp = (error: AppError): { status: number; message: string } =>
  * Consent handler
  */
 const createConsentHandler = (
-  serviceLayer: Layer.Layer<HydraService | Logger>,
+  serviceLayer: Layer.Layer<HydraService>,
   config: ConsentConfig
 ) => {
   return async (req: express.Request, res: express.Response) => {
@@ -64,7 +63,7 @@ const createConsentHandler = (
  * Create consent router with service layer
  */
 export const createConsentRouter = (
-  serviceLayer: Layer.Layer<HydraService | Logger>,
+  serviceLayer: Layer.Layer<HydraService>,
   config: ConsentConfig
 ) => {
   router.get('/', createConsentHandler(serviceLayer, config))

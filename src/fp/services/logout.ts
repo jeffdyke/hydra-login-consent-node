@@ -4,7 +4,6 @@
 import { Effect } from 'effect'
 import { type AppError } from '../errors.js'
 import { HydraService } from './hydra.js'
-import { Logger } from './token.js'
 
 /**
  * Get logout request information
@@ -15,16 +14,15 @@ export const getLogoutInfo = (
 ): Effect.Effect<
   { challenge: string; subject?: string },
   AppError,
-  HydraService | Logger
+  HydraService
 > =>
   Effect.gen(function* () {
     // Access services
     const hydra = yield* HydraService
-    const logger = yield* Effect.serviceOption(Logger)
 
-    if (logger._tag === 'Some') {
-      yield* logger.value.info('Getting logout request info', { challenge })
-    }
+    yield* Effect.logInfo('Getting logout request info').pipe(
+      Effect.annotateLogs({ challenge })
+    )
 
     const logoutRequest = yield* hydra.getLogoutRequest(challenge)
 
@@ -39,23 +37,22 @@ export const getLogoutInfo = (
  */
 export const acceptLogout = (
   challenge: string
-): Effect.Effect<string, AppError, HydraService | Logger> =>
+): Effect.Effect<string, AppError, HydraService> =>
   Effect.gen(function* () {
     // Access services
     const hydra = yield* HydraService
-    const logger = yield* Effect.serviceOption(Logger)
 
-    if (logger._tag === 'Some') {
-      yield* logger.value.info('Accepting logout request', { challenge })
-    }
+    yield* Effect.logInfo('Accepting logout request').pipe(
+      Effect.annotateLogs({ challenge })
+    )
 
     const redirectTo = yield* hydra.acceptLogoutRequest(challenge)
 
-    if (logger._tag === 'Some') {
-      yield* logger.value.info('Logout accepted, redirecting', {
+    yield* Effect.logInfo('Logout accepted, redirecting').pipe(
+      Effect.annotateLogs({
         redirect_to: redirectTo.redirect_to,
       })
-    }
+    )
 
     return String(redirectTo.redirect_to)
   })
@@ -65,15 +62,14 @@ export const acceptLogout = (
  */
 export const rejectLogout = (
   challenge: string
-): Effect.Effect<void, AppError, HydraService | Logger> =>
+): Effect.Effect<void, AppError, HydraService> =>
   Effect.gen(function* () {
     // Access services
     const hydra = yield* HydraService
-    const logger = yield* Effect.serviceOption(Logger)
 
-    if (logger._tag === 'Some') {
-      yield* logger.value.info('Rejecting logout request', { challenge })
-    }
+    yield* Effect.logInfo('Rejecting logout request').pipe(
+      Effect.annotateLogs({ challenge })
+    )
 
     yield* hydra.rejectLogoutRequest(challenge)
   })

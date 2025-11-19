@@ -55,7 +55,7 @@ const oauth2Config = {
 }
 
 // Bootstrap functional environment with Effect Layers
-const serviceLayer = createAppLayer(redisClient, oauth2Config, jsonLogger, {
+const serviceLayer = createAppLayer(redisClient, oauth2Config, {
   googleClientId: appConfig.googleClientId ?? '',
   googleClientSecret: appConfig.googleClientSecret ?? '',
 })

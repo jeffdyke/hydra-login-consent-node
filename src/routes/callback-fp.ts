@@ -6,7 +6,6 @@ import express from 'express'
 import { type AppError } from '../fp/errors.js'
 import { processCallback, type GoogleOAuthClient, type CallbackConfig } from '../fp/services/callback.js'
 import type { RedisService } from '../fp/services/redis.js'
-import type { Logger } from '../fp/services/token.js'
 import type { Layer } from 'effect';
 
 const router = express.Router()
@@ -34,7 +33,7 @@ const mapErrorToHttp = (error: AppError): { status: number; message: string } =>
  * Callback handler
  */
 const createCallbackHandler = (
-  serviceLayer: Layer.Layer<RedisService | Logger>,
+  serviceLayer: Layer.Layer<RedisService>,
   googleClient: GoogleOAuthClient,
   config: CallbackConfig
 ) => {
@@ -73,7 +72,7 @@ const createCallbackHandler = (
  * Create callback router with service layer
  */
 export const createCallbackRouter = (
-  serviceLayer: Layer.Layer<RedisService | Logger>,
+  serviceLayer: Layer.Layer<RedisService>,
   googleClient: GoogleOAuthClient,
   config: CallbackConfig
 ) => {

@@ -6,7 +6,6 @@
  */
 import { Effect, pipe } from 'effect'
 import express from 'express'
-import { Logger } from '../fp/services/token.js'
 import type { Layer } from 'effect'
 
 const router = express.Router()
@@ -14,17 +13,13 @@ const router = express.Router()
 /**
  * HEAD / - Health check endpoint (headers only)
  */
-const createHeadHandler = (serviceLayer: Layer.Layer<Logger>) => {
+const createHeadHandler = (serviceLayer: Layer.Layer<never>) => {
   return async (req: express.Request, res: express.Response) => {
     const program = pipe(
       Effect.gen(function* () {
-        const logger = yield* Effect.serviceOption(Logger)
-
-        if (logger._tag === 'Some') {
-          yield* logger.value.info('HEAD / request received', {
-            headers: req.headers,
-          })
-        }
+        yield* Effect.logInfo('HEAD / request received').pipe(
+          Effect.annotateLogs({ headers: req.headers })
+        )
 
         return 'No Change'
       }),
@@ -41,17 +36,13 @@ const createHeadHandler = (serviceLayer: Layer.Layer<Logger>) => {
 /**
  * GET / - Health check endpoint
  */
-const createGetHandler = (serviceLayer: Layer.Layer<Logger>) => {
+const createGetHandler = (serviceLayer: Layer.Layer<never>) => {
   return async (req: express.Request, res: express.Response) => {
     const program = pipe(
       Effect.gen(function* () {
-        const logger = yield* Effect.serviceOption(Logger)
-
-        if (logger._tag === 'Some') {
-          yield* logger.value.info('GET / request received', {
-            headers: req.headers,
-          })
-        }
+        yield* Effect.logInfo('GET / request received').pipe(
+          Effect.annotateLogs({ headers: req.headers })
+        )
 
         return 'No Change'
       }),
@@ -68,17 +59,13 @@ const createGetHandler = (serviceLayer: Layer.Layer<Logger>) => {
 /**
  * POST / - Health check endpoint (for testing)
  */
-const createPostHandler = (serviceLayer: Layer.Layer<Logger>) => {
+const createPostHandler = (serviceLayer: Layer.Layer<never>) => {
   return async (req: express.Request, res: express.Response) => {
     const program = pipe(
       Effect.gen(function* () {
-        const logger = yield* Effect.serviceOption(Logger)
-
-        if (logger._tag === 'Some') {
-          yield* logger.value.info('POST / request received', {
-            headers: req.headers,
-          })
-        }
+        yield* Effect.logInfo('POST / request received').pipe(
+          Effect.annotateLogs({ headers: req.headers })
+        )
 
         return 'No Change'
       }),
@@ -95,7 +82,7 @@ const createPostHandler = (serviceLayer: Layer.Layer<Logger>) => {
 /**
  * Create index router with service layer
  */
-export const createIndexRouter = (serviceLayer: Layer.Layer<Logger>) => {
+export const createIndexRouter = (serviceLayer: Layer.Layer<never>) => {
   router.head('/', createHeadHandler(serviceLayer))
   router.get('/', createGetHandler(serviceLayer))
   router.post('/', createPostHandler(serviceLayer))

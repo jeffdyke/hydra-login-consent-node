@@ -6,7 +6,6 @@ import { PKCEStateSchema } from '../domain.js'
 import { type AppError } from '../errors.js'
 import { HydraService } from './hydra.js'
 import { RedisService, createOAuthRedisOps } from './redis.js'
-import { Logger } from './token.js'
 
 /**
  * Configuration for Google OAuth
@@ -44,25 +43,24 @@ export const processConsent = (
   challenge: string,
   config: ConsentConfig,
   requestedScope?: string
-): Effect.Effect<string, AppError, HydraService | Logger> =>
+): Effect.Effect<string, AppError, HydraService> =>
   Effect.gen(function* () {
     // Access services
     const hydra = yield* HydraService
-    const logger = yield* Effect.serviceOption(Logger)
 
-    if (logger._tag === 'Some') {
-      yield* logger.value.info('Processing consent challenge', { challenge })
-    }
+    yield* Effect.logInfo('Processing consent challenge').pipe(
+      Effect.annotateLogs({ challenge })
+    )
 
     // Step 1: Get consent info
     const consentInfo = yield* hydra.getConsentRequest(challenge)
 
-    if (logger._tag === 'Some') {
-      yield* logger.value.info('Consent info received', {
+    yield* Effect.logInfo('Consent info received').pipe(
+      Effect.annotateLogs({
         subject: consentInfo.subject,
         requestedScopes: consentInfo.requested_scope,
       })
-    }
+    )
 
     // Step 2: Accept consent with requested scopes
     yield* hydra.acceptConsentRequest(challenge, {
@@ -79,9 +77,9 @@ export const processConsent = (
     // Step 3: Build Google OAuth URL
     const googleUrl = buildGoogleAuthUrl(config, challenge)
 
-    if (logger._tag === 'Some') {
-      yield* logger.value.info('Redirecting to Google OAuth', { url: googleUrl })
-    }
+    yield* Effect.logInfo('Redirecting to Google OAuth').pipe(
+      Effect.annotateLogs({ url: googleUrl })
+    )
 
     return googleUrl
   })
@@ -95,11 +93,10 @@ export const processConsentWithPKCE = (
   sessionId: string,
   config: ConsentConfig,
   requestedScope?: string
-): Effect.Effect<string, AppError, HydraService | RedisService | Logger> =>
+): Effect.Effect<string, AppError, HydraService | RedisService> =>
   Effect.gen(function* () {
     // Access services
     const redis = yield* RedisService
-    const logger = yield* Effect.serviceOption(Logger)
 
     const redisOps = createOAuthRedisOps(redis)
 
@@ -113,9 +110,9 @@ export const processConsentWithPKCE = (
     const url = new URL(baseUrl)
     url.searchParams.set('state', pkceData.state || challenge)
 
-    if (logger._tag === 'Some') {
-      yield* logger.value.info('Using PKCE state from session', { sessionId, state: pkceData.state })
-    }
+    yield* Effect.logInfo('Using PKCE state from session').pipe(
+      Effect.annotateLogs({ sessionId, state: pkceData.state })
+    )
 
     return url.toString()
   })
