@@ -134,7 +134,7 @@ export const processRefreshTokenGrant = (
     }
 
     // Step 4: Refresh Google access token, if needed or return existing
-    if (tokenData.expires_in > 300) {
+    if (tokenData.expires_in > 4000) {
       // Token not expired (more than 5 minutes left), return existing
       yield* Effect.logDebug('Existing access token still valid, returning it').pipe(
         Effect.annotateLogs({ expires_in: tokenData.expires_in })
