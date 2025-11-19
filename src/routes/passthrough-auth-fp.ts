@@ -13,13 +13,12 @@ import {
 import { type AppError, InvalidGrant } from '../fp/errors.js'
 import {
   processAuthCodeGrant,
-  processRefreshTokenGrant
+  processRefreshTokenGrant,
+  Logger
 } from '../fp/services/token.js'
 import { validateSchema } from '../fp/validation.js'
 import type { GoogleOAuthService } from '../fp/services/google.js'
 import type { RedisService } from '../fp/services/redis.js'
-import {
-  Logger} from '../fp/services/token.js';
 import type { Layer } from 'effect';
 
 const router = express.Router()
