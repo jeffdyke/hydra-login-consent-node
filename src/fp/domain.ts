@@ -28,7 +28,7 @@ export type PKCEState = typeof PKCEStateSchema.Type
  * Hydra Client
  */
 
-export const AllowedFlowScopes = Schema.Literal("email", "offline", "offline_access", "profile", "openid")
+export const AllowedFlowScopes = Schema.Literal("email", "offline_access", "profile", "openid")
 export const AllowedResponseTypes = Schema.Literal("code")
 
 
