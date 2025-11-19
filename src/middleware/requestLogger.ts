@@ -26,7 +26,7 @@ export function requestLogger(req: Request, res: Response, next: NextFunction) {
     if (req.originalUrl !== "/favicon.ico"){
       const end = process.hrtime.bigint();
       const duration = Number(end - start) / 1_000_000;
-      res.locals.logData.body = res.locals
+
       logger.info(`Request finished: ${req.method} ${req.originalUrl.split("?")[0]}`, {
         statusCode: res.statusCode,
         durationMs: duration.toFixed(2),
