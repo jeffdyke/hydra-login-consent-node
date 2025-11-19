@@ -73,7 +73,8 @@ const callbackConfig = {
 const logoutConfig = {
   hostName: appConfig.hostName,
 }
-
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: false }))
 // Middleware setup (same as original)
 app.set('trust proxy', 1)
 app.use(requestLogger)
@@ -90,8 +91,7 @@ app.use(
     proxy: true,
   })
 )
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: false }))
+
 app.use('/oauth2/register', proxyMiddleware)
 app.use('/oauth2/auth', proxyMiddleware)
 
