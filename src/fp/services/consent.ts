@@ -26,7 +26,7 @@ const buildGoogleAuthUrl = (
   googleAuthUrl.searchParams.set('client_id', config.googleClientId)
   googleAuthUrl.searchParams.set('redirect_uri', config.middlewareRedirectUri)
   googleAuthUrl.searchParams.set('response_type', 'code')
-  googleAuthUrl.searchParams.set('scope', 'offline openid profile email')
+  googleAuthUrl.searchParams.set('scope', 'openid profile email')
   googleAuthUrl.searchParams.set('state', state)
   googleAuthUrl.searchParams.set('access_type', 'offline')
   googleAuthUrl.searchParams.set('prompt', 'consent')
