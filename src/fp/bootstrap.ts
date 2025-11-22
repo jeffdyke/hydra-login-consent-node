@@ -8,6 +8,7 @@ import { Layer, Logger } from 'effect'
 import { OAuth2ApiServiceLive, type OAuth2ApiConfig } from '../api/oauth2.js'
 import { GoogleOAuthServiceLive } from './services/google.js'
 import { HydraServiceLive } from './services/hydra.js'
+import { JWTServiceLive } from './services/jwt.js'
 import { RedisServiceLive } from './services/redis.js'
 import type { Redis } from 'ioredis'
 
@@ -38,12 +39,20 @@ export const createAppLayer = (
   config: {
     googleClientId: string
     googleClientSecret: string
+    jwtSecret: string
+    jwtIssuer: string
+    jwtAudience: string
   }
 ) => {
   const redisLayer = RedisServiceLive(redisClient)
   const googleLayer = GoogleOAuthServiceLive({
     clientId: config.googleClientId,
     clientSecret: config.googleClientSecret,
+  })
+  const jwtLayer = JWTServiceLive({
+    secret: config.jwtSecret,
+    issuer: config.jwtIssuer,
+    audience: config.jwtAudience,
   })
   const oauth2ApiLayer = OAuth2ApiServiceLive(oauth2Config)
   const loggerLayer = createLoggerLayer()
@@ -57,5 +66,5 @@ export const createAppLayer = (
   const hydraLayer = HydraServiceLive(hydraClient)
 
   // Merge all service layers
-  return Layer.mergeAll(redisLayer, googleLayer, oauth2ApiLayer, hydraLayer, loggerLayer)
+  return Layer.mergeAll(redisLayer, googleLayer, jwtLayer, oauth2ApiLayer, hydraLayer, loggerLayer)
 }
