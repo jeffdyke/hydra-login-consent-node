@@ -38,13 +38,53 @@ const createConsentHandler = (
     const challenge = String(req.query.consent_challenge)
     const requestedScope = req.query.requested_scope as string | undefined
 
+    // Log entry point
+    await Effect.runPromise(
+      Effect.logInfo('=== CONSENT ENDPOINT CALLED ===').pipe(
+        Effect.annotateLogs({
+          method: req.method,
+          path: req.path,
+          has_consent_challenge: !!challenge,
+          consent_challenge_preview: challenge ? `${challenge.substring(0, 20)}...` : 'none',
+          requested_scope: requestedScope,
+          query: req.query,
+          session_id: req.session?.id,
+          headers: {
+            'content-type': req.headers['content-type'],
+            'user-agent': req.headers['user-agent'],
+            origin: req.headers.origin,
+            referer: req.headers.referer,
+          },
+          ip: req.ip,
+          timestamp: new Date().toISOString(),
+        }),
+        Effect.provide(serviceLayer)
+      )
+    )
+
     if (!challenge) {
+      await Effect.runPromise(
+        Effect.logError('=== CONSENT ERROR: Missing Challenge ===').pipe(
+          Effect.annotateLogs({
+            query: req.query,
+            timestamp: new Date().toISOString(),
+          }),
+          Effect.provide(serviceLayer)
+        )
+      )
       res.status(400).send('Missing consent_challenge parameter')
       return
     }
 
     const program = pipe(
-      processConsent(challenge, config, requestedScope),
+      Effect.logInfo('Processing consent request').pipe(
+        Effect.annotateLogs({
+          challenge_preview: `${challenge.substring(0, 20)}...`,
+          requested_scope: requestedScope,
+          config,
+        })
+      ),
+      Effect.andThen(() => processConsent(challenge, config, requestedScope)),
       Effect.provide(serviceLayer)
     )
 
@@ -52,8 +92,34 @@ const createConsentHandler = (
 
     if (result._tag === 'Left') {
       const { status, message } = mapErrorToHttp(result.left)
+
+      await Effect.runPromise(
+        Effect.logError('=== CONSENT ERROR ===').pipe(
+          Effect.annotateLogs({
+            error_tag: result.left._tag,
+            error_details: result.left,
+            status,
+            message,
+            challenge_preview: `${challenge.substring(0, 20)}...`,
+            timestamp: new Date().toISOString(),
+          }),
+          Effect.provide(serviceLayer)
+        )
+      )
+
       res.status(status).send(ErrorPage({ message }))
     } else {
+      await Effect.runPromise(
+        Effect.logInfo('=== CONSENT SUCCESS ===').pipe(
+          Effect.annotateLogs({
+            redirect_to: result.right,
+            challenge_preview: `${challenge.substring(0, 20)}...`,
+            timestamp: new Date().toISOString(),
+          }),
+          Effect.provide(serviceLayer)
+        )
+      )
+
       res.redirect(result.right)
     }
   }

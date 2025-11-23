@@ -61,6 +61,7 @@
     "google-auth-library": "^10.4.0",
     "http-proxy-middleware": "^3.0.5",
     "ioredis": "^5.8.2",
+    "jose": "^6.1.2",
     "rotating-file-stream": "^3.2.7",
     "serve-favicon": "^2.5.1",
     "tslib": "^2.8.1",

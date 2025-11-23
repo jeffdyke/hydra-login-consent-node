@@ -132,6 +132,8 @@ export const createOAuthRedisOps = (service: RedisService) => {
   const AUTH_CODE_PREFIX = 'auth_code:'
   const AUTH_CODE_STATE_PREFIX = 'auth_code_state:'
   const REFRESH_TOKEN_PREFIX = 'refresh_token:'
+  const GOOGLE_TOKEN_PREFIX = 'google_token:' // JTI -> GoogleTokenData
+  const JWT_REFRESH_PREFIX = 'jwt_refresh:' // Our refresh token -> JWTRefreshData
 
   return {
     getPKCEState: <A, I>(sessionId: string, schema: Schema.Schema<A, I, never>) =>
@@ -160,6 +162,7 @@ export const createOAuthRedisOps = (service: RedisService) => {
     deleteAuthCodeState: (code: string) =>
       service.del(`${AUTH_CODE_STATE_PREFIX}${code}`),
 
+    // Legacy refresh token operations (for backward compatibility)
     getRefreshToken: <A, I>(refreshToken: string, schema: Schema.Schema<A, I, never>) =>
       service.getJSON(`${REFRESH_TOKEN_PREFIX}${refreshToken}`, schema),
 
@@ -171,5 +174,32 @@ export const createOAuthRedisOps = (service: RedisService) => {
 
     deleteRefreshToken: (refreshToken: string) =>
       service.del(`${REFRESH_TOKEN_PREFIX}${refreshToken}`),
+
+    // New JWT-based operations
+    // Store/retrieve Google tokens by JTI (from JWT access token)
+    getGoogleToken: <A, I>(jti: string, schema: Schema.Schema<A, I, never>) =>
+      service.getJSON(`${GOOGLE_TOKEN_PREFIX}${jti}`, schema),
+
+    setGoogleToken: (
+      jti: string,
+      data: unknown,
+      ttlSeconds: number = 60 * 60 * 24 * 30 // 30 days default
+    ) => service.setJSON(`${GOOGLE_TOKEN_PREFIX}${jti}`, data, ttlSeconds),
+
+    deleteGoogleToken: (jti: string) =>
+      service.del(`${GOOGLE_TOKEN_PREFIX}${jti}`),
+
+    // Store/retrieve JWT refresh token data
+    getJWTRefresh: <A, I>(refreshToken: string, schema: Schema.Schema<A, I, never>) =>
+      service.getJSON(`${JWT_REFRESH_PREFIX}${refreshToken}`, schema),
+
+    setJWTRefresh: (
+      refreshToken: string,
+      data: unknown,
+      ttlSeconds: number = 60 * 60 * 24 * 90 // 90 days default
+    ) => service.setJSON(`${JWT_REFRESH_PREFIX}${refreshToken}`, data, ttlSeconds),
+
+    deleteJWTRefresh: (refreshToken: string) =>
+      service.del(`${JWT_REFRESH_PREFIX}${refreshToken}`),
   }
 }

@@ -58,6 +58,9 @@ const oauth2Config = {
 const serviceLayer = createAppLayer(redisClient, oauth2Config, {
   googleClientId: appConfig.googleClientId ?? '',
   googleClientSecret: appConfig.googleClientSecret ?? '',
+  jwtSecret: appConfig.jwtSecret,
+  jwtIssuer: appConfig.jwtIssuer,
+  jwtAudience: appConfig.jwtAudience,
 })
 
 // Create config objects for routes

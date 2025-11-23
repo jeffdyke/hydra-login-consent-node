@@ -154,7 +154,23 @@ const proxyOptions = {
  */
 const enhancedProxyMiddleware = (req: Request, res: Response, next: NextFunction) => {
   if (req.path === '/oauth2/auth') {
-    const { client_id, redirect_uri, response_type } = req.query
+    jsonLogger.info('=== OAUTH2 AUTHORIZATION ENDPOINT ===', {
+      method: req.method,
+      path: req.path,
+      query: req.query,
+      session_id: req.session.id,
+      session_pkce_key: req.session.pkceKey,
+      headers: {
+        'content-type': req.headers['content-type'],
+        'user-agent': req.headers['user-agent'],
+        origin: req.headers.origin,
+        referer: req.headers.referer,
+      },
+      ip: req.ip,
+      timestamp: new Date().toISOString(),
+    })
+
+    const { client_id, redirect_uri, response_type, code_challenge, code_challenge_method, scope, state } = req.query
 
     // Fatal validation errors that should return 400
     const missingParams: string[] = []
@@ -164,9 +180,10 @@ const enhancedProxyMiddleware = (req: Request, res: Response, next: NextFunction
     if (!response_type) missingParams.push('response_type')
 
     if (missingParams.length > 0) {
-      jsonLogger.error('Missing required OAuth2 parameters', {
+      jsonLogger.error('=== OAUTH2 AUTH ERROR: Missing Parameters ===', {
         missingParams,
         query: req.query,
+        timestamp: new Date().toISOString(),
       })
       return res.status(400).json({
         error: 'invalid_request',
@@ -176,18 +193,38 @@ const enhancedProxyMiddleware = (req: Request, res: Response, next: NextFunction
 
     // Validate response_type
     if (response_type !== 'code') {
-      jsonLogger.error('Invalid response_type', {
+      jsonLogger.error('=== OAUTH2 AUTH ERROR: Invalid Response Type ===', {
         response_type,
         query: req.query,
+        timestamp: new Date().toISOString(),
       })
       return res.status(400).json({
         error: 'unsupported_response_type',
         error_description: 'Only response_type=code is supported',
       })
     }
+
+    // Log PKCE parameters
+    jsonLogger.info('OAUTH2 AUTH: PKCE Parameters', {
+      has_code_challenge: !!code_challenge,
+      code_challenge_method: code_challenge_method || 'not provided',
+      has_state: !!state,
+      scope,
+      timestamp: new Date().toISOString(),
+    })
   } else if (req.path.startsWith('/oauth2/register')) {
-    // Additional validation for client registration can be added here
-    jsonLogger.info('Modifying /oauth2/register request body to set contacts to empty array instead of null')
+    jsonLogger.info('=== OAUTH2 CLIENT REGISTRATION ENDPOINT ===', {
+      method: req.method,
+      path: req.path,
+      body: req.body,
+      headers: {
+        'content-type': req.headers['content-type'],
+        'user-agent': req.headers['user-agent'],
+        origin: req.headers.origin,
+      },
+      ip: req.ip,
+      timestamp: new Date().toISOString(),
+    })
   }
 
   // Continue to proxy

@@ -29,6 +29,9 @@ export const appConfig = (() => {
     xsrfHeaderName: config.security.xsrfHeaderName,
     redisHost: config.redis.host,
     redisPort: config.redis.port,
+    jwtSecret: config.security.jwtSecret,
+    jwtIssuer: config.security.jwtIssuer,
+    jwtAudience: config.security.jwtAudience,
   }
 })()
 
