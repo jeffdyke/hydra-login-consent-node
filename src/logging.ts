@@ -1,69 +1,20 @@
-import { createStream } from "rotating-file-stream";
-
-const accessLogStream = createStream("hydra-headless.log", {
-  interval: "1d", // Rotate daily
-  path: "/var/log/hydra-headless-ts", // Directory for log files
-  compress: "gzip", // (Optional) Compress rotated files
-});
-
-type LogLevel = 'TRACE' | 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL'
-
-interface LogEntry {
-  message: string
-  logLevel: LogLevel
-  timestamp: string
-  annotations: Record<string, unknown>
-  spans: Record<string, unknown>
-  fiberId: string
-}
-
 /**
- * JSON Logger that matches Effect's Logger.json format
- * Used for Express middleware and other non-Effect code
+ * @deprecated This file has been replaced by logging-effect.ts
+ *
+ * All logging now uses Effect's Logger with file output to rotating log stream.
+ *
+ * Migration:
+ * - For Effect code: Use Effect.logInfo, Effect.logError, etc. (already configured)
+ * - For Express/non-Effect code: Use syncLogger from './logging-effect.js'
+ *
+ * Example:
+ * ```typescript
+ * import { syncLogger } from './logging-effect.js'
+ *
+ * syncLogger.info('Message', { key: 'value' })
+ * syncLogger.error('Error message', { error: err })
+ * ```
  */
-class JsonLogger {
-  private write(level: LogLevel, message: string, annotations?: Record<string, unknown>): void {
-    const entry: LogEntry = {
-      message,
-      logLevel: level,
-      timestamp: new Date().toISOString(),
-      annotations: annotations ?? {},
-      spans: {},
-      fiberId: '#express'
-    }
 
-    const json = JSON.stringify(entry)
-
-    // Write to stdout and file
-    process.stdout.write(`${json}\n`)
-    accessLogStream.write(`${json}\n`)
-  }
-
-  trace(message: string, annotations?: Record<string, unknown>): void {
-    this.write('TRACE', message, annotations)
-  }
-
-  debug(message: string, annotations?: Record<string, unknown>): void {
-    this.write('DEBUG', message, annotations)
-  }
-
-  info(message: string, annotations?: Record<string, unknown>): void {
-    this.write('INFO', message, annotations)
-  }
-
-  warn(message: string, annotations?: Record<string, unknown>): void {
-    this.write('WARN', message, annotations)
-  }
-
-  error(message: string, annotations?: Record<string, unknown>): void {
-    this.write('ERROR', message, annotations)
-  }
-
-  fatal(message: string, annotations?: Record<string, unknown>): void {
-    this.write('FATAL', message, annotations)
-  }
-}
-
-const jsonLogger = new JsonLogger()
-
-export default jsonLogger
+// Re-export for backwards compatibility
+export { syncLogger as default, accessLogStream } from './logging-effect.js'

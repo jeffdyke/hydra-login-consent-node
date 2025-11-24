@@ -13,7 +13,7 @@ import favicon from 'serve-favicon'
 import { v4 } from 'uuid'
 import { PgStore, appConfig } from './config.js'
 import { createAppLayer } from './fp/bootstrap.js'
-import jsonLogger from './logging.js'
+import { syncLogger } from './logging-effect.js'
 import { requestLogger } from './middleware/requestLogger.js'
 import pool from './pool.js'
 import { createCallbackRouter } from './routes/callback-fp.js'
@@ -123,8 +123,8 @@ app.use('/device', createDeviceRouter(OAuth2ApiLayer))
 
 // Error handlers (same as original)
 app.use((req, res, next) => {
-  jsonLogger.warn('404 in app-fp.ts', { url: req.originalUrl, headers: req.headers })
-  next(new Error(`Generic Not Found ${req.originalUrl}`))
+  syncLogger.warn('404 in app-fp.ts', { url: req.originalUrl, headers: req.headers })
+  res.status(404).send("Sorry, that page doesn't exist!");
 })
 
 if (app.get('env') === 'development') {
@@ -147,7 +147,7 @@ app.use((err: Error, _req: Request, res: Response) => {
 })
 
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  jsonLogger.error('ApplicationError', { stack: err.stack })
+  syncLogger.error('ApplicationError', { stack: err.stack })
   res.status(500).send(
     ErrorPage({
       message: JSON.stringify(err),
@@ -157,7 +157,7 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 
 const listenOn = Number(process.env.PORT ?? 3000)
 app.listen(listenOn, () => {
-  jsonLogger.info(`Functional app listening on http://0.0.0.0:${listenOn}`)
+  syncLogger.info(`Functional app listening on http://0.0.0.0:${listenOn}`)
 })
 
 export default app
