@@ -17,6 +17,7 @@ import {
 } from '../fp/services/token.js'
 import { validateSchema } from '../fp/validation.js'
 import type { GoogleOAuthService } from '../fp/services/google.js'
+import type { JWTService } from '../fp/services/jwt.js'
 import type { RedisService } from '../fp/services/redis.js'
 import type { Layer } from 'effect';
 
@@ -105,20 +106,31 @@ const mapErrorToOAuth2 = (error: AppError): { status: number; body: object } => 
  * 4. Context-based dependency injection via Layers
  * 5. No side effects in the handler - all IO wrapped in Effect
  */
-export const createTokenHandler = (serviceLayer: Layer.Layer<RedisService | GoogleOAuthService>) => {
+export const createTokenHandler = (serviceLayer: Layer.Layer<RedisService | GoogleOAuthService | JWTService>) => {
 
   return async (req: express.Request, res: express.Response) => {
 
     const program = Effect.gen(function* () {
-      // Log incoming request
-      yield* Effect.logDebug('Token endpoint called').pipe(
+      // Log incoming request with comprehensive details
+      yield* Effect.logInfo('=== TOKEN ENDPOINT CALLED ===').pipe(
         Effect.annotateLogs({
+          method: req.method,
+          path: req.path,
           grant_type: req.body?.grant_type,
           client_id: req.body?.client_id,
           has_code: !!req.body?.code,
           has_refresh_token: !!req.body?.refresh_token,
           has_code_verifier: !!req.body?.code_verifier,
-          is_expired: !!req.body?.expired,
+          redirect_uri: req.body?.redirect_uri,
+          scope: req.body?.scope,
+          headers: {
+            'content-type': req.headers['content-type'],
+            'user-agent': req.headers['user-agent'],
+            origin: req.headers.origin,
+            referer: req.headers.referer,
+          },
+          ip: req.ip,
+          timestamp: new Date().toISOString(),
         })
       )
 
@@ -184,13 +196,43 @@ export const createTokenHandler = (serviceLayer: Layer.Layer<RedisService | Goog
     // Step 4: Send response based on result
     if (result._tag === 'Left') {
       const { status, body } = mapErrorToOAuth2(result.left)
-      console.debug('[TokenHandler] Request failed:', {
-        error_tag: result.left._tag,
-        status,
-      })
+
+      // Log error with full details
+      await Effect.runPromise(
+        Effect.logError('=== TOKEN ENDPOINT ERROR ===').pipe(
+          Effect.annotateLogs({
+            error_tag: result.left._tag,
+            error_details: result.left,
+            status,
+            response_body: body,
+            grant_type: req.body?.grant_type,
+            client_id: req.body?.client_id,
+            timestamp: new Date().toISOString(),
+          }),
+          Effect.provide(serviceLayer)
+        )
+      )
+
       res.status(status).json(body)
     } else {
-      console.debug('[TokenHandler] Request succeeded')
+      // Log success with token details (redacted)
+      await Effect.runPromise(
+        Effect.logInfo('=== TOKEN ENDPOINT SUCCESS ===').pipe(
+          Effect.annotateLogs({
+            token_type: result.right.token_type,
+            expires_in: result.right.expires_in,
+            has_access_token: !!result.right.access_token,
+            has_refresh_token: !!result.right.refresh_token,
+            scope: result.right.scope,
+            access_token_preview: result.right.access_token.substring(0, 50) + '...',
+            grant_type: req.body?.grant_type,
+            client_id: req.body?.client_id,
+            timestamp: new Date().toISOString(),
+          }),
+          Effect.provide(serviceLayer)
+        )
+      )
+
       res.json(result.right)
     }
   }
@@ -199,7 +241,7 @@ export const createTokenHandler = (serviceLayer: Layer.Layer<RedisService | Goog
 /**
  * Router factory (will be used when we have service layer available)
  */
-export const createTokenRouter = (serviceLayer: Layer.Layer<RedisService | GoogleOAuthService>) => {
+export const createTokenRouter = (serviceLayer: Layer.Layer<RedisService | GoogleOAuthService | JWTService>) => {
   router.post('/token', createTokenHandler(serviceLayer))
   return router
 }

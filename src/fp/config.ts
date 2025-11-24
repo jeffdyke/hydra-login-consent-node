@@ -74,6 +74,9 @@ export interface SecurityConfig {
   readonly httpOnly: boolean
   readonly secure: boolean
   readonly mockTlsTermination: boolean
+  readonly jwtSecret: string
+  readonly jwtIssuer: string
+  readonly jwtAudience: string
 }
 
 /**
@@ -265,7 +268,7 @@ const googleConfig = (
 /**
  * Security configuration
  */
-const securityConfig = (env: AppEnvironment, https: boolean): Config.Config<SecurityConfig> => {
+const securityConfig = (env: AppEnvironment, https: boolean, baseUrl: string): Config.Config<SecurityConfig> => {
   const isLocal = isLocalEnvironment(env)
 
   return Config.all({
@@ -285,6 +288,17 @@ const securityConfig = (env: AppEnvironment, https: boolean): Config.Config<Secu
     mockTlsTermination: Config.boolean('MOCK_TLS_TERMINATION').pipe(
       Config.withDefault(false)
     ),
+    jwtSecret: Config.string('JWT_SECRET').pipe(
+      Config.withDefault(
+        isLocal ? 'local-dev-jwt-secret-change-in-production' : 'CHANGE_ME_IN_PRODUCTION'
+      )
+    ),
+    jwtIssuer: Config.string('JWT_ISSUER').pipe(
+      Config.withDefault(baseUrl)
+    ),
+    jwtAudience: Config.string('JWT_AUDIENCE').pipe(
+      Config.withDefault(baseUrl)
+    ),
   })
 }
 
@@ -302,7 +316,7 @@ export const appConfigEffect = Effect.gen(function* () {
   const redis = yield* redisConfig(env, domain)
   const database = yield* databaseConfig(env, domain)
   const google = yield* googleConfig(env, baseUrl)
-  const security = yield* securityConfig(env, https)
+  const security = yield* securityConfig(env, https, baseUrl)
 
   const dcrMasterClientId = yield* Config.string('DCR_MASTER_CLIENT_ID').pipe(
     Config.withDefault('')
