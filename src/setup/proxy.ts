@@ -9,7 +9,7 @@ import { createProxyMiddleware } from 'http-proxy-middleware'
 import { Redis } from 'ioredis'
 import { appConfig } from '../config.js'
 import { RedisService, RedisServiceLive, createOAuthRedisOps } from '../fp/services/redis.js'
-import jsonLogger from '../logging.js'
+import { syncLogger } from '../logging-effect.js'
 import type { PKCEState } from '../fp/domain.js'
 import type { Request, Response, NextFunction } from 'express'
 
@@ -30,32 +30,32 @@ const proxyOptions = {
   target: appConfig.hydraInternalUrl,
   changeOrigin: true,
   prependPath: false,
-  logger: jsonLogger,
+  logger: syncLogger,
   on: {
     proxyReq: (proxyReq: ClientRequest, req: Request, res: Response) => {
     const parsed = new URL(`${req.protocol  }://${  req.get('host')  }${req.originalUrl}`)
-    jsonLogger.info('Checking for Proxy request to Hydra', {
+    syncLogger.info('Checking for Proxy request to Hydra', {
       method: req.method,
       originalUrl: req.originalUrl,
       proxiedUrl: `${appConfig.hydraInternalUrl}${parsed.pathname}`,
       body: req.body,
     })
     if (req.method !== "GET" && Object.keys(req.body).length > 0) {
-      jsonLogger.info('Populating proxy request body for non-GET request', {
+      syncLogger.info('Populating proxy request body for non-GET request', {
         body: req.body,
         length: JSON.stringify(req.body).length,
       })
       proxyReq.path = req.originalUrl;
       proxyReq.write(JSON.stringify(req.body));
     }
-    jsonLogger.info('Proxy onProxyReq processing', {
+    syncLogger.info('Proxy onProxyReq processing', {
       method: req.method,
       originalUrl: req.originalUrl,
       proxyPath: proxyReq.path,
     })
     // Special handling for /oauth2/register to fix contacts being null
     if (req.body && typeof req.body === 'object' && req.body?.contacts === null) {
-      jsonLogger.info('Modifying /oauth2/register request body to set contacts to empty array instead of null')
+      syncLogger.info('Modifying /oauth2/register request body to set contacts to empty array instead of null')
       // Hydra expects contacts to be an array, not null
       req.body.contacts = []
       const bodyData = JSON.stringify(req.body)
@@ -112,14 +112,14 @@ const proxyOptions = {
 
         if (result._tag === 'Left') {
           // Log non-fatal Redis errors but don't fail the reques t
-          jsonLogger.error('Failed to store PKCE state in Redis', {
+          syncLogger.error('Failed to store PKCE state in Redis', {
             key: `pkce_session:${req.session.pkceKey}`,
             error: result.left,
             pkceData,
           })
           // Continue processing - Redis failure is not fatal for the proxy
         } else {
-          jsonLogger.debug('PKCE state stored successfully', {
+          syncLogger.debug('PKCE state stored successfully', {
             key: `pkce_session:${req.session.pkceKey}`,
           })
         }
@@ -132,14 +132,14 @@ const proxyOptions = {
       queryString.set('state', req.session.id)
 
       const returnPath = [parsed.pathname, queryString].join('?')
-      jsonLogger.info('Proxy complete: Sending to Hydra, session ID is set to be state', {
+      syncLogger.info('Proxy complete: Sending to Hydra, session ID is set to be state', {
         sessionId: req.session.id,
         pkceKey: req.session.pkceKey,
       })
 
       return returnPath
     }
-    jsonLogger.info('Proxy pathRewrite: No changes made to path', {
+    syncLogger.info('Proxy pathRewrite: No changes made to path', {
       parsedPath: parsed.pathname,
       body: req.body,
     })
@@ -154,7 +154,7 @@ const proxyOptions = {
  */
 const enhancedProxyMiddleware = (req: Request, res: Response, next: NextFunction) => {
   if (req.path === '/oauth2/auth') {
-    jsonLogger.info('=== OAUTH2 AUTHORIZATION ENDPOINT ===', {
+    syncLogger.info('=== OAUTH2 AUTHORIZATION ENDPOINT ===', {
       method: req.method,
       path: req.path,
       query: req.query,
@@ -180,7 +180,7 @@ const enhancedProxyMiddleware = (req: Request, res: Response, next: NextFunction
     if (!response_type) missingParams.push('response_type')
 
     if (missingParams.length > 0) {
-      jsonLogger.error('=== OAUTH2 AUTH ERROR: Missing Parameters ===', {
+      syncLogger.error('=== OAUTH2 AUTH ERROR: Missing Parameters ===', {
         missingParams,
         query: req.query,
         timestamp: new Date().toISOString(),
@@ -193,7 +193,7 @@ const enhancedProxyMiddleware = (req: Request, res: Response, next: NextFunction
 
     // Validate response_type
     if (response_type !== 'code') {
-      jsonLogger.error('=== OAUTH2 AUTH ERROR: Invalid Response Type ===', {
+      syncLogger.error('=== OAUTH2 AUTH ERROR: Invalid Response Type ===', {
         response_type,
         query: req.query,
         timestamp: new Date().toISOString(),
@@ -205,7 +205,7 @@ const enhancedProxyMiddleware = (req: Request, res: Response, next: NextFunction
     }
 
     // Log PKCE parameters
-    jsonLogger.info('OAUTH2 AUTH: PKCE Parameters', {
+    syncLogger.info('OAUTH2 AUTH: PKCE Parameters', {
       has_code_challenge: !!code_challenge,
       code_challenge_method: code_challenge_method || 'not provided',
       has_state: !!state,
@@ -213,7 +213,7 @@ const enhancedProxyMiddleware = (req: Request, res: Response, next: NextFunction
       timestamp: new Date().toISOString(),
     })
   } else if (req.path.startsWith('/oauth2/register')) {
-    jsonLogger.info('=== OAUTH2 CLIENT REGISTRATION ENDPOINT ===', {
+    syncLogger.info('=== OAUTH2 CLIENT REGISTRATION ENDPOINT ===', {
       method: req.method,
       path: req.path,
       body: req.body,

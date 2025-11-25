@@ -6,6 +6,8 @@ import { Effect, Context, Layer } from 'effect'
 import { SignJWT, jwtVerify, type JWTPayload } from 'jose'
 import crypto from 'crypto'
 import { ParseError, type AppError } from '../errors.js'
+import { syncLogger } from '../../logging-effect.js'
+import { sync } from 'effect/Deferred'
 
 /**
  * JWT Claims structure
@@ -61,11 +63,12 @@ export interface JWTConfig {
  */
 export const makeJWTService = (config: JWTConfig): JWTService => {
   const secret = new TextEncoder().encode(config.secret)
-
+  syncLogger.info('JWT Service initialized', { config: { ...config} })
   return {
     sign: (claims, expiresIn) =>
       Effect.tryPromise({
         try: async () => {
+          syncLogger.debug('Signing JWT', { claims, expiresIn, config })
           const now = Math.floor(Date.now() / 1000)
 
           const jwt = await new SignJWT({
