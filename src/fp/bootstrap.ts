@@ -40,9 +40,10 @@ export const createAppLayer = (
   config: {
     googleClientId: string
     googleClientSecret: string
-    jwtSecret: string
     jwtIssuer: string
     jwtAudience: string
+    hydraPublicUrl: string
+    hydraAdminUrl: string
   }
 ) => {
   const redisLayer = RedisServiceLive(redisClient)
@@ -51,9 +52,10 @@ export const createAppLayer = (
     clientSecret: config.googleClientSecret,
   })
   const jwtLayer = JWTServiceLive({
-    secret: config.jwtSecret,
     issuer: config.jwtIssuer,
     audience: config.jwtAudience,
+    hydraPublicUrl: config.hydraPublicUrl,
+    hydraAdminUrl: config.hydraAdminUrl,
   })
   const oauth2ApiLayer = OAuth2ApiServiceLive(oauth2Config)
   const loggerLayer = createEffectLoggerLayer()

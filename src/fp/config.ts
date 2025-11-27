@@ -375,6 +375,10 @@ export const constructUrl = (protocol: 'http' | 'https', host: string, port?: nu
   return `${protocol}://${host}:${port}`
 }
 
+export const getJWKSUrl = (config: AppConfig): string => {
+  const protocol = config.security.mockTlsTermination ? 'http' : 'https'
+  return `${constructUrl(protocol, config.domain.public, config.port)}/.well-known/jwks.json`
+}
 /**
  * Get Hydra public URL
  */

@@ -46,9 +46,10 @@ describe('bootstrap', () => {
     const mockGoogleConfig = {
       googleClientId: 'test-client-id',
       googleClientSecret: 'test-client-secret',
-      jwtSecret: 'test-jwt-secret',
       jwtIssuer: 'https://test-issuer.example.com',
       jwtAudience: 'https://test-audience.example.com',
+      hydraPublicUrl: 'https://hydra.test.example.com',
+      hydraAdminUrl: 'https://hydra.test.example.com',
     }
 
     it('should create complete app layer with all services', async () => {
@@ -245,9 +246,10 @@ describe('bootstrap', () => {
         {
           googleClientId: 'client-id',
           googleClientSecret: 'client-secret',
-          jwtSecret: 'test-jwt-secret',
           jwtIssuer: 'https://test-issuer.example.com',
           jwtAudience: 'https://test-audience.example.com',
+          hydraPublicUrl: 'https://hydra.test.example.com',
+          hydraAdminUrl: 'https://hydra.test.example.com',
         }
       )
       class CustomServiceTag extends Context.Tag("CustomService")<
@@ -283,9 +285,10 @@ describe('bootstrap', () => {
         {
           googleClientId: 'client-id',
           googleClientSecret: 'client-secret',
-          jwtSecret: 'test-jwt-secret',
           jwtIssuer: 'https://test-issuer.example.com',
           jwtAudience: 'https://test-audience.example.com',
+          hydraPublicUrl: 'https://hydra.test.example.com',
+          hydraAdminUrl: 'https://hydra.test.example.com',
         }
       )
 
