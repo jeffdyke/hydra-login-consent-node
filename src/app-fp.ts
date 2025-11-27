@@ -23,6 +23,7 @@ import { createIndexRouter } from './routes/index-fp.js'
 import { createLoginRouter } from './routes/login-fp.js'
 import { createLogoutRouter } from './routes/logout-fp.js'
 import { createTokenRouter } from './routes/passthrough-auth-fp.js'
+import { createValidateTokenRouter } from './routes/validate-token-fp.js'
 import { OAuth2ApiLayer } from './setup/hydra.js'
 import proxyMiddleware from './setup/proxy.js'
 import { ErrorPage } from './views/index.js'
@@ -121,6 +122,7 @@ app.use('/consent', createConsentRouter(serviceLayer, consentConfig))
 app.use('/callback', createCallbackRouter(serviceLayer, googleClient, callbackConfig))
 app.use('/oauth2', createTokenRouter(serviceLayer))
 app.use('/device', createDeviceRouter(OAuth2ApiLayer))
+app.use('/validate-token', createValidateTokenRouter(serviceLayer))
 
 // Error handlers (same as original)
 app.use((req, res, next) => {
