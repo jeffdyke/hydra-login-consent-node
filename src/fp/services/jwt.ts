@@ -59,11 +59,13 @@ interface HydraKey {
  */
 export interface JWTService {
   /**
-   * Sign a JWT with the given claims
+   * Sign a JWT with the given claims (Hydra mode)
+   * Or return provided Google ID token (Google mode)
    */
   readonly sign: (
     claims: Omit<JWTClaims, 'iat' | 'exp' | 'kid'>,
-    expiresIn: number // Expiration in seconds
+    expiresIn: number, // Expiration in seconds
+    googleIdToken?: string // Optional Google ID token (used in Google mode)
   ) => Effect.Effect<string, AppError>
 
   /**
@@ -159,101 +161,73 @@ const fetchHydraKey = async (hydraAdminUrl: string): Promise<HydraKey> => {
   }
 }
 
-/**
- * Fetch signing key from Google's JWKS endpoint
- * Google provides public keys at https://www.googleapis.com/oauth2/v3/certs
- * Note: Google doesn't provide private keys, so we'll use their keys for verification only
- * For signing, we use the opaque Google token directly (passthrough mode)
- */
-const fetchGoogleKey = async (): Promise<HydraKey> => {
-  try {
-    // Fetch Google's public JWKS
-    const response = await axios.get<HydraJWKSResponse>(
-      'https://www.googleapis.com/oauth2/v3/certs',
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    )
-
-    if (!response.data?.keys || response.data.keys.length === 0) {
-      throw new Error('No keys returned from Google')
-    }
-
-    // Use the first key (Google has multiple, but we'll use the first active one)
-    const jwk = response.data.keys[0]
-
-    if (!jwk.kid) {
-      throw new Error('Key missing kid field')
-    }
-
-    // Import the public key from JWK (Google only provides public keys)
-    const publicKey = await importJWK(jwk, jwk.alg || 'RS256')
-
-    // Ensure we got a CryptoKey (not Uint8Array)
-    if (!(publicKey instanceof CryptoKey)) {
-      throw new Error('Expected CryptoKey from importJWK')
-    }
-
-    syncLogger.info('Fetched signing key from Google', {
-      kid: jwk.kid,
-      alg: jwk.alg,
-      use: jwk.use,
-    })
-
-    return {
-      kid: jwk.kid,
-      privateKey: publicKey, // Using public key as we don't sign with Google keys
-      publicJWK: jwk,
-    }
-  } catch (error) {
-    syncLogger.error('Failed to fetch key from Google', {
-      error: String(error),
-    })
-    throw error
-  }
-}
 
 /**
  * Create JWT Service implementation
  */
 export const makeJWTService = (config: JWTConfig): JWTService => {
-  // Fetch key based on provider
+  // Only fetch keys for Hydra mode (Google mode doesn't need keys for signing)
   let keyPromise: Promise<HydraKey> | null = null
   let cachedKey: HydraKey | null = null
 
   const getKey = async (): Promise<HydraKey> => {
+    // In Google mode, we don't sign JWTs, so we don't need signing keys
+    if (config.provider === 'google') {
+      throw new Error('getKey() should not be called in Google mode')
+    }
+
     if (cachedKey) {
       return cachedKey
     }
 
-    keyPromise ??= config.provider === 'google'
-      ? fetchGoogleKey()
-      : fetchHydraKey(config.hydraAdminUrl)
+    keyPromise ??= fetchHydraKey(config.hydraAdminUrl)
 
     cachedKey = await keyPromise
     syncLogger.info(`JWT service initialized with ${config.provider} key`, {
       provider: config.provider,
       kid: cachedKey.kid,
       issuer: config.issuer,
-      jwksUrl: config.provider === 'google'
-        ? 'https://www.googleapis.com/oauth2/v3/certs'
-        : `${config.hydraPublicUrl}/.well-known/jwks.json`,
+      jwksUrl: `${config.hydraPublicUrl}/.well-known/jwks.json`,
     })
 
     return cachedKey
   }
 
-  // Initialize key eagerly
-  getKey().catch((error) => {
-    syncLogger.error(`Failed to fetch JWT key from ${config.provider}`, { error })
-  })
+  // Initialize key eagerly only for Hydra mode
+  if (config.provider === 'hydra') {
+    getKey().catch((error) => {
+      syncLogger.error(`Failed to fetch JWT key from ${config.provider}`, { error })
+    })
+  } else {
+    syncLogger.info('JWT service initialized in Google mode', {
+      provider: config.provider,
+      issuer: config.issuer,
+      jwksUrl: 'https://www.googleapis.com/oauth2/v3/certs',
+      note: 'Will return Google ID tokens directly without signing',
+    })
+  }
 
   return {
-    sign: (claims, expiresIn) =>
+    sign: (claims, expiresIn, googleIdToken) =>
       Effect.tryPromise({
         try: async () => {
+          // Google mode: Return Google's ID token directly
+          if (config.provider === 'google') {
+            if (!googleIdToken) {
+              throw new Error('Google ID token required when JWT_PROVIDER=google')
+            }
+
+            syncLogger.debug('Returning Google ID token', {
+              sub: claims.sub,
+              client_id: claims.client_id,
+              jti: claims.jti,
+              provider: 'google',
+            })
+
+            return googleIdToken
+          }
+
+          // Hydra mode: Sign our own JWT
           const key = await getKey()
           const now = Math.floor(Date.now() / 1000)
 
@@ -283,7 +257,7 @@ export const makeJWTService = (config: JWTConfig): JWTService => {
         },
         catch: (error) =>
           new ParseError({
-            message: `Failed to sign JWT: ${String(error)}`,
+            message: `Failed to create JWT: ${String(error)}`,
           }),
       }),
 

@@ -91,6 +91,8 @@ export const processAuthCodeGrant = (
     })
 
     // Step 8: Generate JWT access token
+    // In Google mode, this returns the Google ID token directly
+    // In Hydra mode, this signs a new JWT
     const accessToken = yield* jwt.sign(
       {
         sub: googleTokenData.subject,
@@ -98,7 +100,8 @@ export const processAuthCodeGrant = (
         client_id: pkceState.client_id,
         jti,
       },
-      tokenObj.expires_in
+      tokenObj.expires_in,
+      googleTokenData.google_id_token // Pass Google ID token for Google mode
     )
 
     // Step 9: Build OAuth2 token response with JWT
@@ -195,6 +198,7 @@ export const processRefreshTokenGrant = (
         ...googleTokenData,
         google_access_token: googleResponse.access_token,
         google_refresh_token: googleResponse.refresh_token ?? googleTokenData.google_refresh_token,
+        google_id_token: googleResponse.id_token ?? googleTokenData.google_id_token,
         expires_at: now + (googleResponse.expires_in * 1000),
         updated_at: now,
       }
@@ -214,6 +218,8 @@ export const processRefreshTokenGrant = (
     }
 
     // Step 6: Generate new JWT access token (reusing same JTI)
+    // In Google mode, this returns the Google ID token directly
+    // In Hydra mode, this signs a new JWT
     const accessToken = yield* jwt.sign(
       {
         sub: newGoogleTokenData.subject,
@@ -221,7 +227,8 @@ export const processRefreshTokenGrant = (
         client_id: newGoogleTokenData.client_id,
         jti: jwtRefreshData.jti,
       },
-      expiresIn
+      expiresIn,
+      newGoogleTokenData.google_id_token // Pass Google ID token for Google mode
     )
 
     // Step 7: Build OAuth2 token response
