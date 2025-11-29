@@ -61,6 +61,7 @@ const serviceLayer = createAppLayer(redisClient, oauth2Config, {
   googleClientSecret: appConfig.googleClientSecret ?? '',
   jwtIssuer: appConfig.jwtIssuer,
   jwtAudience: appConfig.jwtAudience,
+  jwtProvider: appConfig.jwtProvider,
   hydraPublicUrl: appConfig.hydraPublicUrl,
   hydraAdminUrl: appConfig.hydraInternalAdmin,
 })

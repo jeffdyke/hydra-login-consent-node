@@ -48,6 +48,7 @@ describe('bootstrap', () => {
       googleClientSecret: 'test-client-secret',
       jwtIssuer: 'https://test-issuer.example.com',
       jwtAudience: 'https://test-audience.example.com',
+      jwtProvider: 'hydra' as const,
       hydraPublicUrl: 'https://hydra.test.example.com',
       hydraAdminUrl: 'https://hydra.test.example.com',
     }
@@ -248,6 +249,7 @@ describe('bootstrap', () => {
           googleClientSecret: 'client-secret',
           jwtIssuer: 'https://test-issuer.example.com',
           jwtAudience: 'https://test-audience.example.com',
+          jwtProvider: 'hydra' as const,
           hydraPublicUrl: 'https://hydra.test.example.com',
           hydraAdminUrl: 'https://hydra.test.example.com',
         }
@@ -287,6 +289,7 @@ describe('bootstrap', () => {
           googleClientSecret: 'client-secret',
           jwtIssuer: 'https://test-issuer.example.com',
           jwtAudience: 'https://test-audience.example.com',
+          jwtProvider: 'hydra' as const,
           hydraPublicUrl: 'https://hydra.test.example.com',
           hydraAdminUrl: 'https://hydra.test.example.com',
         }

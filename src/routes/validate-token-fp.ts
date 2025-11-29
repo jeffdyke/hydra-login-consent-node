@@ -51,17 +51,20 @@ export const createValidateTokenRouter = (serviceLayer: Layer.Layer<any>) => {
         })
       }
 
-      // Fetch JWKS from Hydra
+      // Fetch JWKS based on configured provider
+      const jwksUrl = appConfig.jwtProvider === 'google'
+        ? 'https://www.googleapis.com/oauth2/v3/certs'
+        : `${appConfig.hydraPublicUrl}/.well-known/jwks.json`
+
       let jwks: JWKS
       try {
-        const response = await axios.get<JWKS>(
-          `${appConfig.hydraPublicUrl}/.well-known/jwks.json`
-        )
+        const response = await axios.get<JWKS>(jwksUrl)
         jwks = response.data
       } catch (error) {
         return res.status(500).json({
           error: 'Failed to fetch JWKS',
           message: String(error),
+          provider: appConfig.jwtProvider,
         })
       }
 
@@ -82,10 +85,11 @@ export const createValidateTokenRouter = (serviceLayer: Layer.Layer<any>) => {
 
         return res.json({
           valid: true,
+          provider: appConfig.jwtProvider,
           header,
           claims: verifiedClaims,
           jwks: {
-            url: `${appConfig.hydraPublicUrl}/.well-known/jwks.json`,
+            url: jwksUrl,
             keys: jwks.keys.map((key) => ({
               kid: key.kid,
               kty: key.kty,
@@ -109,12 +113,13 @@ export const createValidateTokenRouter = (serviceLayer: Layer.Layer<any>) => {
       } catch (error) {
         return res.status(401).json({
           valid: false,
+          provider: appConfig.jwtProvider,
           error: 'Token verification failed',
           message: String(error),
           header,
           unverified_claims: payload,
           jwks: {
-            url: `${appConfig.hydraPublicUrl}/.well-known/jwks.json`,
+            url: jwksUrl,
             keys: jwks.keys.map((key) => ({
               kid: key.kid,
               kty: key.kty,

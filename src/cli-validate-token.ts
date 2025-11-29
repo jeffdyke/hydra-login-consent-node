@@ -43,15 +43,17 @@ try {
   process.exit(1)
 }
 
-// Fetch JWKS from Hydra
-console.log('\n📥 Fetching JWKS from Hydra...')
-console.log(`   URL: ${appConfig.hydraPublicUrl}/.well-known/jwks.json`)
+// Fetch JWKS based on configured provider
+const jwksUrl = appConfig.jwtProvider === 'google'
+  ? 'https://www.googleapis.com/oauth2/v3/certs'
+  : `${appConfig.hydraPublicUrl}/.well-known/jwks.json`
+
+console.log(`\n📥 Fetching JWKS from ${appConfig.jwtProvider.toUpperCase()}...`)
+console.log(`   URL: ${jwksUrl}`)
 
 const fetchJWKS = async (): Promise<JWKS> => {
   try {
-    const response = await axios.get<JWKS>(
-      `${appConfig.hydraPublicUrl}/.well-known/jwks.json`
-    )
+    const response = await axios.get<JWKS>(jwksUrl)
     return response.data
   } catch (error) {
     throw new Error(`Failed to fetch JWKS: ${String(error)}`)
@@ -77,6 +79,7 @@ const validateToken = async () => {
 
     // Create JWT service
     const jwtService = JWTServiceLive({
+      provider: appConfig.jwtProvider,
       issuer: appConfig.jwtIssuer,
       audience: appConfig.jwtAudience,
       hydraPublicUrl: appConfig.hydraPublicUrl,

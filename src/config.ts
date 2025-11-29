@@ -32,6 +32,7 @@ export const appConfig = (() => {
     jwtSecret: config.security.jwtSecret,
     jwtIssuer: config.security.jwtIssuer,
     jwtAudience: config.security.jwtAudience,
+    jwtProvider: config.security.jwtProvider,
   }
 })()
 

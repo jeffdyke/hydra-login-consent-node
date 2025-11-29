@@ -63,6 +63,13 @@ export interface GoogleOAuthConfig {
 }
 
 /**
+ * JWT Provider type
+ * - 'hydra': Sign JWTs with keys from Hydra's JWKS (default)
+ * - 'google': Sign JWTs with keys from Google's JWKS for MCP server compatibility
+ */
+export type JWTProvider = 'hydra' | 'google'
+
+/**
  * Security configuration
  */
 export interface SecurityConfig {
@@ -77,6 +84,7 @@ export interface SecurityConfig {
   readonly jwtSecret: string
   readonly jwtIssuer: string
   readonly jwtAudience: string
+  readonly jwtProvider: JWTProvider
 }
 
 /**
@@ -298,6 +306,15 @@ const securityConfig = (env: AppEnvironment, https: boolean, baseUrl: string): C
     ),
     jwtAudience: Config.string('JWT_AUDIENCE').pipe(
       Config.withDefault(baseUrl)
+    ),
+    jwtProvider: pipe(
+      Config.string('JWT_PROVIDER'),
+      Config.withDefault('hydra' as JWTProvider),
+      Config.validate({
+        message: 'Invalid JWT_PROVIDER, must be: hydra or google',
+        validation: (value): value is JWTProvider =>
+          value === 'hydra' || value === 'google',
+      })
     ),
   })
 }

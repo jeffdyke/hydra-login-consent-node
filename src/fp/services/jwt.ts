@@ -88,9 +88,15 @@ export interface JWTService {
 export const JWTService = Context.GenericTag<JWTService>('JWTService')
 
 /**
+ * JWT Provider type
+ */
+export type JWTProvider = 'hydra' | 'google'
+
+/**
  * JWT Service configuration
  */
 export interface JWTConfig {
+  provider: JWTProvider // JWT signing provider ('hydra' or 'google')
   issuer: string // Token issuer (usually the application URL)
   audience: string // Token audience (usually the client application)
   hydraPublicUrl: string // Hydra public URL for JWKS endpoint
@@ -154,10 +160,66 @@ const fetchHydraKey = async (hydraAdminUrl: string): Promise<HydraKey> => {
 }
 
 /**
+ * Fetch signing key from Google's JWKS endpoint
+ * Google provides public keys at https://www.googleapis.com/oauth2/v3/certs
+ * Note: Google doesn't provide private keys, so we'll use their keys for verification only
+ * For signing, we use the opaque Google token directly (passthrough mode)
+ */
+const fetchGoogleKey = async (): Promise<HydraKey> => {
+  try {
+    // Fetch Google's public JWKS
+    const response = await axios.get<HydraJWKSResponse>(
+      'https://www.googleapis.com/oauth2/v3/certs',
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+
+    if (!response.data?.keys || response.data.keys.length === 0) {
+      throw new Error('No keys returned from Google')
+    }
+
+    // Use the first key (Google has multiple, but we'll use the first active one)
+    const jwk = response.data.keys[0]
+
+    if (!jwk.kid) {
+      throw new Error('Key missing kid field')
+    }
+
+    // Import the public key from JWK (Google only provides public keys)
+    const publicKey = await importJWK(jwk, jwk.alg || 'RS256')
+
+    // Ensure we got a CryptoKey (not Uint8Array)
+    if (!(publicKey instanceof CryptoKey)) {
+      throw new Error('Expected CryptoKey from importJWK')
+    }
+
+    syncLogger.info('Fetched signing key from Google', {
+      kid: jwk.kid,
+      alg: jwk.alg,
+      use: jwk.use,
+    })
+
+    return {
+      kid: jwk.kid,
+      privateKey: publicKey, // Using public key as we don't sign with Google keys
+      publicJWK: jwk,
+    }
+  } catch (error) {
+    syncLogger.error('Failed to fetch key from Google', {
+      error: String(error),
+    })
+    throw error
+  }
+}
+
+/**
  * Create JWT Service implementation
  */
 export const makeJWTService = (config: JWTConfig): JWTService => {
-  // Fetch key from Hydra at initialization
+  // Fetch key based on provider
   let keyPromise: Promise<HydraKey> | null = null
   let cachedKey: HydraKey | null = null
 
@@ -166,15 +228,18 @@ export const makeJWTService = (config: JWTConfig): JWTService => {
       return cachedKey
     }
 
-    if (!keyPromise) {
-      keyPromise = fetchHydraKey(config.hydraAdminUrl)
-    }
+    keyPromise ??= config.provider === 'google'
+      ? fetchGoogleKey()
+      : fetchHydraKey(config.hydraAdminUrl)
 
     cachedKey = await keyPromise
-    syncLogger.info('JWT service initialized with Hydra key', {
+    syncLogger.info(`JWT service initialized with ${config.provider} key`, {
+      provider: config.provider,
       kid: cachedKey.kid,
       issuer: config.issuer,
-      hydraPublicUrl: config.hydraPublicUrl,
+      jwksUrl: config.provider === 'google'
+        ? 'https://www.googleapis.com/oauth2/v3/certs'
+        : `${config.hydraPublicUrl}/.well-known/jwks.json`,
     })
 
     return cachedKey
@@ -182,7 +247,7 @@ export const makeJWTService = (config: JWTConfig): JWTService => {
 
   // Initialize key eagerly
   getKey().catch((error) => {
-    syncLogger.error('Failed to fetch JWT key from Hydra', { error })
+    syncLogger.error(`Failed to fetch JWT key from ${config.provider}`, { error })
   })
 
   return {
@@ -225,10 +290,12 @@ export const makeJWTService = (config: JWTConfig): JWTService => {
     verify: (token) =>
       Effect.tryPromise({
         try: async () => {
-          // Use Hydra's public JWKS for verification
-          const JWKS = createRemoteJWKSet(
-            new URL(`${config.hydraPublicUrl}/.well-known/jwks.json`)
-          )
+          // Use provider's public JWKS for verification
+          const jwksUrl = config.provider === 'google'
+            ? 'https://www.googleapis.com/oauth2/v3/certs'
+            : `${config.hydraPublicUrl}/.well-known/jwks.json`
+
+          const JWKS = createRemoteJWKSet(new URL(jwksUrl))
 
           const { payload } = await jwtVerify(token, JWKS, {
             issuer: config.issuer,
@@ -254,17 +321,18 @@ export const makeJWTService = (config: JWTConfig): JWTService => {
     getJWKS: () =>
       Effect.tryPromise({
         try: async () => {
-          // Return Hydra's public JWKS URL for clients to use
-          // Clients should fetch from Hydra's public endpoint directly
-          const response = await axios.get<JWKS>(
-            `${config.hydraPublicUrl}/.well-known/jwks.json`
-          )
+          // Return provider's public JWKS URL for clients to use
+          const jwksUrl = config.provider === 'google'
+            ? 'https://www.googleapis.com/oauth2/v3/certs'
+            : `${config.hydraPublicUrl}/.well-known/jwks.json`
+
+          const response = await axios.get<JWKS>(jwksUrl)
 
           return response.data
         },
         catch: (error) =>
           new ParseError({
-            message: `Failed to fetch JWKS from Hydra: ${String(error)}`,
+            message: `Failed to fetch JWKS from ${config.provider}: ${String(error)}`,
           }),
       }),
   }

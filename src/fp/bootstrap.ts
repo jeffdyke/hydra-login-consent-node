@@ -42,6 +42,7 @@ export const createAppLayer = (
     googleClientSecret: string
     jwtIssuer: string
     jwtAudience: string
+    jwtProvider: 'hydra' | 'google'
     hydraPublicUrl: string
     hydraAdminUrl: string
   }
@@ -52,6 +53,7 @@ export const createAppLayer = (
     clientSecret: config.googleClientSecret,
   })
   const jwtLayer = JWTServiceLive({
+    provider: config.jwtProvider,
     issuer: config.jwtIssuer,
     audience: config.jwtAudience,
     hydraPublicUrl: config.hydraPublicUrl,
