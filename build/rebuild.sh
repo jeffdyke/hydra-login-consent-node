@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-sudo bash build.sh clean && \
-  aws ecr get-login-password | sudo docker login --username AWS --password-stdin https://668874212870.dkr.ecr.us-east-1.amazonaws.com && \
-  sudo docker system prune -a -f && \
-  sudo bash build.sh build hydra-headless-ts && \
-  sudo bash build.sh push hydra-headless-ts
+set -xe
+if [ "$1" = "force" ]; then
+  sudo docker stop hydra-headless-ts-1
+  sudo docker system prune -a -f
+fi
+docker build -f Dockerfile.headless-ts -t jeffdyke/hydra-headless-ts:latest .
+docker push jeffdyke/hydra-headless-ts:latest
+sudo docker compose up -d --force-recreate headless-ts

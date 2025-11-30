@@ -61,16 +61,16 @@ authClient() {
     --response-type "code,id_token" \
     --format json \
     --token-endpoint-auth-method none \
-    --scope "openid,email,profile,offline_access" \
+    --scope "openid,email,profile,offline,offline_access" \
     --redirect-uri "${CALLBACK_HOST}/callback" \
     --format json
   )
   validateResponse "${client_output}"
   client_id=$(echo $client_output | jq -r '.client_id')
   client_secret=$(echo $client_output | jq -r '.client_secret')
-  echo "AUTH_FLOW_CLIENT_ID=$client_id" | tee .env.auth.hydra
-  echo "AUTH_FLOW_CLIENT_SECRET=$client_secret" | tee -a .env.auth.hydra
-  echo "$client_output"
+  echo "AUTH_FLOW_CLIENT_ID=$client_id"
+  echo "AUTH_FLOW_CLIENT_SECRET=$client_secret"
+  echo "$client_output" | jq '.'
 }
 
 
@@ -130,36 +130,9 @@ updateClient() {
 }
 getClient() {
   # _validateClientId
-  hydra get oauth2-client $CODE_CLIENT_ID --endpoint "${ISSUER_ADMIN}" --format json | jq '.'
+  # hydra get oauth2-client $CODE_CLIENT_ID --endpoint "${ISSUER_ADMIN}" --format json | jq '.'
   # _validateAuthClientId
   hydra get oauth2-client $AUTH_FLOW_CLIENT_ID --endpoint "${ISSUER_ADMIN}" --format json | jq '.'
-}
-
-createEnvFile() {
-  cat <<-EOF > /etc/hydra-headless-ts/.env
-HYDRA_ADMIN_URL=${ISSUER_ADMIN}
-HYDRA_URL=${ISSUER}
-POSTGRES_HOST=${HOST_IP}
-BASE_URL=${CALLBACK_HOST}
-URLS_SELF_ISSUER=${ISSUER}
-URLS_CONSENT=${CALLBACK_HOST}/consent
-URLS_LOGIN=${CALLBACK_HOST}/login
-BASE_URL=${CALLBACK_HOST}
-REDIRECT_URL=${CALLBACK_HOST}/callback
-NODE_ENV=development
-SERVE_COOKIES_DOMAIN=domain.tld
-SERVE_PUBLIC_CORS_ENABLED=false
-SERVE_ADMIN_CORS_ENABLED=false
-SERVE_PUBLIC_CORS_ALLOWED_ORIGINS="*"
-SERVE_ADMIN_CORS_ALLOWED_ORIGINS="*"
-DSN=postgres://hydra:${POSTGRES_PASSWORD}@postgres:5432/hydra?sslmode=disable
-SERVE_PUBLIC_CORS_ALLOWED_METHODS=POST,GET,PUT,DELETE
-SERVE_ADMIN_CORS_ALLOWED_METHODS=POST,GET,PUT,DELETE
-OAUTH2_EXPOSE_INTERNAL_ERRORS=true
-LOG_LEAK_SENSITIVE_VALUES=true
-LOG_LEVEL=info
-LOG_FORMAT=json
-EOF
 }
 
 $OPERATION "$@"
