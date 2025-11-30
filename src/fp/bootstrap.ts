@@ -4,13 +4,19 @@
  */
 import { Configuration } from '@ory/hydra-client-fetch'
 import { OAuth2Api } from '@ory/hydra-client-fetch/dist/index.js'
-import { Layer, Logger } from 'effect'
+import { Layer } from 'effect'
 import { OAuth2ApiServiceLive, type OAuth2ApiConfig } from '../api/oauth2.js'
+import { createLoggerLayer as createEffectLoggerLayer } from '../logging-effect.js'
 import { GoogleOAuthServiceLive } from './services/google.js'
 import { HydraServiceLive } from './services/hydra.js'
 import { JWTServiceLive } from './services/jwt.js'
 import { RedisServiceLive } from './services/redis.js'
 import type { Redis } from 'ioredis'
+
+/**
+ * Re-export createLoggerLayer for backwards compatibility
+ */
+export const createLoggerLayer = createEffectLoggerLayer
 
 /**
  * Configuration interface
@@ -26,11 +32,6 @@ export interface AppConfig {
 }
 
 /**
- * Create Logger Layer using Effect's built-in JSON logger
- */
-export const createLoggerLayer = () => Logger.json
-
-/**
  * Create the complete application service layer from existing infrastructure
  */
 export const createAppLayer = (
@@ -39,9 +40,11 @@ export const createAppLayer = (
   config: {
     googleClientId: string
     googleClientSecret: string
-    jwtSecret: string
     jwtIssuer: string
     jwtAudience: string
+    jwtProvider: 'hydra' | 'google'
+    hydraPublicUrl: string
+    hydraAdminUrl: string
   }
 ) => {
   const redisLayer = RedisServiceLive(redisClient)
@@ -50,12 +53,14 @@ export const createAppLayer = (
     clientSecret: config.googleClientSecret,
   })
   const jwtLayer = JWTServiceLive({
-    secret: config.jwtSecret,
+    provider: config.jwtProvider,
     issuer: config.jwtIssuer,
     audience: config.jwtAudience,
+    hydraPublicUrl: config.hydraPublicUrl,
+    hydraAdminUrl: config.hydraAdminUrl,
   })
   const oauth2ApiLayer = OAuth2ApiServiceLive(oauth2Config)
-  const loggerLayer = createLoggerLayer()
+  const loggerLayer = createEffectLoggerLayer()
 
   // Create legacy HydraService for routes that still use it
   const configuration = new Configuration({

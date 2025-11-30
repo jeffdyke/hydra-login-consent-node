@@ -32,6 +32,7 @@ export const appConfig = (() => {
     jwtSecret: config.security.jwtSecret,
     jwtIssuer: config.security.jwtIssuer,
     jwtAudience: config.security.jwtAudience,
+    jwtProvider: config.security.jwtProvider,
   }
 })()
 
@@ -69,8 +70,8 @@ export const PgStore = connectPgSimple(session)
 /**
  * Log loaded configuration (without secrets)
  */
-import jsonLogger from './logging.js'
-jsonLogger.info('Configuration loaded', {
+import { syncLogger } from './logging-effect.js'
+syncLogger.info('Configuration loaded', {
   environment: appConfig.environment,
   domain: appConfig.domain,
   port: appConfig.port,
