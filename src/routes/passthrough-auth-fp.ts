@@ -2,7 +2,7 @@
  * Functional OAuth2 token endpoint using Effect
  * This demonstrates the functional paradigm vs the imperative passthrough-auth.ts
  */
-import { Effect, pipe } from 'effect'
+import { Effect } from 'effect'
 import express from 'express'
 import {
   TokenRequestSchema,
@@ -224,7 +224,7 @@ export const createTokenHandler = (serviceLayer: Layer.Layer<RedisService | Goog
             has_access_token: !!result.right.access_token,
             has_refresh_token: !!result.right.refresh_token,
             scope: result.right.scope,
-            access_token_preview: result.right.access_token.substring(0, 50) + '...',
+            access_token_preview: `${result.right.access_token.substring(0, 50)}...`,
             grant_type: req.body?.grant_type,
             client_id: req.body?.client_id,
             timestamp: new Date().toISOString(),
