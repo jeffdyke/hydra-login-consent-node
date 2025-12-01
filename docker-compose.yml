@@ -25,10 +25,6 @@ services:
       options:
         tag: hydra
     command: serve all --dev --config /etc/hydra-headless-ts/hydra.yml
-    environment:
-      # If this changes and the application is using it, the database will need to be rebuilt
-      - SECRETS_SYSTEM=G6KaOf8aJsLagw566he8yxOTTO3tInKD
-      - DSN=postgres://hydra:my-super-secret-password@postgres:5432/hydra?sslmode=disable
     restart: unless-stopped
     volumes:
       - /var/log/hydra-headless-ts:/var/log/hydra-headless-ts
@@ -60,7 +56,7 @@ services:
   redis:
     image: redis
     ports:
-      - 16379:6379
+      - 6379:6379
     networks:
       - hydra-net
   headless-ts:

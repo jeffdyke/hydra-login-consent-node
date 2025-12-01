@@ -12,12 +12,6 @@ ISSUER_ADMIN=
 CALLBACK_HOST=
 POSTGRES_PASSWORD="my-super-secret-password"
 ENV_PATH=/etc/hydra-headless-ts
-HYDRA_AUTH_FILE="${ENV_PATH}/.env.auth.hydra"
-HYDRA_CODE_FILE="${ENV_PATH}/.env.code.hydra"
-GOOGLE_AUTH_FILE="${ENV_PATH}/.env.auth.google"
-
-[ ! -f "${HYDRA_AUTH_FILE}" ] && touch "${HYDRA_AUTH_FILE}"
-[ ! -f "${HYDRA_CODE_FILE}" ] && touch "${HYDRA_CODE_FILE}"
 
 # This script creates an OAuth2 client in Hydra and generates a .env file for the consent app.
 #TODO Add prod
@@ -33,6 +27,12 @@ elif [[ "$(hostname)" == "staging"* ]]; then
   ISSUER_ADMIN="http://${HOST_IP}:4445"
   CALLBACK_HOST="https://auth.staging.${COOKIE_DOMAIN}"
   ISSUER="https://${SERVER_NAME}"
+elif [[ "$(hostname)" == "prod"* ]]; then
+  SERVER_NAME="oauth.prod.bondlink.org"
+  HOST_IP=$(hostname -I | cut -d ' ' -f1)
+  ISSUER_ADMIN="http://${HOST_IP}:4445"
+  CALLBACK_HOST="https://oauth.prod.bondlink.org"
+  ISSUER="https://${SERVER_NAME}"
 fi
 
 declare -A CLIENT_CREDENTIALS_CONFIG
@@ -46,8 +46,8 @@ AUTH_FLOW_CONFIG[response-type]="code,id_token"
 AUTH_FLOW_CONFIG[token-endpoint-auth-method]="none"
 
 
-AUTH_FLOW_CLIENT_ID=$(grep AUTH_FLOW_CLIENT_ID ${HYDRA_AUTH_FILE} | cut -d '=' -f2 2>/dev/null) || ""
-CODE_CLIENT_ID=$(grep CODE_CLIENT_ID ${HYDRA_CODE_FILE} | cut -d '=' -f2 2>/dev/null) || ""
+AUTH_FLOW_CLIENT_ID=$(grep AUTH_FLOW_CLIENT_ID /etc/hydra-headless-ts/hydra.env | cut -d '=' -f2 2>/dev/null) || ""
+CODE_CLIENT_ID=$(grep CODE_CLIENT_ID /etc/hydra-headless-ts/hydra.env | cut -d '=' -f2 2>/dev/null) || ""
 
 authClient() {
   if [ -n "${AUTH_FLOW_CLIENT_ID}" ]; then
@@ -62,7 +62,7 @@ authClient() {
     --format json \
     --token-endpoint-auth-method none \
     --scope "openid,email,profile,offline,offline_access" \
-    --redirect-uri "${CALLBACK_HOST}/callback" \
+    --redirect-uri "${CALLBACK_HOST}/callback,https://claude.ai/api/mcp/auth_callback,http://localhost:6274/oauth/callback,http://localhost:6274/oauth/callback/debug,http://127.0.0.1:6274/oauth/callback" \
     --format json
   )
   validateResponse "${client_output}"
