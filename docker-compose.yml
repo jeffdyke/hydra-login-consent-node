@@ -62,7 +62,7 @@ services:
   headless-ts:
     image: jeffdyke/hydra-headless-ts:latest
     env_file:
-      - /etc/hydra-headless-ts/staging.env
+      - /etc/hydra-headless-ts/hydra.env
     ports:
       - "3000:3000"
     build:
