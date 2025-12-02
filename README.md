@@ -2,6 +2,22 @@
 
 This service implements a **headless OAuth2 login/consent provider** that bridges Ory Hydra (OAuth2 server with DCR) and Google OAuth (identity provider without DCR support).
 
+## TLDR
+
+This can be used as a connector in an AI Agent like Claude.ai that requires DCR, which Google doesn't support. The code uses Ory Hydra as
+a OpenID Connect provider and Google as the OAuth Provider, routing a single client_id to your Google endpoint and keeping all of the client information
+local in a PostGres DB, and using Redis for caching and sessions.
+
+The underlying code originated from https://github.com/ory/hydra-login-consent-node, yet was completely modified to be written in typescript and only
+the API calls.
+
+### TODO
+
+  Installation/documentation still depends on salt, which is fine if it can be dockerized
+  Assumption that OAuth provider is google needs to be removed
+  Likely More
+
+
 In words, I could not write myself:
 [Detailed breakdown of this OAuth2 flow](OAUTH2_ARCHITECTURE.md)
 
