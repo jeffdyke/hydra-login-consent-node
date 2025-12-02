@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # set -x
+# This has not been kept up to date, need better information for non salt based installs
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 SET_KEY="${1}"
 TMP_FILE=/tmp/set_hydra.yml

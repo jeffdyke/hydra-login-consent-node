@@ -19,6 +19,8 @@ const {
   getSessionIdentifier: (req) => {
     return req.session.id
   },
+  // CSRF protection is applied selectively to routes with forms (logout, device/verify)
+  // All other routes (including POST /) are not protected
 });
 
 function validatePKCE(verifier:string, challenge:string, challengeMethod:string) {

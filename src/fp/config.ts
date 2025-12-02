@@ -63,6 +63,13 @@ export interface GoogleOAuthConfig {
 }
 
 /**
+ * JWT Provider type
+ * - 'hydra': Sign JWTs with keys from Hydra's JWKS (default)
+ * - 'google': Sign JWTs with keys from Google's JWKS for MCP server compatibility
+ */
+export type JWTProvider = 'hydra' | 'google'
+
+/**
  * Security configuration
  */
 export interface SecurityConfig {
@@ -74,6 +81,10 @@ export interface SecurityConfig {
   readonly httpOnly: boolean
   readonly secure: boolean
   readonly mockTlsTermination: boolean
+  readonly jwtSecret: string
+  readonly jwtIssuer: string
+  readonly jwtAudience: string
+  readonly jwtProvider: JWTProvider
 }
 
 /**
@@ -265,7 +276,7 @@ const googleConfig = (
 /**
  * Security configuration
  */
-const securityConfig = (env: AppEnvironment, https: boolean): Config.Config<SecurityConfig> => {
+const securityConfig = (env: AppEnvironment, https: boolean, baseUrl: string): Config.Config<SecurityConfig> => {
   const isLocal = isLocalEnvironment(env)
 
   return Config.all({
@@ -285,6 +296,26 @@ const securityConfig = (env: AppEnvironment, https: boolean): Config.Config<Secu
     mockTlsTermination: Config.boolean('MOCK_TLS_TERMINATION').pipe(
       Config.withDefault(false)
     ),
+    jwtSecret: Config.string('JWT_SECRET').pipe(
+      Config.withDefault(
+        isLocal ? 'local-dev-jwt-secret-change-in-production' : 'CHANGE_ME_IN_PRODUCTION'
+      )
+    ),
+    jwtIssuer: Config.string('JWT_ISSUER').pipe(
+      Config.withDefault(baseUrl)
+    ),
+    jwtAudience: Config.string('JWT_AUDIENCE').pipe(
+      Config.withDefault(baseUrl)
+    ),
+    jwtProvider: pipe(
+      Config.string('JWT_PROVIDER'),
+      Config.withDefault('hydra' as JWTProvider),
+      Config.validate({
+        message: 'Invalid JWT_PROVIDER, must be: hydra or google',
+        validation: (value): value is JWTProvider =>
+          value === 'hydra' || value === 'google',
+      })
+    ),
   })
 }
 
@@ -302,7 +333,7 @@ export const appConfigEffect = Effect.gen(function* () {
   const redis = yield* redisConfig(env, domain)
   const database = yield* databaseConfig(env, domain)
   const google = yield* googleConfig(env, baseUrl)
-  const security = yield* securityConfig(env, https)
+  const security = yield* securityConfig(env, https, baseUrl)
 
   const dcrMasterClientId = yield* Config.string('DCR_MASTER_CLIENT_ID').pipe(
     Config.withDefault('')
@@ -361,6 +392,10 @@ export const constructUrl = (protocol: 'http' | 'https', host: string, port?: nu
   return `${protocol}://${host}:${port}`
 }
 
+export const getJWKSUrl = (config: AppConfig): string => {
+  const protocol = config.security.mockTlsTermination ? 'http' : 'https'
+  return `${constructUrl(protocol, config.domain.public, config.port)}/.well-known/jwks.json`
+}
 /**
  * Get Hydra public URL
  */

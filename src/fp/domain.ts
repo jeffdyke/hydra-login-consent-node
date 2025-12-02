@@ -28,7 +28,7 @@ export type PKCEState = typeof PKCEStateSchema.Type
  * Hydra Client
  */
 
-export const AllowedFlowScopes = Schema.Literal("email", "offline", "offline_access", "profile")
+export const AllowedFlowScopes = Schema.Literal("email", "offline_access", "profile", "openid")
 export const AllowedResponseTypes = Schema.Literal("code")
 
 
@@ -117,7 +117,37 @@ export const GoogleErrorResponseSchema = Schema.Struct({
 export type GoogleErrorResponse = typeof GoogleErrorResponseSchema.Type
 
 /**
- * Refresh Token Data stored in Redis
+ * Google Token Data stored in Redis (indexed by JTI)
+ * This stores the actual Google OAuth tokens we need to make API calls
+ */
+export const GoogleTokenDataSchema = Schema.Struct({
+  google_access_token: Schema.String,
+  google_refresh_token: Schema.String,
+  google_id_token: Schema.optional(Schema.String),
+  scope: Schema.String,
+  subject: Schema.String,
+  client_id: Schema.String,
+  expires_at: Schema.Number, // Unix timestamp when Google token expires
+  updated_at: Schema.Number,
+})
+export type GoogleTokenData = typeof GoogleTokenDataSchema.Type
+
+/**
+ * JWT Refresh Token Data stored in Redis (indexed by our refresh_token)
+ * This maps our refresh token to the JTI of the access token
+ */
+export const JWTRefreshDataSchema = Schema.Struct({
+  jti: Schema.String, // Current access token's JTI
+  client_id: Schema.String,
+  scope: Schema.String,
+  subject: Schema.String,
+  created_at: Schema.Number,
+})
+export type JWTRefreshData = typeof JWTRefreshDataSchema.Type
+
+/**
+ * Legacy Refresh Token Data stored in Redis (for backward compatibility)
+ * @deprecated Use GoogleTokenDataSchema and JWTRefreshDataSchema instead
  */
 export const RefreshTokenDataSchema = Schema.Struct({
   client_id: Schema.String,

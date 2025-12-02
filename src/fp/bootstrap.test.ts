@@ -3,13 +3,11 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { OAuth2ApiService } from '../api/oauth2.js'
 import {
   createAppLayer,
-  createLoggerAdapter,
   createLoggerLayer,
 } from './bootstrap.js'
 import { GoogleOAuthService } from './services/google.js'
 import { HydraService } from './services/hydra.js'
 import { RedisService } from './services/redis.js'
-import { Logger } from './services/token.js'
 import type { Redis } from 'ioredis'
 
 // Mock Redis client
@@ -23,70 +21,19 @@ const createMockRedis = (): Redis => {
   } as unknown as Redis
 }
 
-// Mock tslog logger
-const createMockTsLogger = () => ({
-  silly: vi.fn(),
-  info: vi.fn(),
-  error: vi.fn(),
-  warn: vi.fn(),
-  debug: vi.fn(),
-})
-
 describe('bootstrap', () => {
   let mockRedis: Redis
-  let mockTsLogger: ReturnType<typeof createMockTsLogger>
 
   beforeEach(() => {
     mockRedis = createMockRedis()
-    mockTsLogger = createMockTsLogger()
-  })
-
-  describe('createLoggerAdapter', () => {
-    it('should create logger adapter from tslog instance', async () => {
-      const adapter = createLoggerAdapter(mockTsLogger)
-
-      await Effect.runPromise(adapter.info('test message'))
-      expect(mockTsLogger.info).toHaveBeenCalledWith('test message', undefined)
-
-      await Effect.runPromise(adapter.error('error message', { code: 500 }))
-      expect(mockTsLogger.error).toHaveBeenCalledWith('error message', { code: 500 })
-
-      await Effect.runPromise(adapter.silly('silly message'))
-      expect(mockTsLogger.silly).toHaveBeenCalledWith('silly message', undefined)
-    })
-
-    it('should wrap logging operations in Effect', async () => {
-      const adapter = createLoggerAdapter(mockTsLogger)
-
-      const program = Effect.gen(function* () {
-        yield* adapter.info('Starting operation')
-        yield* adapter.error('Operation failed')
-        return 'done'
-      })
-
-      const result = await Effect.runPromise(program)
-      expect(result).toBe('done')
-      expect(mockTsLogger.info).toHaveBeenCalledTimes(1)
-      expect(mockTsLogger.error).toHaveBeenCalledTimes(1)
-    })
   })
 
   describe('createLoggerLayer', () => {
-    it('should create valid Logger Layer', async () => {
-      const loggerLayer = createLoggerLayer(mockTsLogger)
+    it('should create valid Logger Layer from Effect', async () => {
+      const loggerLayer = createLoggerLayer()
 
-      const program = Effect.gen(function* () {
-        const logger = yield* Logger
-        yield* logger.info('Test message from layer')
-        return 'success'
-      })
-
-      const result = await Effect.runPromise(
-        Effect.provide(program, loggerLayer)
-      )
-
-      expect(result).toBe('success')
-      expect(mockTsLogger.info).toHaveBeenCalledWith('Test message from layer', undefined)
+      // Logger.json is a layer that provides the default logger
+      expect(Layer.isLayer(loggerLayer)).toBe(true)
     })
   })
 
@@ -99,13 +46,17 @@ describe('bootstrap', () => {
     const mockGoogleConfig = {
       googleClientId: 'test-client-id',
       googleClientSecret: 'test-client-secret',
+      jwtIssuer: 'https://test-issuer.example.com',
+      jwtAudience: 'https://test-audience.example.com',
+      jwtProvider: 'hydra' as const,
+      hydraPublicUrl: 'https://hydra.test.example.com',
+      hydraAdminUrl: 'https://hydra.test.example.com',
     }
 
     it('should create complete app layer with all services', async () => {
       const appLayer = createAppLayer(
         mockRedis,
         mockOAuth2Config,
-        mockTsLogger,
         mockGoogleConfig
       )
 
@@ -117,7 +68,6 @@ describe('bootstrap', () => {
       const appLayer = createAppLayer(
         mockRedis,
         mockOAuth2Config,
-        mockTsLogger,
         mockGoogleConfig
       )
 
@@ -138,7 +88,6 @@ describe('bootstrap', () => {
       const appLayer = createAppLayer(
         mockRedis,
         mockOAuth2Config,
-        mockTsLogger,
         mockGoogleConfig
       )
 
@@ -158,7 +107,6 @@ describe('bootstrap', () => {
       const appLayer = createAppLayer(
         mockRedis,
         mockOAuth2Config,
-        mockTsLogger,
         mockGoogleConfig
       )
 
@@ -179,7 +127,6 @@ describe('bootstrap', () => {
       const appLayer = createAppLayer(
         mockRedis,
         mockOAuth2Config,
-        mockTsLogger,
         mockGoogleConfig
       )
 
@@ -195,31 +142,27 @@ describe('bootstrap', () => {
       expect(result.acceptLoginRequest).toBeDefined()
     })
 
-    it('should provide Logger in the layer', async () => {
+    it('should provide Logger layer that supports Effect logging', async () => {
       const appLayer = createAppLayer(
         mockRedis,
         mockOAuth2Config,
-        mockTsLogger,
         mockGoogleConfig
       )
 
       const program = Effect.gen(function* () {
-        const logger = yield* Logger
-        yield* logger.info('Integration test')
+        yield* Effect.logInfo('Integration test')
         return 'logged'
       })
 
       const result = await Effect.runPromise(Effect.provide(program, appLayer))
 
       expect(result).toBe('logged')
-      expect(mockTsLogger.info).toHaveBeenCalledWith('Integration test', undefined)
     })
 
     it('should allow services to work together', async () => {
       const appLayer = createAppLayer(
         mockRedis,
         mockOAuth2Config,
-        mockTsLogger,
         mockGoogleConfig
       )
 
@@ -228,12 +171,11 @@ describe('bootstrap', () => {
 
       const program = Effect.gen(function* () {
         const redis = yield* RedisService
-        const logger = yield* Logger
 
-        yield* logger.info('Storing data in Redis')
+        yield* Effect.logInfo('Storing data in Redis')
         yield* redis.set('integration-test', 'test-value')
 
-        yield* logger.info('Retrieving data from Redis')
+        yield* Effect.logInfo('Retrieving data from Redis')
         const value = yield* redis.get('integration-test')
 
         return value
@@ -241,7 +183,6 @@ describe('bootstrap', () => {
 
       const result = await Effect.runPromise(Effect.provide(program, appLayer))
 
-      expect(mockTsLogger.info).toHaveBeenCalledTimes(2)
       expect(mockRedis.set).toHaveBeenCalled()
       expect(mockRedis.get).toHaveBeenCalled()
     })
@@ -255,7 +196,6 @@ describe('bootstrap', () => {
       const appLayer = createAppLayer(
         mockRedis,
         customConfig,
-        mockTsLogger,
         mockGoogleConfig
       )
 
@@ -272,7 +212,6 @@ describe('bootstrap', () => {
       const appLayer = createAppLayer(
         mockRedis,
         mockOAuth2Config,
-        mockTsLogger,
         mockGoogleConfig
       )
 
@@ -281,7 +220,6 @@ describe('bootstrap', () => {
 
       const program = Effect.gen(function* () {
         const redis = yield* RedisService
-        const logger = yield* Logger
 
         // Run multiple operations concurrently
         const [getValue, setResult] = yield* Effect.all([
@@ -289,7 +227,7 @@ describe('bootstrap', () => {
           redis.set('key-2', 'value-2'),
         ])
 
-        yield* logger.info('Operations completed')
+        yield* Effect.logInfo('Operations completed')
 
         return { getValue, setResult }
       })
@@ -298,7 +236,6 @@ describe('bootstrap', () => {
 
       expect(result.getValue).toBe('value-1')
       expect(result.setResult).toBe('OK')
-      expect(mockTsLogger.info).toHaveBeenCalled()
     })
   })
 
@@ -307,10 +244,14 @@ describe('bootstrap', () => {
       const appLayer = createAppLayer(
         mockRedis,
         { basePath: 'https://hydra.example.com', headers: {} },
-        mockTsLogger,
         {
           googleClientId: 'client-id',
           googleClientSecret: 'client-secret',
+          jwtIssuer: 'https://test-issuer.example.com',
+          jwtAudience: 'https://test-audience.example.com',
+          jwtProvider: 'hydra' as const,
+          hydraPublicUrl: 'https://hydra.test.example.com',
+          hydraAdminUrl: 'https://hydra.test.example.com',
         }
       )
       class CustomServiceTag extends Context.Tag("CustomService")<
@@ -327,8 +268,7 @@ describe('bootstrap', () => {
 
       const program = Effect.gen(function* () {
         const redis = yield* RedisService
-        const logger = yield* Logger
-        return { redis, logger }
+        return { redis }
       })
 
       const result = await Effect.runPromise(
@@ -336,7 +276,6 @@ describe('bootstrap', () => {
       )
 
       expect(result.redis).toBeDefined()
-      expect(result.logger).toBeDefined()
     })
   })
 
@@ -345,10 +284,14 @@ describe('bootstrap', () => {
       const appLayer = createAppLayer(
         mockRedis,
         { basePath: 'https://hydra.example.com', headers: {} },
-        mockTsLogger,
         {
           googleClientId: 'client-id',
           googleClientSecret: 'client-secret',
+          jwtIssuer: 'https://test-issuer.example.com',
+          jwtAudience: 'https://test-audience.example.com',
+          jwtProvider: 'hydra' as const,
+          hydraPublicUrl: 'https://hydra.test.example.com',
+          hydraAdminUrl: 'https://hydra.test.example.com',
         }
       )
 

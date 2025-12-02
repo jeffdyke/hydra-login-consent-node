@@ -1,7 +1,8 @@
 
-import { Effect, pipe } from 'effect'
+import { Effect, pipe, Schema } from 'effect'
 import { OAuth2ApiService } from './api/oauth2.js'
 import { appConfig } from './config.js';
+import { HttpStatusError, type HttpError } from './fp/errors.js';
 import { validateCreateClient } from "./fp/validation.js";
 import type { OAuth2Client as OryOAuth2Client } from "@ory/client-fetch";
 
@@ -12,7 +13,7 @@ export const newClient = (
   const newClientIn = {
     client_name: clientName,
     grant_types: ["authorization_code", "refresh_token"],
-    scope: "openid email offline offline_access profile",
+    scope: "openid email profile offline offline_access profile",
     response_types: ["code"],
     redirect_uris: [`${appConfig.baseUrl}/callback`, "https://claude.ai/api/mcp_callback_auth"],
     token_endpoint_auth_method: "none"
@@ -29,7 +30,7 @@ export const getClient = (clientId:string) =>
   )
 export const safeGetClient = (
   clientId: string
-) => {
+): Effect.Effect<OryOAuth2Client, string | HttpError, OAuth2ApiService> => {
   return pipe(
     OAuth2ApiService,
     Effect.flatMap((api) => api.getClient(clientId)),

@@ -6,7 +6,6 @@ import { Effect } from 'effect'
 import { PKCEStateSchema } from '../domain.js'
 import { type AppError, GoogleAuthError } from '../errors.js'
 import { RedisService, createOAuthRedisOps } from './redis.js'
-import { Logger } from './token.js'
 import type { AuthCodeData } from '../domain.js';
 
 /**
@@ -70,31 +69,30 @@ export const processCallback = (
   pkceKey: string,
   googleClient: GoogleOAuthClient,
   config: CallbackConfig
-): Effect.Effect<string, AppError, RedisService | Logger> =>
+): Effect.Effect<string, AppError, RedisService> =>
   Effect.gen(function* () {
     // Access services
     const redis = yield* RedisService
-    const logger = yield* Effect.serviceOption(Logger)
 
     const redisOps = createOAuthRedisOps(redis)
 
-    if (logger._tag === 'Some') {
-      yield* logger.value.info('Processing OAuth callback', {
+    yield* Effect.logInfo('Processing OAuth callback').pipe(
+      Effect.annotateLogs({
         code: googleCode,
         returnedState,
         pkceKey,
       })
-    }
+    )
 
     // Step 1: Fetch PKCE data from Redis
     const pkceData = yield* redisOps.getPKCEState(pkceKey, PKCEStateSchema)
 
-    if (logger._tag === 'Some') {
-      yield* logger.value.info('PKCE data fetched', {
+    yield* Effect.logInfo('PKCE data fetched').pipe(
+      Effect.annotateLogs({
         state: pkceData.state,
         challenge: pkceData.code_challenge,
       })
-    }
+    )
 
     // Step 2: Exchange Google code for tokens
     const googleTokens = yield* exchangeGoogleCode(
@@ -130,9 +128,8 @@ export const processCallback = (
       subject: undefined, // Will be populated from user info if needed
     }
 
-    if (logger._tag === 'Some') {
-      yield* logger.value.info('Generated auth_code', { authCode })
-    }
+    yield* Effect.logInfo('AuthData').pipe(Effect.annotateLogs({ authData }))
+    yield* Effect.logInfo('Generated auth_code').pipe(Effect.annotateLogs({ authCode }))
 
     // Step 5: Store PKCE state and auth_code in Redis (sequential)
     yield* redisOps.setAuthCodeState(authCode, pkceData)
@@ -141,12 +138,10 @@ export const processCallback = (
     // Step 6: Delete PKCE session (cleanup) - catch errors to not fail the flow
     yield* Effect.catchAll(
       redisOps.deletePKCEState(pkceKey),
-      (err) => {
-        if (logger._tag === 'Some') {
-          return logger.value.error('Failed to delete PKCE session', { err, pkceKey })
-        }
-        return Effect.void
-      }
+      (err) =>
+        Effect.logError('Failed to delete PKCE session').pipe(
+          Effect.annotateLogs({ err, pkceKey })
+        )
     )
 
     // Step 7: Build redirect URL
@@ -154,11 +149,11 @@ export const processCallback = (
     ptCallback.searchParams.set('code', authCode)
     ptCallback.searchParams.set('state', pkceData.state)
 
-    if (logger._tag === 'Some') {
-      yield* logger.value.info('Callback complete, redirecting', {
+    yield* Effect.logInfo('Callback complete, redirecting').pipe(
+      Effect.annotateLogs({
         redirectUri: ptCallback.toString(),
       })
-    }
+    )
 
     return ptCallback.toString()
   })

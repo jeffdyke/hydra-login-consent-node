@@ -4,7 +4,6 @@
 import { Effect } from 'effect'
 import { type AppError } from '../errors.js'
 import { HydraService } from './hydra.js'
-import { Logger } from './token.js'
 
 /**
  * Process login request
@@ -13,24 +12,23 @@ import { Logger } from './token.js'
 export const processLogin = (
   challenge: string,
   subject: string
-): Effect.Effect<string, AppError, HydraService | Logger> =>
+): Effect.Effect<string, AppError, HydraService> =>
   Effect.gen(function* () {
     // Access services
     const hydra = yield* HydraService
-    const logger = yield* Effect.serviceOption(Logger)
 
-    if (logger._tag === 'Some') {
-      yield* logger.value.info('Processing login challenge', { challenge, subject })
-    }
+    yield* Effect.logInfo('Processing login challenge').pipe(
+      Effect.annotateLogs({ challenge, subject })
+    )
 
     // Get login request details
     const loginRequest = yield* hydra.getLoginRequest(challenge)
 
-    if (logger._tag === 'Some') {
-      yield* logger.value.info('Login request received', {
+    yield* Effect.logInfo('Login request received').pipe(
+      Effect.annotateLogs({
         clientId: loginRequest.client?.client_id,
       })
-    }
+    )
 
     // Accept login request
     const redirectTo = yield* hydra.acceptLoginRequest(challenge, {
@@ -40,11 +38,11 @@ export const processLogin = (
       acr: '0', // Authentication Context Class Reference
     })
 
-    if (logger._tag === 'Some') {
-      yield* logger.value.info('Login accepted, redirecting to', {
+    yield* Effect.logInfo('Login accepted, redirecting to').pipe(
+      Effect.annotateLogs({
         redirect_to: redirectTo.redirect_to,
       })
-    }
+    )
 
     return String(redirectTo.redirect_to)
   })

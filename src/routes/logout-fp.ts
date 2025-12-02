@@ -8,10 +8,9 @@ import express from 'express'
 import { appConfig } from '../config.js'
 import { type AppError } from '../fp/errors.js'
 import { getLogoutInfo, acceptLogout, rejectLogout } from '../fp/services/logout.js'
-import { generateCsrfToken } from '../setup/index.js'
+import { doubleCsrfProtection, generateCsrfToken } from '../setup/index.js'
 import { Logout } from '../views/index.js'
 import type { HydraService } from '../fp/services/hydra.js'
-import type { Logger } from '../fp/services/token.js'
 import type { Layer } from 'effect'
 
 const router = express.Router()
@@ -41,7 +40,7 @@ const mapErrorToHttp = (error: AppError): { status: number; message: string } =>
  * GET /logout - Display logout confirmation form
  */
 const createLogoutGetHandler = (
-  serviceLayer: Layer.Layer<HydraService | Logger>,
+  serviceLayer: Layer.Layer<HydraService>,
   config: LogoutConfig
 ) => {
   return async (
@@ -85,7 +84,7 @@ const createLogoutGetHandler = (
 /**
  * POST /logout - Accept or reject logout
  */
-const createLogoutPostHandler = (serviceLayer: Layer.Layer<HydraService | Logger>) => {
+const createLogoutPostHandler = (serviceLayer: Layer.Layer<HydraService>) => {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const challenge = req.body.challenge
     const submit = req.body.submit
@@ -135,11 +134,12 @@ const createLogoutPostHandler = (serviceLayer: Layer.Layer<HydraService | Logger
  * Create logout router with service layer
  */
 export const createLogoutRouter = (
-  serviceLayer: Layer.Layer<HydraService | Logger>,
+  serviceLayer: Layer.Layer<HydraService>,
   config: LogoutConfig
 ) => {
   router.get('/', createLogoutGetHandler(serviceLayer, config))
-  router.post('/', createLogoutPostHandler(serviceLayer))
+  // Apply CSRF protection to POST route (form submission)
+  router.post('/', doubleCsrfProtection, createLogoutPostHandler(serviceLayer))
   return router
 }
 
