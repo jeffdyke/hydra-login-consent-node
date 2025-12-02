@@ -28,7 +28,7 @@ const createHeadHandler = (serviceLayer: Layer.Layer<never>) => {
 
     await Effect.runPromise(Effect.either(program))
 
-    res.set('X-BondLink-Special', 'Head-Only-Value')
+    res.set('X-Hydra-Headless-Special', 'Head-Only-Value')
     res.status(200).end()
   }
 }
@@ -51,7 +51,7 @@ const createGetHandler = (serviceLayer: Layer.Layer<never>) => {
 
     await Effect.runPromise(Effect.either(program))
 
-    res.set('X-BondLink-Special', 'Head-Only-Value')
+    res.set('X-Hydra-Headless-Special', 'Head-Only-Value')
     res.status(200).end()
   }
 }
@@ -74,7 +74,7 @@ const createPostHandler = (serviceLayer: Layer.Layer<never>) => {
 
     await Effect.runPromise(Effect.either(program))
 
-    res.set('X-BondLink-Special', 'Head-Only-Value')
+    res.set('X-Hydra-Headless-Special', 'Head-Only-Value')
     res.status(200).end()
   }
 }
